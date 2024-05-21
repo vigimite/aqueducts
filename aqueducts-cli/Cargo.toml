@@ -1,6 +1,6 @@
 [package]
 name = "aqueducts-cli"
-authors = ["<michelevig@protonmai.com>"]
+authors = ["<michelevig@protonmail.com>"]
 edition = "2021"
 description = "CLI application to run pipelines defined for the aqueducts framework"
 homepage = "https://github.com/vigimite/aqueducts"

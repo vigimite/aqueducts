@@ -1,0 +1,58 @@
+name: Build & Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        crate:
+          - aqueducts/core
+          - aqueducts/utils
+          - aqueducts-cli
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Test ${{ matrix.crate }}
+        run: |
+          cd ${{ matrix.crate }}
+          cargo test --verbose
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        crate:
+          - aqueducts/core
+          - aqueducts/utils
+          - aqueducts-cli
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Build ${{ matrix.crate }} in release mode
+        run: |
+          cd ${{ matrix.crate }}
+          cargo build --release --verbose

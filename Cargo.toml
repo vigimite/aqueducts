@@ -7,7 +7,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-authors = ["<michelevig@protonmai.com>"]
+authors = ["<michelevig@protonmail.com>"]
 edition = "2021"
 description = "Framework to build ETL data pipelines declaratively"
 homepage = "https://github.com/vigimite/aqueducts"
