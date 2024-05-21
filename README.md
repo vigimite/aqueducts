@@ -1,6 +1,6 @@
-<img src="docs/aqueducts.png" width="200">
-
 # Aqueducts
+
+<img src="docs/aqueducts.png" width="200">
 
 Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 This framework builds on the fantastic work done by projects such as:
