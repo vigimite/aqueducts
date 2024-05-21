@@ -6,6 +6,10 @@ description.workspace = true
 repository.workspace = true
 readme.workspace = true
 version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license-file.workspace = true
 
 [features]
 default = []
@@ -18,6 +22,7 @@ deltalake.workspace = true
 url.workspace = true
 serde.workspace = true
 thiserror.workspace = true
+
 deltalake-aws = { version = "0.1", optional = true }
 deltalake-gcp = { version = "0.2", optional = true }
 deltalake-azure = { version = "0.1", optional = true }
