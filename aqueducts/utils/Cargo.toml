@@ -1,0 +1,23 @@
+[package]
+name = "aqueducts-utils"
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+
+[features]
+default = []
+s3 = ["dep:deltalake-aws"]
+gcs = ["dep:deltalake-gcp"]
+azure = ["dep:deltalake-azure"]
+
+[dependencies]
+deltalake.workspace = true
+url.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+deltalake-aws = { version = "0.1", optional = true }
+deltalake-gcp = { version = "0.2", optional = true }
+deltalake-azure = { version = "0.1", optional = true }

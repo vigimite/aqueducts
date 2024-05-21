@@ -1,0 +1,61 @@
+sources:
+  # Register a local file source containing temperature readings for various cities
+  - type: File
+    name: temp_readings
+    file_type:
+      type: Csv
+      options: {}
+    location: ./examples/temp_readings_${month}_${year}.csv # use templating functionality to parameterize the month and year
+
+  #Register a local file source containing a mapping between location_ids and location names
+  - type: File
+    name: locations
+    file_type:
+      type: Csv
+      options: {}
+    location: ./examples/location_dict.csv
+
+stages:
+  # Query to aggregate temperature data by date and location
+  - name: aggregated
+    query: >
+        SELECT
+          cast(timestamp as date) date,
+          location_id,
+          round(min(temperature_c),2) min_temp_c,
+          round(min(humidity),2) min_humidity,
+          round(max(temperature_c),2) max_temp_c,
+          round(max(humidity),2) max_humidity,
+          round(avg(temperature_c),2) avg_temp_c,
+          round(avg(humidity),2) avg_humidity
+        FROM temp_readings
+        GROUP by 1,2
+        ORDER by 1 asc
+    explain: true # print the query plan to stdout for debugging purposes
+
+  # Enrich aggregation with the location name
+  - name: enriched
+    query: >
+      SELECT
+        date,
+        location_name,
+        min_temp_c,
+        max_temp_c,
+        avg_temp_c,
+        min_humidity,
+        max_humidity,
+        avg_humidity
+      FROM aggregated
+      JOIN locations 
+        ON aggregated.location_id = locations.location_id
+      ORDER BY date, location_name
+    show: 10 # print 10 rows to stdout for debugging purposes
+
+# Write the pipeline result to a parquet file
+destination:
+  type: File
+  name: results
+  file_type:
+    type: Parquet
+    options: {}
+  location: ./examples/output_${month}_${year}.parquet

@@ -1,0 +1,37 @@
+[package]
+name = "aqueducts"
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+
+[features]
+default = []
+s3 = ["aqueducts-utils/s3"]
+gcs = ["aqueducts-utils/gcs"]
+azure = ["aqueducts-utils/azure"]
+
+[dependencies]
+datafusion = { workspace = true }
+object_store = { workspace = true }
+deltalake = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yml =  { workspace = true }
+
+thiserror = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+regex = { workspace = true }
+derive-new = { workspace = true }
+chrono = { workspace = true }
+
+aqueducts-utils = { path = "../utils" }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+rand = "0.8"
+tracing-test = "0.2"
