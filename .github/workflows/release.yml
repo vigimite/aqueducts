@@ -11,9 +11,11 @@ jobs:
 
     steps:
       - name: Checkout repository
+        if: github.ref == 'refs/heads/main'
         uses: actions/checkout@v4
 
-      - name: Cache cargo registry
+      - name: Cache target directory
+        if: github.ref == 'refs/heads/main'
         uses: actions/cache@v3
         with:
           path: |
@@ -21,23 +23,18 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.toml') }}
-
-      - name: Cache target directory release
-        uses: actions/cache@v3
-        with:
-          path: |
             target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Set up Rust
+        if: github.ref == 'refs/heads/main'
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
 
       - name: Publish aqueducts-utils
-        if: contains(github.ref, 'aqueduct-utils')
+        if: github.ref == 'refs/heads/main'
         run: |
           cd aqueducts/utils
           cargo publish
@@ -45,7 +42,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Publish aqueducts
-        if: contains(github.ref, 'aqueducts')
+        if: github.ref == 'refs/heads/main'
         run: |
           cd aqueducts/core
           cargo publish
@@ -53,7 +50,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Publish aqueducts-cli
-        if: contains(github.ref, 'aqueducts-cli')
+        if: github.ref == 'refs/heads/main'
         run: |
           cd aqueducts-cli
           cargo publish
