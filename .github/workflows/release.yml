@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Cache target directory release
+        uses: actions/cache@v3
+        with:
+          path: |
+            target/
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Publish aqueducts-utils
+        if: contains(github.ref, 'aqueduct-utils')
+        run: |
+          cd aqueducts/utils
+          cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish aqueducts
+        if: contains(github.ref, 'aqueducts')
+        run: |
+          cd aqueducts/core
+          cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish aqueducts-cli
+        if: contains(github.ref, 'aqueducts-cli')
+        run: |
+          cd aqueducts-cli
+          cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
