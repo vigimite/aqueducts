@@ -160,7 +160,7 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
     if let Some(destination) = &aqueduct.destination {
         let time = Instant::now();
 
-        create_destination(destination).await?;
+        create_destination(&ctx, destination).await?;
 
         info!(
             "Created destination ... Elapsed time: {:.2?}",

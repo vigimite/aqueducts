@@ -1,4 +1,5 @@
-use datafusion::dataframe::DataFrame;
+use aqueducts_utils::store::register_object_store;
+use datafusion::{dataframe::DataFrame, execution::context::SessionContext};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
 
@@ -26,8 +27,8 @@ impl Destination {
 }
 
 /// Creates a `Destination`
-#[instrument(skip(destination), err)]
-pub async fn create_destination(destination: &Destination) -> Result<()> {
+#[instrument(skip(ctx, destination), err)]
+pub async fn create_destination(ctx: &SessionContext, destination: &Destination) -> Result<()> {
     match destination {
         Destination::Delta(table_def) => {
             info!(
@@ -38,7 +39,10 @@ pub async fn create_destination(destination: &Destination) -> Result<()> {
             let _ = delta::create(table_def).await?;
             Ok(())
         }
-        Destination::File(_) => Ok(()),
+        Destination::File(file_dest) => {
+            register_object_store(ctx, &file_dest.location, &file_dest.storage_options)?;
+            Ok(())
+        }
     }
 }
 

@@ -22,6 +22,7 @@ pub struct DeltaDestination {
     pub location: Url,
 
     /// DeltaTable storage options
+    #[serde(default)]
     pub storage_options: HashMap<String, String>,
 
     /// DeltaTable table properties: https://docs.delta.io/latest/table-properties.html

@@ -27,6 +27,10 @@ pub struct FileDestination {
     /// Columns to partition table by
     #[serde(default)]
     pub partition_cols: Vec<String>,
+
+    /// Object store storage options
+    #[serde(default)]
+    pub storage_options: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,7 +65,8 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
 
             config
                 .parquet_options
-                .iter().try_for_each(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))?;
+                .iter()
+                .try_for_each(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))?;
 
             data.write_parquet(
                 file_def.location.as_str(),
@@ -121,6 +126,7 @@ mod tests {
             FileType::Csv(CsvDestinationOptions::new(Some(true), None)),
             true,
             vec![],
+            Default::default(),
         );
 
         // Insert records into table
@@ -176,6 +182,7 @@ mod tests {
             FileType::Parquet(ParquetDestinationOptions::default()),
             true,
             vec![],
+            Default::default(),
         );
 
         // Insert records into table
@@ -233,6 +240,7 @@ mod tests {
             FileType::Parquet(ParquetDestinationOptions::default()),
             false,
             vec!["year".into()],
+            Default::default(),
         );
 
         // Insert records into table
