@@ -59,10 +59,10 @@ mod destination_delta {
         // test
 
         // 1st run
-        let _ = run_pipeline(pipeline.clone(), None).await.unwrap();
+        run_pipeline(pipeline.clone(), None).await.unwrap();
 
         // 2nd run
-        let _ = run_pipeline(pipeline, None).await.unwrap();
+        run_pipeline(pipeline, None).await.unwrap();
 
         // assert
         let output_table =
@@ -105,10 +105,10 @@ mod destination_delta {
         // test
 
         // 1st run
-        let _ = run_pipeline(pipeline.clone(), None).await.unwrap();
+        run_pipeline(pipeline.clone(), None).await.unwrap();
 
         // 2nd run
-        let _ = run_pipeline(pipeline, None).await.unwrap();
+        run_pipeline(pipeline, None).await.unwrap();
 
         // assert
         let output_table =
@@ -173,10 +173,10 @@ mod destination_delta {
         // test
 
         // 1st run
-        let _ = run_pipeline(pipeline.clone(), None).await.unwrap();
+        run_pipeline(pipeline.clone(), None).await.unwrap();
 
         // 2nd run
-        let _ = run_pipeline(pipeline, None).await.unwrap();
+        run_pipeline(pipeline, None).await.unwrap();
 
         // assert
         let output_table =

@@ -219,7 +219,7 @@ fn calculate_ttl<'a>(
     stage_ttls: &'a mut HashMap<String, usize>,
     stage_name: &'a str,
     stage_pos: usize,
-    stages: &Vec<Stage>,
+    stages: &[Stage],
 ) -> Result<()> {
     let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\.|$)");
     let regex = Regex::new(stage_name_r.as_str())?;

@@ -143,7 +143,7 @@ mod tests {
         ])
         .unwrap();
         let df = ctx.read_batch(batch).unwrap();
-        let _ = write(&definition, df).await.unwrap();
+        write(&definition, df).await.unwrap();
 
         let df = ctx
             .read_csv(path.as_str(), CsvReadOptions::default())
@@ -199,7 +199,7 @@ mod tests {
         ])
         .unwrap();
         let df = ctx.read_batch(batch).unwrap();
-        let _ = write(&definition, df).await.unwrap();
+        write(&definition, df).await.unwrap();
 
         let df = ctx
             .read_parquet(path.as_str(), ParquetReadOptions::default())
@@ -261,7 +261,7 @@ mod tests {
         let df = ctx.read_batch(batch).unwrap();
 
         // Test
-        let _ = write(&definition, df).await.unwrap();
+        write(&definition, df).await.unwrap();
 
         // Assert
         let session_state = ctx.state();
