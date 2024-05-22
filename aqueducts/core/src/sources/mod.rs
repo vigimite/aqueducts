@@ -225,9 +225,7 @@ async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Res
                 .infer_schema(&session_state, &listing_table_url)
                 .await?;
 
-            let schema = schema
-                .map(Arc::new)
-                .unwrap_or(resolved_schema);
+            let schema = schema.map(Arc::new).unwrap_or(resolved_schema);
 
             ListingTableConfig::new(listing_table_url)
                 .with_listing_options(listing_options)
@@ -249,9 +247,7 @@ async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Res
                 .infer_schema(&session_state, &listing_table_url)
                 .await?;
 
-            let schema = schema
-                .map(Arc::new)
-                .unwrap_or(resolved_schema);
+            let schema = schema.map(Arc::new).unwrap_or(resolved_schema);
 
             ListingTableConfig::new(listing_table_url)
                 .with_listing_options(listing_options)
