@@ -72,8 +72,10 @@ pub mod serde {
 
 /// object store handlers
 pub mod store {
-    use deltalake::{datafusion::prelude::SessionContext, DeltaTableError};
-    use std::sync::Arc;
+    use deltalake::{
+        datafusion::prelude::SessionContext, storage::StorageOptions, DeltaTableError,
+    };
+    use std::{collections::HashMap, sync::Arc};
     use url::Url;
 
     /// register deltalake object store handlers
@@ -98,17 +100,25 @@ pub mod store {
     pub fn register_object_store(
         ctx: &SessionContext,
         location: &Url,
+        storage_options: &HashMap<String, String>,
     ) -> Result<(), DeltaTableError> {
         if location.scheme() == "file" || location.scheme() == "memory" {
             return Ok(());
         }
 
-        let store = deltalake::storage::store_for(location)?;
+        let scheme = Url::parse(&format!("{}://", location.scheme())).unwrap();
+        if let Some(factory) = deltalake::storage::factories().get(&scheme) {
+            let (store, _prefix) =
+                factory.parse_url_opts(location, &StorageOptions(storage_options.clone()))?;
+            let _ = ctx
+                .runtime_env()
+                .register_object_store(location, Arc::new(store));
 
-        let _ = ctx
-            .runtime_env()
-            .register_object_store(location, Arc::new(store));
-
-        Ok(())
+            Ok(())
+        } else {
+            Err(DeltaTableError::InvalidTableLocation(
+                location.clone().into(),
+            ))
+        }
     }
 }

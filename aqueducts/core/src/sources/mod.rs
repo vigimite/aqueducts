@@ -60,6 +60,8 @@ pub struct FileSource {
     pub file_type: FileType,
     #[serde(deserialize_with = "deserialize_file_location")]
     pub location: Url,
+    #[serde(default)]
+    pub storage_options: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
@@ -70,6 +72,8 @@ pub struct DirSource {
     pub partition_cols: Vec<(String, DataType)>,
     #[serde(deserialize_with = "deserialize_file_location")]
     pub location: Url,
+    #[serde(default)]
+    pub storage_options: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -95,8 +99,7 @@ pub struct CsvSourceOptions {
 /// Supports Delta tables, Parquet files and Csv Files
 #[instrument(skip(ctx, source), err)]
 pub async fn register_source(ctx: &SessionContext, source: Source) -> Result<()> {
-    let _ = register_object_store(ctx, source.location());
-    let _ = match source {
+    match source {
         Source::Delta(delta_source) => {
             info!(
                 "Registering delta source '{}' at location '{}'",
@@ -145,6 +148,9 @@ async fn register_delta_source(ctx: &SessionContext, delta_source: DeltaSource) 
 }
 
 async fn register_file_source(ctx: &SessionContext, file_source: FileSource) -> Result<()> {
+    // register the object store for this source
+    register_object_store(ctx, &file_source.location, &file_source.storage_options)?;
+
     let _ = match file_source.file_type {
         FileType::Parquet(ParquetSourceOptions {
             schema: Some(schema),
@@ -204,6 +210,9 @@ async fn register_file_source(ctx: &SessionContext, file_source: FileSource) -> 
 }
 
 async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Result<()> {
+    // register the object store for this source
+    register_object_store(ctx, &dir_source.location, &dir_source.storage_options)?;
+
     let session_state = ctx.state();
 
     let listing_table_url = ListingTableUrl::parse(dir_source.location)?;
