@@ -57,7 +57,7 @@ pub async fn write_to_destination(destination: &Destination, data: DataFrame) ->
         }
         Destination::File(file_def) => {
             info!("Writing data to file at location '{}'", file_def.location);
-            let _ = file::write(file_def, data).await?;
+            file::write(file_def, data).await?;
 
             Ok(())
         }

@@ -35,9 +35,7 @@ pub mod serde {
                     .or(buf.contains('\\').then_some('\\'))
                     .and_then(|split_char| buf.as_str().rsplit_once(split_char))
                     .ok_or_else(|| {
-                        serde::de::Error::custom(format!(
-                            "relative paths cannot only contain the file name"
-                        ))
+                        serde::de::Error::custom("relative paths cannot only contain the file name".to_string())
                     })?;
 
                 // file might not exist in the output case

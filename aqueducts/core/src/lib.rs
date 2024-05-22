@@ -76,7 +76,7 @@ impl Aqueduct {
     fn subsitute_params(raw: String, params: HashMap<String, String>) -> Result<String> {
         let mut definition = raw;
 
-        let _ = params.into_iter().for_each(|(name, value)| {
+        params.into_iter().for_each(|(name, value)| {
             let template = format!("${{{name}}}");
             definition = definition.replace(template.as_str(), value.as_str());
         });
@@ -108,7 +108,7 @@ impl Aqueduct {
 }
 
 /// Builder for an Aqueduct pipeline
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, derive_new::new)]
 pub struct AqueductBuilder {
     sources: Vec<Source>,
     stages: Vec<Stage>,
@@ -140,16 +140,6 @@ impl AqueductBuilder {
     }
 }
 
-impl Default for AqueductBuilder {
-    fn default() -> Self {
-        Self {
-            sources: vec![],
-            stages: vec![],
-            destination: None,
-        }
-    }
-}
-
 /// Register handlers for the object stores enabled by the selected feature flags (s3, gcs, azure)
 /// Stores can alternatively be provided by a custom context passed to `run_pipeline`
 #[instrument()]
@@ -162,7 +152,7 @@ pub fn register_handlers() {
 pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Result<()> {
     let mut stage_ttls: HashMap<String, usize> = HashMap::new();
 
-    let ctx = ctx.unwrap_or_else(|| SessionContext::new());
+    let ctx = ctx.unwrap_or_default();
     let start_time = Instant::now();
 
     info!("Running Aqueduct ...");
@@ -170,7 +160,7 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
     if let Some(destination) = &aqueduct.destination {
         let time = Instant::now();
 
-        let _ = create_destination(destination).await?;
+        create_destination(destination).await?;
 
         info!(
             "Created destination ... Elapsed time: {:.2?}",
@@ -181,7 +171,7 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
     for (pos, source) in aqueduct.sources.iter().enumerate() {
         let time = Instant::now();
 
-        let _ = register_source(&ctx, source.clone()).await?;
+        register_source(&ctx, source.clone()).await?;
 
         info!(
             "Registered source #{pos} ... Elapsed time: {:.2?}",
@@ -192,9 +182,9 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
     for (pos, stage) in aqueduct.stages.iter().enumerate() {
         let time = Instant::now();
 
-        let _ = calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, &aqueduct.stages)?;
-        let _ = process_stage(&ctx, stage.clone()).await?;
-        let _ = deregister_stages(&ctx, &stage_ttls, pos)?;
+        calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, &aqueduct.stages)?;
+        process_stage(&ctx, stage.clone()).await?;
+        deregister_stages(&ctx, &stage_ttls, pos)?;
 
         info!(
             "Finished processing stage #{pos} ... Elapsed time: {:.2?}",
@@ -206,7 +196,7 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         let time = Instant::now();
 
         let df = ctx.table(last_stage.name.as_str()).await?;
-        let _ = write_to_destination(destination, df).await?;
+        write_to_destination(destination, df).await?;
 
         info!(
             "Finished writing to destination ... Elapsed time: {:.2?}",
@@ -235,7 +225,7 @@ fn calculate_ttl<'a>(
     let regex = Regex::new(stage_name_r.as_str())?;
 
     let ttl = stages
-        .into_iter()
+        .iter()
         .enumerate()
         .skip(stage_pos + 1)
         .filter_map(|(forward_pos, f)| {
@@ -263,17 +253,14 @@ fn deregister_stages(
     ttls: &HashMap<String, usize>,
     current_pos: usize,
 ) -> Result<()> {
-    let _ = ttls
-        .into_iter()
-        .map(|(table, ttl)| {
-            if *ttl == current_pos {
-                debug!("Deregistering table {table}, current_pos {current_pos}, ttl {ttl}");
-                ctx.deregister_table(table).map(|_| ())
-            } else {
-                Ok(())
-            }
-        })
-        .collect::<std::result::Result<(), _>>()?;
+    ttls.iter().try_for_each(|(table, ttl)| {
+        if *ttl == current_pos {
+            debug!("Deregistering table {table}, current_pos {current_pos}, ttl {ttl}");
+            ctx.deregister_table(table).map(|_| ())
+        } else {
+            Ok(())
+        }
+    })?;
 
     Ok(())
 }

@@ -166,7 +166,7 @@ async fn merge(
         .iter()
         .filter_map(|column| {
             let column_name = column.name();
-            if let true = merge_cols.contains(column_name) {
+            if merge_cols.contains(column_name) {
                 None
             } else {
                 Some(column_name.clone())

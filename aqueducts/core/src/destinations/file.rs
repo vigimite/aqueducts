@@ -1,7 +1,6 @@
 use aqueducts_utils::serde::deserialize_file_location;
 use datafusion::config::{ConfigField, CsvOptions, TableParquetOptions};
 use datafusion::dataframe::DataFrameWriteOptions;
-use datafusion::error::DataFusionError;
 use datafusion::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -62,9 +61,7 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
 
             config
                 .parquet_options
-                .iter()
-                .map(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))
-                .collect::<core::result::Result<(), DataFusionError>>()?;
+                .iter().try_for_each(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))?;
 
             data.write_parquet(
                 file_def.location.as_str(),

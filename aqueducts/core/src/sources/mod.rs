@@ -151,7 +151,7 @@ async fn register_file_source(ctx: &SessionContext, file_source: FileSource) -> 
     // register the object store for this source
     register_object_store(ctx, &file_source.location, &file_source.storage_options)?;
 
-    let _ = match file_source.file_type {
+    match file_source.file_type {
         FileType::Parquet(ParquetSourceOptions {
             schema: Some(schema),
         }) => {
@@ -226,7 +226,7 @@ async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Res
                 .await?;
 
             let schema = schema
-                .map(|schema| Arc::new(schema))
+                .map(Arc::new)
                 .unwrap_or(resolved_schema);
 
             ListingTableConfig::new(listing_table_url)
@@ -250,7 +250,7 @@ async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Res
                 .await?;
 
             let schema = schema
-                .map(|schema| Arc::new(schema))
+                .map(Arc::new)
                 .unwrap_or(resolved_schema);
 
             ListingTableConfig::new(listing_table_url)
