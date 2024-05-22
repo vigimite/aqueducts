@@ -32,13 +32,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_target(false)
         .init();
 
-    let _ = aqueducts::register_handlers();
+    aqueducts::register_handlers();
 
     let Args { file, params } = Args::parse();
     let params = HashMap::from_iter(params.unwrap_or_default());
     let aqueduct = Aqueduct::try_from_yml(file, params)?;
 
-    let _ = run_pipeline(aqueduct, None).await?;
+    run_pipeline(aqueduct, None).await?;
 
     Ok(())
 }
