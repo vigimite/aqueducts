@@ -24,24 +24,7 @@ pub enum Source {
     Delta(DeltaSource),
     File(FileSource),
     Directory(DirSource),
-}
-
-impl Source {
-    pub fn name(&self) -> &str {
-        match self {
-            Source::Delta(delta) => delta.name.as_str(),
-            Source::File(file) => file.name.as_str(),
-            Source::Directory(dir) => dir.name.as_str(),
-        }
-    }
-
-    pub fn location(&self) -> &Url {
-        match self {
-            Source::Delta(delta) => &delta.location,
-            Source::File(file) => &file.location,
-            Source::Directory(dir) => &dir.location,
-        }
-    }
+    Odbc(OdbcSource),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
@@ -74,6 +57,13 @@ pub struct DirSource {
     pub location: Url,
     #[serde(default)]
     pub storage_options: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+pub struct OdbcSource {
+    pub name: String,
+    pub query: String,
+    pub connection_string: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,6 +113,24 @@ pub async fn register_source(ctx: &SessionContext, source: Source) -> Result<()>
             );
 
             register_dir_source(ctx, dir_source).await?
+        }
+        #[cfg(any(feature = "odbc", rust_analyzer))]
+        Source::Odbc(odbc_source) if cfg!(feature = "odbc") => {
+            info!(
+                "Registering ODBC source '{}' using query '{}'",
+                odbc_source.name, odbc_source.query
+            );
+
+            aqueducts_utils::odbc::register_odbc_source(
+                ctx,
+                odbc_source.connection_string.as_str(),
+                odbc_source.query.as_str(),
+                odbc_source.name.as_str(),
+            )
+            .await?
+        }
+        Source::Odbc(_) => {
+            return Err(error::Error::OdbcFeatureDisabled);
         }
     };
 

@@ -25,7 +25,7 @@ pub struct DeltaDestination {
     #[serde(default)]
     pub storage_options: HashMap<String, String>,
 
-    /// DeltaTable table properties: https://docs.delta.io/latest/table-properties.html
+    /// DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>
     pub table_properties: HashMap<String, Option<String>>,
 
     /// Columns that will be used to determine uniquness during merge operation
