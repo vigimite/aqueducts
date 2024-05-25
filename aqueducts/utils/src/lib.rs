@@ -122,3 +122,122 @@ pub mod store {
         }
     }
 }
+
+/// odbc functionality
+#[cfg(any(feature = "odbc", rust_analyzer))]
+pub mod odbc {
+    use std::sync::Arc;
+
+    use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
+    use arrow_odbc::OdbcReaderBuilder;
+    use datafusion::arrow::datatypes::Schema;
+    use datafusion::arrow::{array::RecordBatch, error::ArrowError};
+    use datafusion::execution::context::SessionContext;
+
+    /// Register a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
+    /// ```rust,ignore
+    /// use datafusion::prelude::SessionContext;
+    /// use arrow_odbc::odbc_api::ConnectionOptions;
+    ///
+    /// let connection_string: &str = "\
+    ///     Driver={PostgreSQL Unicode};\
+    ///     Server=localhost;\
+    ///     UID=postgres;\
+    ///     PWD=postgres;\
+    /// ";
+    ///
+    /// // query to request data from the ODBC source
+    /// // make sure to constrain this query to a dataset that is manageble in memory
+    /// let query = "SELECT * FROM my_table WHERE date > '2024-01-01'";
+    ///
+    /// let ctx = SessionContext::new();
+    ///
+    /// register_odbc_source(&ctx, query, connection_string, "my_table_name").await.unwrap();
+    ///
+    /// let df = ctx.sql("SELECT * FROM my_table_name").await.unwrap();
+    /// df.show().await.unwrap();
+    /// ```
+    pub async fn register_odbc_source(
+        ctx: &SessionContext,
+        connection_string: &str,
+        query: &str,
+        source_name: &str,
+    ) -> Result<(), ArrowError> {
+        let odbc_environment = Environment::new().unwrap();
+
+        let connection = odbc_environment
+            .connect_with_connection_string(connection_string, ConnectionOptions::default())
+            .expect("failed to connect to ODBC source");
+
+        let parameters = ();
+
+        let cursor = connection
+            .execute(query, parameters)
+            .expect("failed to execute SQL statement statement")
+            .expect("SELECT statement must produce a cursor");
+
+        let reader = OdbcReaderBuilder::new()
+            .with_max_bytes_per_batch(256 * 1024 * 1024)
+            .build(cursor)
+            .expect("failed to build OdbcReaderBuilder");
+
+        let batches = reader
+            .into_iter()
+            .collect::<Result<Vec<RecordBatch>, ArrowError>>()?;
+
+        let df = ctx.read_batches(batches)?;
+        let schema: Arc<Schema> = Arc::new(df.schema().into());
+        let batch = deltalake::arrow::compute::concat_batches(&schema, df.collect().await?.iter())?;
+
+        ctx.register_batch(source_name, batch)?;
+
+        Ok(())
+    }
+}
+
+#[cfg(all(test, feature = "odbc"))]
+mod odbc_tests {
+    use super::odbc::*;
+    use datafusion::{assert_batches_eq, prelude::*};
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_register_odbc_source_ok() {
+        let connection_string: &str = "\
+            Driver={PostgreSQL Unicode};\
+            Server=localhost;\
+            UID=postgres;\
+            PWD=postgres;\
+        ";
+
+        let ctx = SessionContext::new();
+
+        register_odbc_source(
+            &ctx,
+            connection_string,
+            "SELECT * FROM temp_readings WHERE timestamp::date BETWEEN '2024-01-01' AND '2024-01-31'",
+            "my_table",
+        )
+        .await
+        .unwrap();
+
+        let result = ctx
+            .sql("SELECT count(*) num_rows FROM my_table")
+            .await
+            .unwrap()
+            .collect()
+            .await
+            .unwrap();
+
+        assert_batches_eq!(
+            &[
+                "+----------+",
+                "| num_rows |",
+                "+----------+",
+                "| 1000     |",
+                "+----------+",
+            ],
+            result.as_slice()
+        );
+    }
+}

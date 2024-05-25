@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:15
+    restart: no
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./examples/temp_readings_jan_2024.csv:/data/temp_readings_jan_2024.csv
+      - ./examples/temp_readings_feb_2024.csv:/data/temp_readings_feb_2024.csv

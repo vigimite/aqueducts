@@ -16,6 +16,7 @@ default = []
 s3 = ["aqueducts-utils/s3"]
 gcs = ["aqueducts-utils/gcs"]
 azure = ["aqueducts-utils/azure"]
+odbc = ["aqueducts-utils/odbc"]
 
 [dependencies]
 datafusion.workspace = true
