@@ -178,7 +178,7 @@ This can be provided by an external `SessionContext` passed into the `run_pipeli
 An Aqueduct stage defines a transformation using SQL. Each stage has access to all defined sources and to every previously executed stage within the SQL context using the respectively configured names.
 Once executed the stage will then persist its result into the SQL context making it accessible to downstream consumers.
 
-The stage can be set to print the result and/or the result schema to the `stdout`. This is usefull for development/debugging purposes.
+The stage can be set to print the result and/or the result schema to the `stdout`. This is useful for development/debugging purposes.
 
 ### Destination
 
