@@ -11,8 +11,15 @@ keywords = ["aqueducts", "ETL", "data", "pipeline", "cli"]
 categories = ["command-line-utilities"]
 license-file = "../LICENSE"
 
+[features]
+default = ["s3", "gcs", "azure"]
+s3 = ["aqueducts/s3"]
+gcs = ["aqueducts/gcs"]
+azure = ["aqueducts/azure"]
+odbc = ["aqueducts/odbc"]
+
 [dependencies]
-aqueducts = { path = "../aqueducts/core", version = "0.2", features = ["s3", "gcs", "azure", "odbc"] }
+aqueducts = { path = "../aqueducts/core", version = "0.2" }
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
