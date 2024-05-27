@@ -1,0 +1,24 @@
+# Dependabot config
+
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    target-branch: main
+    labels: [auto-dependencies]
+  - package-ecosystem: cargo
+    directory: "aqueducts-cli/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    target-branch: main
+    labels: [auto-dependencies]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels: [auto-dependencies]
