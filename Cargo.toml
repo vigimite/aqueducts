@@ -23,7 +23,7 @@ aqueducts = { path = "aqueducts/core", version = "0.2.2" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.2.2" }
 
 datafusion = "37"
-object_store = "0.9"
+object_store = "0.10"
 deltalake = { version = "0.17.3", features = ["datafusion"] }
 
 serde = { version = "1", features = ["derive"] }
