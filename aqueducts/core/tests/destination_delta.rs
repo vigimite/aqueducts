@@ -25,6 +25,24 @@ mod destination_delta {
     }
 
     #[test]
+    fn test_try_from_yml_str_ok() {
+        let local_path = Path::new("../../")
+            .canonicalize()
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        let params = HashMap::from_iter(vec![
+            ("local_path".into(), format!("file:///{local_path}")),
+            ("run_id".into(), "12345678".into()),
+        ]);
+        let contents =
+            std::fs::read_to_string("../../examples/aqueduct_pipeline_example.yml").unwrap();
+
+        Aqueduct::try_from_yml_str(contents.as_str(), params).unwrap();
+    }
+
+    #[test]
     fn test_try_from_json_ok() {
         let params = HashMap::from_iter(vec![
             ("local_path".into(), "file:///path1".into()),
@@ -33,6 +51,24 @@ mod destination_delta {
         ]);
 
         Aqueduct::try_from_json("../../examples/aqueduct_pipeline_example.json", params).unwrap();
+    }
+
+    #[test]
+    fn test_try_from_json_str_ok() {
+        let local_path = Path::new("../../")
+            .canonicalize()
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        let params = HashMap::from_iter(vec![
+            ("local_path".into(), format!("file:///{local_path}")),
+            ("run_id".into(), "12345678".into()),
+        ]);
+        let contents =
+            std::fs::read_to_string("../../examples/aqueduct_pipeline_example.json").unwrap();
+
+        Aqueduct::try_from_json_str(contents.as_str(), params).unwrap();
     }
 
     #[tokio::test]

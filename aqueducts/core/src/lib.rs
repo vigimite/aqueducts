@@ -36,7 +36,7 @@ pub struct Aqueduct {
     /// A sequential list of transformations to execute within the context of this pipeline
     pub stages: Vec<Stage>,
 
-    /// Destiantion for the final step of the `Aqueduct`
+    /// Destination for the final step of the `Aqueduct`
     /// takes the last stage as input for the write operation
     pub destination: Option<Destination>,
 }
@@ -48,33 +48,51 @@ impl Aqueduct {
     }
 
     /// Load an Aqueduct table definition from a local fs path containing a json file
-    /// Provided params will be subsituted throughout the file (format: `${param}`) with the corresponding value
+    /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
     pub fn try_from_json<P>(path: P, params: HashMap<String, String>) -> Result<Self>
     where
         P: AsRef<Path>,
     {
         let raw = std::fs::read_to_string(path)?;
-        let definition = Self::subsitute_params(raw, params)?;
+        let definition = Self::substitute_params(&raw, params)?;
         let aqueduct = serde_json::from_str::<Aqueduct>(definition.as_str())?;
 
         Ok(aqueduct)
     }
 
     /// Load an Aqueduct table definition from a local fs path containing a yaml configuration file
-    /// Provided params will be subsituted throughout the file (format: `${param}`) with the corresponding value
+    /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
     pub fn try_from_yml<P>(path: P, params: HashMap<String, String>) -> Result<Self>
     where
         P: AsRef<Path>,
     {
         let raw = std::fs::read_to_string(path)?;
-        let definition = Self::subsitute_params(raw, params)?;
+        let definition = Self::substitute_params(&raw, params)?;
         let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
 
         Ok(aqueduct)
     }
 
-    fn subsitute_params(raw: String, params: HashMap<String, String>) -> Result<String> {
-        let mut definition = raw;
+    /// Load an Aqueduct table definition from a &str containing a json configuration file
+    /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    pub fn try_from_json_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
+        let definition = Self::substitute_params(contents, params)?;
+        let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
+
+        Ok(aqueduct)
+    }
+
+    /// Load an Aqueduct table definition from a &str containing a yaml configuration file
+    /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    pub fn try_from_yml_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
+        let definition = Self::substitute_params(contents, params)?;
+        let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
+
+        Ok(aqueduct)
+    }
+
+    fn substitute_params(raw: &str, params: HashMap<String, String>) -> Result<String> {
+        let mut definition = raw.to_string();
 
         params.into_iter().for_each(|(name, value)| {
             let template = format!("${{{name}}}");
