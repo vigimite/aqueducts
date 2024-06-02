@@ -38,7 +38,7 @@ jobs:
             mkdocs-material-
 
       - name: Install dependencies
-        run: pip install mkdocs-material
+        run: pip install "mkdocs-material[imaging]"
 
       - name: Deploy
         run: mkdocs gh-deploy --force
