@@ -1,6 +1,6 @@
 # Aqueducts CLI
 
-Example CLI application utilizing the [Aqueducts](../) framework to run ETL pipelines declared in YAML.
+Example CLI application utilizing the Aqueducts framework to run ETL pipelines declared in YAML.
 
 ## Install
 
