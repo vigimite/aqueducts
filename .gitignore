@@ -4,3 +4,6 @@ Cargo.lock
 /aqueducts-cli/target
 /examples/output*
 /aqueducts/core/tests/output/**
+.venv
+site/
+.cache/
