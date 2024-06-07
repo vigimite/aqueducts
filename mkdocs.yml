@@ -15,6 +15,8 @@ theme:
   language: en
   name: material
   logo: assets/logo.png
+  icon: 
+    repo: fontawesome/brands/github
   favicon: assets/favicon.ico
   palette:
     # Palette toggle for automatic mode

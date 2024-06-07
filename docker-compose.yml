@@ -4,7 +4,7 @@ services:
 
   db:
     image: postgres:15
-    restart: no
+    restart: "no"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
