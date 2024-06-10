@@ -1,5 +1,6 @@
 use datafusion::execution::context::SessionContext;
 use regex::Regex;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, sync::OnceLock, time::Instant};
 use tracing::{debug, error, info, instrument, warn};
@@ -28,7 +29,7 @@ pub type Result<T> = core::result::Result<T, error::Error>;
 static PARAM_REGEX: OnceLock<Regex> = OnceLock::new();
 
 /// Definition for an `Aqueduct` data pipeline
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, JsonSchema)]
 pub struct Aqueduct {
     /// Definition of the data sources for this pipeline
     pub sources: Vec<Source>,

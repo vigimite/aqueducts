@@ -1,0 +1,619 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Aqueduct",
+  "description": "Definition for an `Aqueduct` data pipeline",
+  "type": "object",
+  "required": [
+    "sources",
+    "stages"
+  ],
+  "properties": {
+    "sources": {
+      "description": "Definition of the data sources for this pipeline",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Source"
+      }
+    },
+    "stages": {
+      "description": "A sequential list of transformations to execute within the context of this pipeline",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Stage"
+      }
+    },
+    "destination": {
+      "description": "Destination for the final step of the `Aqueduct` takes the last stage as input for the write operation",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Destination"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Source": {
+      "description": "A data source that can be either a delta table (`delta`), a `file`, a `directory` or an `odbc` connection",
+      "oneOf": [
+        {
+          "description": "A delta table source",
+          "type": "object",
+          "required": [
+            "location",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Delta"
+              ]
+            },
+            "name": {
+              "description": "Name of the delta source, will be the registered table name in the SQL context",
+              "type": "string"
+            },
+            "location": {
+              "description": "A URL or Path to the location of the delta table Supports relative local paths",
+              "type": "string",
+              "format": "uri"
+            },
+            "version_ts": {
+              "description": "A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature",
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "storage_options": {
+              "description": "Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "A file source",
+          "type": "object",
+          "required": [
+            "file_type",
+            "location",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "File"
+              ]
+            },
+            "name": {
+              "description": "Name of the file source, will be the registered table name in the SQL context",
+              "type": "string"
+            },
+            "file_type": {
+              "description": "File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/FileType"
+                }
+              ]
+            },
+            "location": {
+              "description": "A URL or Path to the location of the delta table Supports relative local paths",
+              "type": "string",
+              "format": "uri"
+            },
+            "storage_options": {
+              "description": "Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "A directory source",
+          "type": "object",
+          "required": [
+            "file_type",
+            "location",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Directory"
+              ]
+            },
+            "name": {
+              "description": "Name of the directory source, will be the registered table name in the SQL context",
+              "type": "string"
+            },
+            "file_type": {
+              "description": "File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/FileType"
+                }
+              ]
+            },
+            "location": {
+              "description": "A URL or Path to the location of the delta table Supports relative local paths",
+              "type": "string",
+              "format": "uri"
+            },
+            "storage_options": {
+              "description": "Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "An ODBC source",
+          "type": "object",
+          "required": [
+            "connection_string",
+            "name",
+            "query",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Odbc"
+              ]
+            },
+            "name": {
+              "description": "Name of the ODBC source, will be the registered table name in the SQL context",
+              "type": "string"
+            },
+            "query": {
+              "description": "Query to execute when fetching data from the ODBC connection This query will execute eagerly before the data is processed by the pipeline Size of data returned from the query cannot exceed work memory",
+              "type": "string"
+            },
+            "connection_string": {
+              "description": "ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "FileType": {
+      "description": "File type of the source file, supports `Parquet`, `Csv` or `Json`",
+      "oneOf": [
+        {
+          "description": "Parquet source options",
+          "type": "object",
+          "required": [
+            "options",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Parquet"
+              ]
+            },
+            "options": {
+              "$ref": "#/definitions/ParquetSourceOptions"
+            }
+          }
+        },
+        {
+          "description": "Csv source options",
+          "type": "object",
+          "required": [
+            "options",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Csv"
+              ]
+            },
+            "options": {
+              "$ref": "#/definitions/CsvSourceOptions"
+            }
+          }
+        },
+        {
+          "description": "Json source options",
+          "type": "object",
+          "required": [
+            "options",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Json"
+              ]
+            },
+            "options": {
+              "$ref": "#/definitions/JsonSourceOptions"
+            }
+          }
+        }
+      ]
+    },
+    "ParquetSourceOptions": {
+      "type": "object"
+    },
+    "CsvSourceOptions": {
+      "type": "object",
+      "properties": {
+        "has_header": {
+          "description": "set to `true` to treat first row of CSV as the header column names will be infered from the header, if there is no header the column names are `column_1, column_2, ... column_x`",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "delimiter": {
+          "description": "set a delimiter character to read this CSV with",
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1,
+          "minLength": 1
+        }
+      }
+    },
+    "JsonSourceOptions": {
+      "type": "object"
+    },
+    "Stage": {
+      "description": "Definition for a processing stage in an Aqueduct Pipeline",
+      "type": "object",
+      "required": [
+        "name",
+        "query"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the stage, used as the table name for the result of this stage",
+          "type": "string"
+        },
+        "query": {
+          "description": "SQL query that is executed against a datafusion context. Check the datafusion SQL reference for more information <https://datafusion.apache.org/user-guide/sql/index.html>",
+          "type": "string"
+        },
+        "show": {
+          "description": "When set to a value of up to `usize`, will print the result of this stage to the stdout limited by the number Set value to 0 to not limit the outputs",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "explain": {
+          "description": "When set to 'true' the stage will output the query execution plan",
+          "default": false,
+          "type": "boolean"
+        },
+        "explain_analyze": {
+          "description": "When set to 'true' the stage will output the query execution plan with added execution metrics",
+          "default": false,
+          "type": "boolean"
+        },
+        "print_schema": {
+          "description": "When set to 'true' the stage will pretty print the output schema of the excuted query",
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "Destination": {
+      "description": "Target output for the Aqueduct table",
+      "oneOf": [
+        {
+          "description": "A delta table destination",
+          "type": "object",
+          "required": [
+            "location",
+            "name",
+            "partition_cols",
+            "table_properties",
+            "type",
+            "write_mode"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Delta"
+              ]
+            },
+            "name": {
+              "description": "Name of the table",
+              "type": "string"
+            },
+            "location": {
+              "description": "Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table",
+              "type": "string",
+              "format": "uri"
+            },
+            "storage_options": {
+              "description": "DeltaTable storage options",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "table_properties": {
+              "description": "DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>",
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "write_mode": {
+              "description": "Columns that will be used to determine uniquness during merge operation Supported types: All primitive types and lists of primitive types",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/WriteMode"
+                }
+              ]
+            },
+            "partition_cols": {
+              "description": "Columns to partition table by",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "A file output destination",
+          "type": "object",
+          "required": [
+            "file_type",
+            "location",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "File"
+              ]
+            },
+            "name": {
+              "description": "Name of the file to write",
+              "type": "string"
+            },
+            "location": {
+              "description": "Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix",
+              "type": "string",
+              "format": "uri"
+            },
+            "file_type": {
+              "description": "File type, supported types are Parquet and CSV",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/FileType2"
+                }
+              ]
+            },
+            "single_file": {
+              "description": "Describes whether to write a single file (can be used to overwrite destination file)",
+              "default": false,
+              "type": "boolean"
+            },
+            "partition_cols": {
+              "description": "Columns to partition table by",
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "storage_options": {
+              "description": "Object store storage options",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "WriteMode": {
+      "description": "Write modes for the `Destination` output.",
+      "oneOf": [
+        {
+          "description": "`Append`: appends data to the `Destination`",
+          "type": "object",
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "Append"
+              ]
+            }
+          }
+        },
+        {
+          "description": "`Upsert`: upserts data to the `Destination` using the specified merge columns",
+          "type": "object",
+          "required": [
+            "operation",
+            "params"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "Upsert"
+              ]
+            },
+            "params": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "`Replace`: replaces data to the `Destination` using the specified `ReplaceCondition`s",
+          "type": "object",
+          "required": [
+            "operation",
+            "params"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "Replace"
+              ]
+            },
+            "params": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReplaceCondition"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ReplaceCondition": {
+      "description": "Condition used to build a predicate by which data should be replaced in a `Destination` Expression built is checking equality for the given `value` of a field with `field_name`",
+      "type": "object",
+      "required": [
+        "column",
+        "value"
+      ],
+      "properties": {
+        "column": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "FileType2": {
+      "description": "File type and options",
+      "oneOf": [
+        {
+          "description": "Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options",
+          "type": "object",
+          "required": [
+            "options",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Parquet"
+              ]
+            },
+            "options": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "CSV options",
+          "type": "object",
+          "required": [
+            "options",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Csv"
+              ]
+            },
+            "options": {
+              "$ref": "#/definitions/CsvDestinationOptions"
+            }
+          }
+        },
+        {
+          "description": "Json destination, no supported options",
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Json"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "CsvDestinationOptions": {
+      "description": "Csv options",
+      "type": "object",
+      "properties": {
+        "has_header": {
+          "description": "Defaults to true, sets a header for the CSV file",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "delimiter": {
+          "description": "Defaults to `,`, sets the delimiter char for the CSV file",
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1,
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

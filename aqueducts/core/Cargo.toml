@@ -26,6 +26,7 @@ deltalake.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 serde_yml.workspace = true
+schemars.workspace = true
 
 thiserror.workspace = true
 tracing.workspace = true

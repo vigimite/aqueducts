@@ -12,7 +12,8 @@ use url::Url;
 
 use super::Result;
 
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+/// A delta table destination
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct DeltaDestination {
     /// Name of the table
     pub name: String,
@@ -36,11 +37,12 @@ pub struct DeltaDestination {
     pub partition_cols: Vec<String>,
 
     /// Table schema definition `deltalake_core::models::schema::StructField`
+    #[schemars(skip)]
     pub schema: Vec<StructField>,
 }
 
 /// Write modes for the `Destination` output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "operation", content = "params")]
 pub enum WriteMode {
     /// `Append`: appends data to the `Destination`
@@ -55,7 +57,7 @@ pub enum WriteMode {
 
 /// Condition used to build a predicate by which data should be replaced in a `Destination`
 /// Expression built is checking equality for the given `value` of a field with `field_name`
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct ReplaceCondition {
     column: String,
     value: String,

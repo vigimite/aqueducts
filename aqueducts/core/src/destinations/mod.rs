@@ -10,20 +10,13 @@ pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
 /// Target output for the Aqueduct table
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "type")]
 pub enum Destination {
+    /// A delta table destination
     Delta(delta::DeltaDestination),
+    /// A file output destination
     File(file::FileDestination),
-}
-
-impl Destination {
-    pub fn name(&self) -> String {
-        match self {
-            Destination::Delta(delta::DeltaDestination { name, .. }) => name.clone(),
-            Destination::File(file::FileDestination { name, .. }) => name.clone(),
-        }
-    }
 }
 
 /// Creates a `Destination`

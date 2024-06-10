@@ -5,7 +5,7 @@ use datafusion::arrow::datatypes::DataType;
 use datafusion::arrow::datatypes::Schema;
 use datafusion::{
     datasource::{
-        file_format::{csv::CsvFormat, parquet::ParquetFormat},
+        file_format::{csv::CsvFormat, json::JsonFormat, parquet::ParquetFormat},
         listing::{ListingOptions, ListingTable, ListingTableConfig, ListingTableUrl},
     },
     prelude::*,
@@ -18,75 +18,155 @@ use url::Url;
 pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// A data source that can be either a delta table (`delta`), a `file`, a `directory` or an `odbc` connection
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "type")]
 pub enum Source {
+    /// A delta table source
     Delta(DeltaSource),
+    /// A file source
     File(FileSource),
+    /// A directory source
     Directory(DirSource),
+    /// An ODBC source
     Odbc(OdbcSource),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+/// A delta table source
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct DeltaSource {
+    /// Name of the delta source, will be the registered table name in the SQL context
     pub name: String,
+
+    /// A URL or Path to the location of the delta table
+    /// Supports relative local paths
     #[serde(deserialize_with = "deserialize_file_location")]
     pub location: Url,
+
+    /// A RFC3339 compliant timestamp to load the delta table state at a specific point in time
+    /// Used for deltas time traveling feature
     pub version_ts: Option<DateTime<Utc>>,
+
+    /// Storage options for the delta table
+    /// Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>)
+    /// additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
     #[serde(default)]
     pub storage_options: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+/// A file source
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct FileSource {
+    /// Name of the file source, will be the registered table name in the SQL context
     pub name: String,
+
+    /// File type of the file to be ingested
+    /// Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
     pub file_type: FileType,
     #[serde(deserialize_with = "deserialize_file_location")]
+
+    /// A URL or Path to the location of the delta table
+    /// Supports relative local paths
     pub location: Url,
+
+    /// Storage options for the delta table
+    /// Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>)
+    /// additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
     #[serde(default)]
     pub storage_options: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+/// A Directory Source
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct DirSource {
+    /// Name of the directory source, will be the registered table name in the SQL context
     pub name: String,
+
+    /// File type of the file to be ingested
+    /// Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
     pub file_type: FileType,
+
+    /// Columns to partition the table by
+    /// This is a list of key value tuples where the key is the column name and the value is an [arrow::datatypes::DataType](https://docs.rs/arrow/latest/arrow/datatypes/enum.DataType.html)
+    #[schemars(skip)]
     #[serde(default)]
     pub partition_cols: Vec<(String, DataType)>,
+
+    /// A URL or Path to the location of the delta table
+    /// Supports relative local paths
     #[serde(deserialize_with = "deserialize_file_location")]
     pub location: Url,
+
+    /// Storage options for the delta table
+    /// Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>)
+    /// additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
     #[serde(default)]
     pub storage_options: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+/// An ODBC source
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct OdbcSource {
+    /// Name of the ODBC source, will be the registered table name in the SQL context
     pub name: String,
+
+    /// Query to execute when fetching data from the ODBC connection
+    /// This query will execute eagerly before the data is processed by the pipeline
+    /// Size of data returned from the query cannot exceed work memory
     pub query: String,
+
+    /// ODBC connection string
+    /// Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
     pub connection_string: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// File type of the source file, supports `Parquet`, `Csv` or `Json`
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "type", content = "options")]
 pub enum FileType {
+    /// Parquet source options
     Parquet(ParquetSourceOptions),
+
+    /// Csv source options
     Csv(CsvSourceOptions),
+
+    /// Json source options
+    Json(JsonSourceOptions),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
 pub struct ParquetSourceOptions {
+    /// schema to read this CSV with
+    /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
+    #[schemars(skip)]
     schema: Option<Schema>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
 pub struct CsvSourceOptions {
+    /// set to `true` to treat first row of CSV as the header
+    /// column names will be infered from the header, if there is no header the column names are `column_1, column_2, ... column_x`
     has_header: Option<bool>,
+
+    /// set a delimiter character to read this CSV with
     delimiter: Option<char>,
+
+    /// schema to read this CSV with
+    /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
+    #[schemars(skip)]
+    schema: Option<Schema>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
+pub struct JsonSourceOptions {
+    /// schema to read this JSON with
+    /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
+    #[schemars(skip)]
     schema: Option<Schema>,
 }
 
 /// Register an Aqueduct source
-/// Supports Delta tables, Parquet files and Csv Files
+/// Supports Delta tables, Parquet files, Csv Files and Json Files
 #[instrument(skip(ctx, source), err)]
 pub async fn register_source(ctx: &SessionContext, source: Source) -> Result<()> {
     match source {
@@ -212,6 +292,24 @@ async fn register_file_source(ctx: &SessionContext, file_source: FileSource) -> 
             )
             .await?
         }
+        FileType::Json(JsonSourceOptions {
+            schema: Some(schema),
+        }) => {
+            ctx.register_json(
+                file_source.name.as_str(),
+                file_source.location.as_str(),
+                NdJsonReadOptions::default().schema(&schema),
+            )
+            .await?;
+        }
+        FileType::Json(JsonSourceOptions { schema: None }) => {
+            ctx.register_json(
+                file_source.name.as_str(),
+                file_source.location.as_str(),
+                NdJsonReadOptions::default(),
+            )
+            .await?;
+        }
     };
 
     Ok(())
@@ -229,11 +327,13 @@ async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Res
             let listing_options = ListingOptions::new(Arc::new(ParquetFormat::default()))
                 .with_table_partition_cols(dir_source.partition_cols);
 
-            let resolved_schema = listing_options
-                .infer_schema(&session_state, &listing_table_url)
-                .await?;
-
-            let schema = schema.map(Arc::new).unwrap_or(resolved_schema);
+            let schema = if let Some(schema) = schema {
+                Arc::new(schema)
+            } else {
+                listing_options
+                    .infer_schema(&session_state, &listing_table_url)
+                    .await?
+            };
 
             ListingTableConfig::new(listing_table_url)
                 .with_listing_options(listing_options)
@@ -251,11 +351,32 @@ async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Res
             let listing_options = ListingOptions::new(Arc::new(format))
                 .with_table_partition_cols(dir_source.partition_cols);
 
-            let resolved_schema = listing_options
-                .infer_schema(&session_state, &listing_table_url)
-                .await?;
+            let schema = if let Some(schema) = schema {
+                Arc::new(schema)
+            } else {
+                listing_options
+                    .infer_schema(&session_state, &listing_table_url)
+                    .await?
+            };
 
-            let schema = schema.map(Arc::new).unwrap_or(resolved_schema);
+            ListingTableConfig::new(listing_table_url)
+                .with_listing_options(listing_options)
+                .with_schema(schema)
+        }
+
+        FileType::Json(JsonSourceOptions { schema }) => {
+            let format = JsonFormat::default();
+
+            let listing_options = ListingOptions::new(Arc::new(format))
+                .with_table_partition_cols(dir_source.partition_cols);
+
+            let schema = if let Some(schema) = schema {
+                Arc::new(schema)
+            } else {
+                listing_options
+                    .infer_schema(&session_state, &listing_table_url)
+                    .await?
+            };
 
             ListingTableConfig::new(listing_table_url)
                 .with_listing_options(listing_options)

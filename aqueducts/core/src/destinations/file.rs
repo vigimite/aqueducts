@@ -8,7 +8,8 @@ use url::Url;
 
 use super::Result;
 
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+/// A file output destination
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
 pub struct FileDestination {
     ///  Name of the file to write
     pub name: String,
@@ -33,24 +34,27 @@ pub struct FileDestination {
     pub storage_options: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// File type and options
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "type", content = "options")]
 pub enum FileType {
-    Parquet(ParquetDestinationOptions),
-    Csv(CsvDestinationOptions),
-}
+    /// Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options
+    Parquet(#[serde(default)] HashMap<String, String>),
 
-/// Parquet options, please refer to `https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html` for possible options
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
-pub struct ParquetDestinationOptions {
-    #[serde(default)]
-    parquet_options: HashMap<String, String>,
+    /// CSV options
+    Csv(CsvDestinationOptions),
+
+    /// Json destination, no supported options
+    Json,
 }
 
 /// Csv options
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
 pub struct CsvDestinationOptions {
+    /// Defaults to true, sets a header for the CSV file
     has_header: Option<bool>,
+
+    /// Defaults to `,`, sets the delimiter char for the CSV file
     delimiter: Option<char>,
 }
 
@@ -60,11 +64,10 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
         .with_single_file_output(file_def.single_file);
 
     let _ = match &file_def.file_type {
-        FileType::Parquet(config) => {
+        FileType::Parquet(options) => {
             let mut parquet_options = TableParquetOptions::default();
 
-            config
-                .parquet_options
+            options
                 .iter()
                 .try_for_each(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))?;
 
@@ -81,6 +84,10 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
                 .with_delimiter(csv_options.delimiter.unwrap_or(',') as u8);
 
             data.write_csv(file_def.location.as_str(), write_options, Some(csv_options))
+                .await?
+        }
+        FileType::Json => {
+            data.write_json(file_def.location.as_str(), write_options, None)
                 .await?
         }
     };
@@ -179,7 +186,7 @@ mod tests {
         let definition = FileDestination::new(
             "write".into(),
             path.clone(),
-            FileType::Parquet(ParquetDestinationOptions::default()),
+            FileType::Parquet(HashMap::default()),
             true,
             vec![],
             Default::default(),
@@ -237,7 +244,7 @@ mod tests {
         let definition = FileDestination::new(
             "write".into(),
             path.clone(),
-            FileType::Parquet(ParquetDestinationOptions::default()),
+            FileType::Parquet(HashMap::default()),
             false,
             vec!["year".into()],
             Default::default(),

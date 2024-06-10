@@ -1,5 +1,6 @@
 use datafusion::execution::context::{SQLOptions, SessionContext};
 use deltalake::arrow::datatypes::Schema;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{info, instrument};
@@ -8,12 +9,12 @@ pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
 /// Definition for a processing stage in an Aqueduct Pipeline
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, JsonSchema)]
 pub struct Stage {
     /// Name of the stage, used as the table name for the result of this stage
     pub name: String,
 
-    /// SQL query that is executed against a datafusion context
+    /// SQL query that is executed against a datafusion context. Check the datafusion SQL reference for more information <https://datafusion.apache.org/user-guide/sql/index.html>
     pub query: String,
 
     /// When set to a value of up to `usize`, will print the result of this stage to the stdout limited by the number

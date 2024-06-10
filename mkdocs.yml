@@ -3,10 +3,15 @@ site_url: https://vigimite.github.io/aqueducts
 repo_url: https://github.com/vigimite/aqueducts
 repo_name: vigimite/aqueducts
 copyright: Copyright &copy; 2024 Michele Vigilante
+docs_dir: "docs/"
+
+hooks:
+  - json_schema/generate_schema_reference.py
 
 nav:
   - Home: index.md
   - Usage: usage.md
+  - Schema Reference: schema_reference.md
   - Architecture: architecture.md
   - Aqueducts CLI: cli.md
   - About: about.md
@@ -73,6 +78,10 @@ plugins:
   - social
 
 markdown_extensions:
+  - toc:
+      toc_depth: 5
+  - tables
+  - admonition
   - attr_list
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
@@ -84,3 +93,6 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
