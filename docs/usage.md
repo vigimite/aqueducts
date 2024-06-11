@@ -45,13 +45,13 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         sources:
-          - type: file
+          - type: File
             name: feb_data
             file_type:
-              csv:
-                options:
-                  has_header: true
-                  delimiter: ","
+              type: Csv
+              options:
+                has_header: true
+                delimiter: ","
             location: ./examples/temp_readings_feb_2024.csv
         ```
 
@@ -59,12 +59,51 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         sources:
-          - type: file
+          - type: File
             name: feb_data
             file_type:
-              parquet:
-                  options: {}
+              type: Parquet
+              options: {}
             location: s3://example_bucket_name/prefix/temp_readings_feb_2024.csv
+        ```
+
+    === "Directory with parquet files on S3"
+
+        ```yaml
+        sources:
+          - type: Directory
+            name: feb_data
+            file_type:
+              type: Parquet
+              options: {}
+            # location has to end in `/`
+            location: s3://example_bucket_name/prefix/
+            # hdfs style partitioning applied e.g. ...prefix/date=2024-01-01/location=US/
+            partition_cols:
+              - [date, Date32] 
+              - [location, Utf8] 
+        ```
+
+    === "Delta source"
+
+        ```yaml
+        sources:
+          - type: Delta
+            name: temp_data
+            location: s3://example_bucket_name/prefix/temp_readings
+            storage_options:
+              TIMEOUT: "300s" # S3 client timeout set to 5 minutes
+        ```
+
+    === "ODBC Postgres"
+
+        ```yaml
+        sources:
+          - type: Odbc
+            name: feb_data
+            connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
+            # Query to execute against the ODBC source
+            query: SELECT * FROM temp_readings WHERE timestamp BETWEEN '2024-02-01' AND '2024-02-29'
         ```
 
 ### Processing stages
