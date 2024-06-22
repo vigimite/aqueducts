@@ -3,7 +3,7 @@ use deltalake::arrow::datatypes::Schema;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{info, instrument};
+use tracing::instrument;
 
 pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
@@ -40,7 +40,6 @@ pub struct Stage {
 /// Does not allow for ddl/dml queries or SQL statements (e.g. SET VARIABLE, CREATE TABLE, etc.)
 #[instrument(skip(ctx, stage), err)]
 pub async fn process_stage(ctx: Arc<SessionContext>, stage: Stage) -> Result<()> {
-    info!("Running stage '{}'", stage.name);
     let options = SQLOptions::new()
         .with_allow_ddl(false)
         .with_allow_dml(false)

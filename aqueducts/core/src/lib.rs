@@ -226,15 +226,18 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
 
         for (sub, stage) in parallel.iter().enumerate() {
-            let time = Instant::now();
             let stage_ = stage.clone();
             let ctx_ = ctx.clone();
+            let name = stage.name.clone();
 
             let handle = tokio::spawn(async move {
+                let time = Instant::now();
+                info!("Running stage {} #{pos}:{sub}", name);
+
                 process_stage(ctx_, stage_).await?;
 
                 info!(
-                    "Finished processing stage #{pos}:{sub} ... Elapsed time: {:.2?}",
+                    "Finished processing stage {name} #{pos}:{sub} ... Elapsed time: {:.2?}",
                     time.elapsed()
                 );
                 Ok(())

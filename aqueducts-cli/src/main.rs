@@ -32,6 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env)
         .format_target(false)
         .format_level(false)
+        .format_timestamp(None)
         .init();
 
     aqueducts::register_handlers();
