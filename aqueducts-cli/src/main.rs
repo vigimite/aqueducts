@@ -41,7 +41,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let params = HashMap::from_iter(params.unwrap_or_default());
     let aqueduct = Aqueduct::try_from_yml(file, params)?;
 
-    run_pipeline(aqueduct, None).await?;
+    let mut ctx = datafusion::prelude::SessionContext::new();
+    datafusion_functions_json::register_all(&mut ctx).expect("failed to register json functions");
+
+    run_pipeline(aqueduct, Some(ctx)).await?;
 
     Ok(())
 }

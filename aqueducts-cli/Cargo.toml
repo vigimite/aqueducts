@@ -19,7 +19,10 @@ azure = ["aqueducts/azure"]
 odbc = ["aqueducts/odbc"]
 
 [dependencies]
+datafusion.workspace = true
+
 aqueducts = { path = "../aqueducts/core", version = "0.3" }
+datafusion-functions-json = "0.2"
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
