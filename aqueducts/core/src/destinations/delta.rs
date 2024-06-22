@@ -83,7 +83,7 @@ pub(super) async fn create(table_def: &DeltaDestination) -> Result<DeltaTable> {
 }
 
 pub(super) async fn write(table_def: &DeltaDestination, data: DataFrame) -> Result<DeltaTable> {
-    let table_schema = StructType::from_iter(table_def.schema.clone());
+    let table_schema = StructType::new(table_def.schema.clone());
     let table_schema = TryInto::<Schema>::try_into(&table_schema)?;
     let data = validate_schema(table_schema.clone(), data)?;
 
