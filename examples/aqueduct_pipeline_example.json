@@ -28,21 +28,25 @@
     }
   ],
   "stages": [
-    {
-      "name": "aggregate",
-      "query": "SELECT date, country, SUM(a) as sum_1, SUM(b) as sum_2 FROM some_table  GROUP BY 1, 2",
-      "show": 20
-    },
-    {
-      "name": "average",
-      "query": "SELECT date, country, AVG(x) as avg_1, AVG(y) as avg_2 FROM another_table  GROUP BY 1, 2",
-      "show": 0
-    },
-    {
-      "name": "join",
-      "query": "SELECT  COALESCE(agg.date, avg.date) as date,  COALESCE(agg.country, avg.country) as country,  sum_1,  sum_2,  avg_1,  avg_2FROM aggregate agg JOIN average avg ON agg.date = avg.date AND agg.country = avg.country WHERE COALESCE(agg.date, avg.date) = '1970-01-01'",
-      "show": null
-    }
+    [
+      {
+        "name": "aggregate",
+        "query": "SELECT date, country, SUM(a) as sum_1, SUM(b) as sum_2 FROM some_table  GROUP BY 1, 2",
+        "show": 20
+      },
+      {
+        "name": "average",
+        "query": "SELECT date, country, AVG(x) as avg_1, AVG(y) as avg_2 FROM another_table  GROUP BY 1, 2",
+        "show": 0
+      }
+    ],
+    [
+      {
+        "name": "join",
+        "query": "SELECT  COALESCE(agg.date, avg.date) as date,  COALESCE(agg.country, avg.country) as country,  sum_1,  sum_2,  avg_1,  avg_2FROM aggregate agg JOIN average avg ON agg.date = avg.date AND agg.country = avg.country WHERE COALESCE(agg.date, avg.date) = '1970-01-01'",
+        "show": null
+      }
+    ]
   ],
   "destination": {
     "type": "Delta",

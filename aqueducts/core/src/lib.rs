@@ -2,7 +2,13 @@ use datafusion::execution::context::SessionContext;
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::Path, sync::OnceLock, time::Instant};
+use std::{
+    collections::HashMap,
+    path::Path,
+    sync::{Arc, OnceLock},
+    time::Instant,
+};
+use tokio::task::JoinHandle;
 use tracing::{debug, error, info, instrument, warn};
 
 pub mod destinations;
@@ -35,7 +41,8 @@ pub struct Aqueduct {
     pub sources: Vec<Source>,
 
     /// A sequential list of transformations to execute within the context of this pipeline
-    pub stages: Vec<Stage>,
+    /// Nested stages are executed in parallel
+    pub stages: Vec<Vec<Stage>>,
 
     /// Destination for the final step of the `Aqueduct`
     /// takes the last stage as input for the write operation
@@ -130,7 +137,7 @@ impl Aqueduct {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, derive_new::new)]
 pub struct AqueductBuilder {
     sources: Vec<Source>,
-    stages: Vec<Stage>,
+    stages: Vec<Vec<Stage>>,
     destination: Option<Destination>,
 }
 
@@ -143,7 +150,7 @@ impl AqueductBuilder {
 
     /// Add stage to builder
     pub fn stage(mut self, stage: Stage) -> Self {
-        self.stages.push(stage);
+        self.stages.push(vec![stage]);
         self
     }
 
@@ -171,7 +178,7 @@ pub fn register_handlers() {
 pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Result<()> {
     let mut stage_ttls: HashMap<String, usize> = HashMap::new();
 
-    let ctx = ctx.unwrap_or_default();
+    let ctx = Arc::new(ctx.unwrap_or_default());
     let start_time = Instant::now();
 
     info!("Running Aqueduct ...");
@@ -179,7 +186,7 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
     if let Some(destination) = &aqueduct.destination {
         let time = Instant::now();
 
-        create_destination(&ctx, destination).await?;
+        create_destination(ctx.clone(), destination).await?;
 
         info!(
             "Created destination ... Elapsed time: {:.2?}",
@@ -187,10 +194,27 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         );
     }
 
-    for (pos, source) in aqueduct.sources.iter().enumerate() {
-        let time = Instant::now();
+    let handles = aqueduct
+        .sources
+        .iter()
+        .enumerate()
+        .map(|(pos, source)| {
+            let time = Instant::now();
+            let source_ = source.clone();
+            let ctx_ = ctx.clone();
 
-        register_source(&ctx, source.clone()).await?;
+            let handle = tokio::spawn(async move {
+                register_source(ctx_, source_).await?;
+
+                Ok(())
+            });
+
+            (pos, time, handle)
+        })
+        .collect::<Vec<(usize, Instant, JoinHandle<Result<()>>)>>();
+
+    for (pos, time, handle) in handles {
+        handle.await.expect("failed to join task")?;
 
         info!(
             "Registered source #{pos} ... Elapsed time: {:.2?}",
@@ -198,20 +222,39 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         );
     }
 
-    for (pos, stage) in aqueduct.stages.iter().enumerate() {
-        let time = Instant::now();
+    for (pos, parallel) in aqueduct.stages.iter().enumerate() {
+        let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
 
-        calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, &aqueduct.stages)?;
-        process_stage(&ctx, stage.clone()).await?;
-        deregister_stages(&ctx, &stage_ttls, pos)?;
+        for (sub, stage) in parallel.iter().enumerate() {
+            let time = Instant::now();
+            let stage_ = stage.clone();
+            let ctx_ = ctx.clone();
 
-        info!(
-            "Finished processing stage #{pos} ... Elapsed time: {:.2?}",
-            time.elapsed()
-        );
+            let handle = tokio::spawn(async move {
+                process_stage(ctx_, stage_).await?;
+
+                info!(
+                    "Finished processing stage #{pos}:{sub} ... Elapsed time: {:.2?}",
+                    time.elapsed()
+                );
+                Ok(())
+            });
+
+            calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, &aqueduct.stages)?;
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.await.expect("failed to join task")?;
+        }
+
+        deregister_stages(ctx.clone(), &stage_ttls, pos)?;
     }
 
-    if let (Some(last_stage), Some(destination)) = (aqueduct.stages.last(), &aqueduct.destination) {
+    if let (Some(last_stage), Some(destination)) = (
+        aqueduct.stages.last().and_then(|s| s.last()),
+        &aqueduct.destination,
+    ) {
         let time = Instant::now();
 
         let df = ctx.table(last_stage.name.as_str()).await?;
@@ -238,17 +281,20 @@ fn calculate_ttl<'a>(
     stage_ttls: &'a mut HashMap<String, usize>,
     stage_name: &'a str,
     stage_pos: usize,
-    stages: &[Stage],
+    stages: &Vec<Vec<Stage>>,
 ) -> Result<()> {
     let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\.|$)");
     let regex = Regex::new(stage_name_r.as_str())?;
 
     let ttl = stages
-        .iter()
+        .into_iter()
         .enumerate()
         .skip(stage_pos + 1)
-        .filter_map(|(forward_pos, f)| {
-            if regex.is_match(f.query.as_str()) {
+        .flat_map(|(forward_pos, parallel)| {
+            parallel.into_iter().map(move |stage| (forward_pos, stage))
+        })
+        .filter_map(|(forward_pos, stage)| {
+            if regex.is_match(stage.query.as_str()) {
                 debug!("Registering TTL for {stage_name}. STAGE_POS={stage_pos} TTL={forward_pos}");
                 Some(forward_pos)
             } else {
@@ -268,7 +314,7 @@ fn calculate_ttl<'a>(
 
 // deregister stages from context if the current position matches the ttl of the stages
 fn deregister_stages(
-    ctx: &SessionContext,
+    ctx: Arc<SessionContext>,
     ttls: &HashMap<String, usize>,
     current_pos: usize,
 ) -> Result<()> {

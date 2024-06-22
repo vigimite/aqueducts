@@ -61,41 +61,41 @@ sources:
 
 stages:
   # Query to aggregate temperature data by date and location
-  - name: aggregated
-    query: >
-        SELECT
-          cast(timestamp as date) date,
-          location_id,
-          round(min(temperature_c),2) min_temp_c,
-          round(min(humidity),2) min_humidity,
-          round(max(temperature_c),2) max_temp_c,
-          round(max(humidity),2) max_humidity,
-          round(avg(temperature_c),2) avg_temp_c,
-          round(avg(humidity),2) avg_humidity
-        FROM temp_readings
-        GROUP by 1,2
-        ORDER by 1 asc
-    # print the query plan to stdout for debugging purposes
-    explain: true
+  - - name: aggregated
+      query: >
+          SELECT
+            cast(timestamp as date) date,
+            location_id,
+            round(min(temperature_c),2) min_temp_c,
+            round(min(humidity),2) min_humidity,
+            round(max(temperature_c),2) max_temp_c,
+            round(max(humidity),2) max_humidity,
+            round(avg(temperature_c),2) avg_temp_c,
+            round(avg(humidity),2) avg_humidity
+          FROM temp_readings
+          GROUP by 1,2
+          ORDER by 1 asc
+      # print the query plan to stdout for debugging purposes
+      explain: true
 
   # Enrich aggregation with the location name
-  - name: enriched
-    query: >
-      SELECT
-        date,
-        location_name,
-        min_temp_c,
-        max_temp_c,
-        avg_temp_c,
-        min_humidity,
-        max_humidity,
-        avg_humidity
-      FROM aggregated
-      JOIN locations 
-        ON aggregated.location_id = locations.location_id
-      ORDER BY date, location_name
-    # print 10 rows to stdout for debugging purposes
-    show: 10
+  - - name: enriched
+      query: >
+        SELECT
+          date,
+          location_name,
+          min_temp_c,
+          max_temp_c,
+          avg_temp_c,
+          min_humidity,
+          max_humidity,
+          avg_humidity
+        FROM aggregated
+        JOIN locations 
+          ON aggregated.location_id = locations.location_id
+        ORDER BY date, location_name
+      # print 10 rows to stdout for debugging purposes
+      show: 10
 
 # Write the pipeline result to a parquet file (can be omitted if you don't want an output)
 destination:
@@ -119,4 +119,4 @@ aqueducts --file examples/aqueduct_pipeline_example.yml --param year=2024 --para
 - [ ] Docs
 - [x] ODBC source
 - [ ] ODBC destination
-- [ ] Parallel processing of stages
+- [x] Parallel processing of stages

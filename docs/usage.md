@@ -114,49 +114,76 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         stages:
-          - name: simple_select
-            query: SELECT * FROM readings
+          - - name: simple_select
+              query: SELECT * FROM readings
 
-          - name: multiline_example
-            query: >
-              SELECT
-                a,
-                b,
-                c
-              FROM example
+          - - name: multiline_example
+              query: >
+                SELECT
+                  a,
+                  b,
+                  c
+                FROM example
+        ```
+
+    === "Parallel execution"
+
+        ```yaml
+        stages:
+          - - name: parallel_1_a
+              query: SELECT * FROM readings
+
+            - name: parallel_1_b
+              query: >
+                SELECT
+                  a,
+                  b,
+                  c
+                FROM example
+
+          - - name: parallel_2_a
+              query: SELECT * FROM readings
+
+            - name: parallel_2_b
+              query: >
+                SELECT
+                  a,
+                  b,
+                  c
+                FROM example
         ```
 
     === "Debugging options"
 
         ```yaml
         stages:
-          - name: show_all
-            query: SELECT * FROM readings
-            show: 0 # show complete result set
+          - - name: show_all
+              query: SELECT * FROM readings
+              show: 0 # show complete result set
 
-          - name: show_limit
-            query: SELECT * FROM readings
-            show: 10 # show 10 values
+            - name: show_limit
+              query: SELECT * FROM readings
+              show: 10 # show 10 values
 
-          - name: print_schema
-            query: SELECT * FROM readings
-            print_schema: true # print the data frame schema to stdout
+            - name: print_schema
+              query: SELECT * FROM readings
+              print_schema: true # print the data frame schema to stdout
 
-          - name: explain
-            query: SELECT * FROM readings
-            explain: true # print the query plan to stdout
+            - name: explain
+              query: SELECT * FROM readings
+              explain: true # print the query plan to stdout
 
-          - name: explain_analyze
-            query: SELECT * FROM readings
-            explain_analyze: true # print the query plan with execution statistics to stdout, takes precedence over explain
+            - name: explain_analyze
+              query: SELECT * FROM readings
+              explain_analyze: true # print the query plan with execution statistics to stdout, takes precedence over explain
 
-          - name: combine
-            query: SELECT * FROM readings
+            - name: combine
+              query: SELECT * FROM readings
 
-            # combine multiple debug options together
-            explain_analyze: true
-            print_schema: true
-            show: 10
+              # combine multiple debug options together
+              explain_analyze: true
+              print_schema: true
+              show: 10
         ```
 
 ### Destination configuration

@@ -18,30 +18,30 @@ sources:
     location: ${local_path}/tests/data/example_2.csv
 
 stages:
-  - name: aggregate
-    query: >
-        SELECT date, country, SUM(a) as sum_1, SUM(b) as sum_2
-        FROM some_table 
-        GROUP BY 1, 2
+  - - name: aggregate
+      query: >
+          SELECT date, country, SUM(a) as sum_1, SUM(b) as sum_2
+          FROM some_table 
+          GROUP BY 1, 2
 
-  - name: average
-    query: >
-        SELECT date, country, AVG(x) as avg_1, AVG(y) as avg_2
-        FROM another_table 
-        GROUP BY 1, 2
+    - name: average
+      query: >
+          SELECT date, country, AVG(x) as avg_1, AVG(y) as avg_2
+          FROM another_table 
+          GROUP BY 1, 2
 
-  - name: join
-    query: >
-      SELECT
-        COALESCE(agg.date, avg.date) as date,
-        COALESCE(agg.country, avg.country) as country,
-        sum_1,
-        sum_2,
-        avg_1,
-        avg_2
-      FROM aggregate agg
-      JOIN average avg ON agg.date = avg.date AND agg.country = avg.country
-      WHERE COALESCE(agg.date, avg.date) = '${date}'
+  - - name: join
+      query: >
+        SELECT
+          COALESCE(agg.date, avg.date) as date,
+          COALESCE(agg.country, avg.country) as country,
+          sum_1,
+          sum_2,
+          avg_1,
+          avg_2
+        FROM aggregate agg
+        JOIN average avg ON agg.date = avg.date AND agg.country = avg.country
+        WHERE COALESCE(agg.date, avg.date) = '${date}'
 
 destination:
   type: Delta
