@@ -200,11 +200,11 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         .enumerate()
         .map(|(pos, source)| {
             let time = Instant::now();
-            let source = source.clone();
-            let ctx = ctx.clone();
+            let source_ = source.clone();
+            let ctx_ = ctx.clone();
 
             let handle = tokio::spawn(async move {
-                register_source(ctx, source.clone()).await?;
+                register_source(ctx_, source_).await?;
 
                 Ok(())
             });
@@ -240,11 +240,8 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
                 Ok(())
             });
 
+            calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, &aqueduct.stages)?;
             handles.push(handle);
-
-            let stages = aqueduct.stages.clone();
-
-            calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, stages)?;
         }
 
         for handle in handles {
@@ -284,29 +281,25 @@ fn calculate_ttl<'a>(
     stage_ttls: &'a mut HashMap<String, usize>,
     stage_name: &'a str,
     stage_pos: usize,
-    stages: Vec<Vec<Stage>>,
+    stages: &Vec<Vec<Stage>>,
 ) -> Result<()> {
     let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\.|$)");
     let regex = Regex::new(stage_name_r.as_str())?;
 
     let ttl = stages
-        .iter()
+        .into_iter()
         .enumerate()
         .skip(stage_pos + 1)
-        .filter_map(|(forward_pos, parallel)| {
-            parallel
-                .iter()
-                .filter_map(|stage| {
-                    if regex.is_match(stage.query.as_str()) {
-                        debug!(
-                        "Registering TTL for {stage_name}. STAGE_POS={stage_pos} TTL={forward_pos}"
-                    );
-                        Some(forward_pos)
-                    } else {
-                        None
-                    }
-                })
-                .next()
+        .flat_map(|(forward_pos, parallel)| {
+            parallel.into_iter().map(move |stage| (forward_pos, stage))
+        })
+        .filter_map(|(forward_pos, stage)| {
+            if regex.is_match(stage.query.as_str()) {
+                debug!("Registering TTL for {stage_name}. STAGE_POS={stage_pos} TTL={forward_pos}");
+                Some(forward_pos)
+            } else {
+                None
+            }
         })
         .last()
         .unwrap_or(stage_pos + 1);
