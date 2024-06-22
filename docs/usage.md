@@ -130,10 +130,10 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         stages:
-          - - name: parallel_1
+          - - name: parallel_1_a
               query: SELECT * FROM readings
 
-            - name: parallel_1
+            - name: parallel_1_b
               query: >
                 SELECT
                   a,
@@ -141,10 +141,10 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
                   c
                 FROM example
 
-          - - name: parallel_2
+          - - name: parallel_2_a
               query: SELECT * FROM readings
 
-            - name: parallel_2
+            - name: parallel_2_b
               query: >
                 SELECT
                   a,
