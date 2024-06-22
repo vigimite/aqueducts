@@ -3,7 +3,7 @@ use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     path::Path,
     sync::{Arc, OnceLock},
     time::Instant,
@@ -62,7 +62,9 @@ impl Aqueduct {
         P: AsRef<Path>,
     {
         let raw = std::fs::read_to_string(path)?;
-        let definition = Self::substitute_params(&raw, params)?;
+        let parsed = serde_json::from_str::<serde_json::Value>(raw.as_str())?;
+        let parsed = serde_json::to_string(&parsed)?;
+        let definition = Self::substitute_params(parsed.as_str(), params)?;
         let aqueduct = serde_json::from_str::<Aqueduct>(definition.as_str())?;
 
         Ok(aqueduct)
@@ -75,7 +77,9 @@ impl Aqueduct {
         P: AsRef<Path>,
     {
         let raw = std::fs::read_to_string(path)?;
-        let definition = Self::substitute_params(&raw, params)?;
+        let parsed = serde_yml::from_str::<serde_yml::Value>(raw.as_str())?;
+        let parsed = serde_yml::to_string(&parsed)?;
+        let definition = Self::substitute_params(parsed.as_str(), params)?;
         let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
 
         Ok(aqueduct)
@@ -84,8 +88,10 @@ impl Aqueduct {
     /// Load an Aqueduct table definition from a &str containing a json configuration file
     /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
     pub fn try_from_json_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
-        let definition = Self::substitute_params(contents, params)?;
-        let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
+        let parsed = serde_json::from_str::<serde_json::Value>(contents)?;
+        let parsed = serde_json::to_string(&parsed)?;
+        let definition = Self::substitute_params(parsed.as_str(), params)?;
+        let aqueduct = serde_json::from_str::<Aqueduct>(definition.as_str())?;
 
         Ok(aqueduct)
     }
@@ -93,7 +99,9 @@ impl Aqueduct {
     /// Load an Aqueduct table definition from a &str containing a yaml configuration file
     /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
     pub fn try_from_yml_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
-        let definition = Self::substitute_params(contents, params)?;
+        let parsed = serde_yml::from_str::<serde_yml::Value>(contents)?;
+        let parsed = serde_yml::to_string(&parsed)?;
+        let definition = Self::substitute_params(parsed.as_str(), params)?;
         let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
 
         Ok(aqueduct)
@@ -120,7 +128,7 @@ impl Aqueduct {
                     .to_string();
                 param
             })
-            .collect::<Vec<String>>();
+            .collect::<HashSet<String>>();
 
         if !missing_params.is_empty() {
             let error = error::Error::MissingParams(missing_params);

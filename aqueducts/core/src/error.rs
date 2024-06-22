@@ -1,9 +1,11 @@
+use std::collections::HashSet;
+
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Missing template parameters: {0:?}")]
-    MissingParams(Vec<String>),
+    MissingParams(HashSet<String>),
 
     // -- Modules
     #[error("Failed to register source: {0}")]
