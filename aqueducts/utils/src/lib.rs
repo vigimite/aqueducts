@@ -83,17 +83,17 @@ pub mod store {
     pub fn register_handlers() {
         #[cfg(any(feature = "s3", rust_analyzer))]
         {
-            deltalake_aws::register_handlers(None);
+            deltalake::aws::register_handlers(None);
         }
 
         #[cfg(any(feature = "gcs", rust_analyzer))]
         {
-            deltalake_gcp::register_handlers(None);
+            deltalake::gcp::register_handlers(None);
         }
 
         #[cfg(any(feature = "azure", rust_analyzer))]
         {
-            deltalake_azure::register_handlers(None);
+            deltalake::azure::register_handlers(None);
         }
     }
 
