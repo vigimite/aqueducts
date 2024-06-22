@@ -1,5 +1,6 @@
 use aqueducts::prelude::*;
 use clap::Parser;
+use env_logger::Env;
 use std::{collections::HashMap, error::Error};
 
 #[derive(Debug, Parser)]
@@ -27,9 +28,10 @@ where
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
+    let env = Env::default().default_filter_or("aqueducts=info");
+    env_logger::Builder::from_env(env)
         .format_target(false)
+        .format_level(false)
         .init();
 
     aqueducts::register_handlers();

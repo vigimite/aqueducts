@@ -1,9 +1,9 @@
 [workspace]
-exclude = ["aqueducts-cli"]
 members = [
   "aqueducts/core",
   "aqueducts/utils",
   "aqueducts/schema_gen",
+  "aqueducts-cli"
 ]
 resolver = "2"
 
@@ -25,7 +25,7 @@ aqueducts-utils = { path = "aqueducts/utils", version = "0.2.2" }
 
 datafusion = "39"
 object_store = "0.10"
-deltalake = { version = "0.18.0", features = ["datafusion"] }
+deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "a300218", features = ["datafusion"] }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
