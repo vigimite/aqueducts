@@ -1,6 +1,7 @@
 use aqueducts_utils::store::register_object_store;
 use datafusion::{dataframe::DataFrame, execution::context::SessionContext};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use tracing::{info, instrument};
 
 pub mod delta;
@@ -21,11 +22,11 @@ pub enum Destination {
 
 /// Creates a `Destination`
 #[instrument(skip(ctx, destination), err)]
-pub async fn create_destination(ctx: &SessionContext, destination: &Destination) -> Result<()> {
+pub async fn create_destination(ctx: Arc<SessionContext>, destination: &Destination) -> Result<()> {
     match destination {
         Destination::Delta(table_def) => {
             info!(
-                "Migrating delta table schema for table '{}' at location '{}'",
+                "Creating delta table  (if it doesn't exist yet) '{}' at location '{}'",
                 table_def.name, table_def.location
             );
 

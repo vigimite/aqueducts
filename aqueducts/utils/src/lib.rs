@@ -98,7 +98,7 @@ pub mod store {
     }
 
     pub fn register_object_store(
-        ctx: &SessionContext,
+        ctx: Arc<SessionContext>,
         location: &Url,
         storage_options: &HashMap<String, String>,
     ) -> Result<(), DeltaTableError> {
@@ -158,7 +158,7 @@ pub mod odbc {
     /// df.show().await.unwrap();
     /// ```
     pub async fn register_odbc_source(
-        ctx: &SessionContext,
+        ctx: Arc<SessionContext>,
         connection_string: &str,
         query: &str,
         source_name: &str,
@@ -198,7 +198,9 @@ pub mod odbc {
 #[cfg(all(test, feature = "odbc"))]
 mod odbc_tests {
     use super::odbc::*;
+
     use datafusion::{assert_batches_eq, prelude::*};
+    use std::sync::Arc;
 
     #[tokio::test]
     #[tracing_test::traced_test]
@@ -210,10 +212,10 @@ mod odbc_tests {
             PWD=postgres;\
         ";
 
-        let ctx = SessionContext::new();
+        let ctx = Arc::new(SessionContext::new());
 
         register_odbc_source(
-            &ctx,
+            ctx.clone(),
             connection_string,
             "SELECT * FROM temp_readings WHERE timestamp::date BETWEEN '2024-01-01' AND '2024-01-31'",
             "my_table",

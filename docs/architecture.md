@@ -39,6 +39,8 @@ Once executed the stage will then persist its result into the SQL context making
 
 The stage can be set to print the result and/or the result schema to the `stdout`. This is useful for development/debugging purposes.
 
+Nested stages are executed in parallel
+
 ## Destination
 
 An Aqueduct destination can be:

@@ -18,44 +18,44 @@ sources:
     location: ${local_path}/examples/temp_readings_feb_2024.csv
 
 stages:
-  - name: jan_aggregated
-    query: >
-        SELECT
-          cast(timestamp as date) date,
-          location_id,
-          round(min(temperature_c),2) min_temp_c,
-          round(min(humidity),2) min_humidity,
-          round(max(temperature_c),2) max_temp_c,
-          round(max(humidity),2) max_humidity,
-          round(avg(temperature_c),2) avg_temp_c,
-          round(avg(humidity),2) avg_humidity
-        FROM temp_readings
-        GROUP by 1,2
-        ORDER by 1 asc
-    # print 20 rows of the result for this query to stdout
-    show: 20 
+  - - name: jan_aggregated
+      query: >
+          SELECT
+            cast(timestamp as date) date,
+            location_id,
+            round(min(temperature_c),2) min_temp_c,
+            round(min(humidity),2) min_humidity,
+            round(max(temperature_c),2) max_temp_c,
+            round(max(humidity),2) max_humidity,
+            round(avg(temperature_c),2) avg_temp_c,
+            round(avg(humidity),2) avg_humidity
+          FROM temp_readings
+          GROUP by 1,2
+          ORDER by 1 asc
+      # print 20 rows of the result for this query to stdout
+      show: 20 
 
-  - name: feb_aggregated
-    query: >
-        SELECT
-          cast(timestamp as date) date,
-          location_id,
-          round(min(temperature_c),2) min_temp_c,
-          round(min(humidity),2) min_humidity,
-          round(max(temperature_c),2) max_temp_c,
-          round(max(humidity),2) max_humidity,
-          round(avg(temperature_c),2) avg_temp_c,
-          round(avg(humidity),2) avg_humidity
-        FROM temp_readings
-        GROUP by 1,2
-        ORDER by 1 asc
-    # print the entire result for this query to stdout
-    show: 0
+    - name: feb_aggregated
+      query: >
+          SELECT
+            cast(timestamp as date) date,
+            location_id,
+            round(min(temperature_c),2) min_temp_c,
+            round(min(humidity),2) min_humidity,
+            round(max(temperature_c),2) max_temp_c,
+            round(max(humidity),2) max_humidity,
+            round(avg(temperature_c),2) avg_temp_c,
+            round(avg(humidity),2) avg_humidity
+          FROM temp_readings
+          GROUP by 1,2
+          ORDER by 1 asc
+      # print the entire result for this query to stdout
+      show: 0
 
-  - name: union
-    query: >
-      SELECT * FROM jan_aggregated UNION (SELECT * FROM feb_aggregated)
-    print_schema: true # print the resulting schema of this query to stdout
+  - - name: union
+      query: >
+        SELECT * FROM jan_aggregated UNION (SELECT * FROM feb_aggregated)
+      print_schema: true # print the resulting schema of this query to stdout
 
 destination:
   type: Delta

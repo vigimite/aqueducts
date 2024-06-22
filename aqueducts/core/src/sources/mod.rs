@@ -168,7 +168,7 @@ pub struct JsonSourceOptions {
 /// Register an Aqueduct source
 /// Supports Delta tables, Parquet files, Csv Files and Json Files
 #[instrument(skip(ctx, source), err)]
-pub async fn register_source(ctx: &SessionContext, source: Source) -> Result<()> {
+pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result<()> {
     match source {
         Source::Delta(delta_source) => {
             info!(
@@ -217,7 +217,7 @@ pub async fn register_source(ctx: &SessionContext, source: Source) -> Result<()>
     Ok(())
 }
 
-async fn register_delta_source(ctx: &SessionContext, delta_source: DeltaSource) -> Result<()> {
+async fn register_delta_source(ctx: Arc<SessionContext>, delta_source: DeltaSource) -> Result<()> {
     let builder = deltalake::DeltaTableBuilder::from_valid_uri(delta_source.location)?
         .with_storage_options(delta_source.storage_options);
 
@@ -235,9 +235,13 @@ async fn register_delta_source(ctx: &SessionContext, delta_source: DeltaSource) 
     Ok(())
 }
 
-async fn register_file_source(ctx: &SessionContext, file_source: FileSource) -> Result<()> {
+async fn register_file_source(ctx: Arc<SessionContext>, file_source: FileSource) -> Result<()> {
     // register the object store for this source
-    register_object_store(ctx, &file_source.location, &file_source.storage_options)?;
+    register_object_store(
+        ctx.clone(),
+        &file_source.location,
+        &file_source.storage_options,
+    )?;
 
     match file_source.file_type {
         FileType::Parquet(ParquetSourceOptions {
@@ -315,9 +319,13 @@ async fn register_file_source(ctx: &SessionContext, file_source: FileSource) -> 
     Ok(())
 }
 
-async fn register_dir_source(ctx: &SessionContext, dir_source: DirSource) -> Result<()> {
+async fn register_dir_source(ctx: Arc<SessionContext>, dir_source: DirSource) -> Result<()> {
     // register the object store for this source
-    register_object_store(ctx, &dir_source.location, &dir_source.storage_options)?;
+    register_object_store(
+        ctx.clone(),
+        &dir_source.location,
+        &dir_source.storage_options,
+    )?;
 
     let session_state = ctx.state();
 

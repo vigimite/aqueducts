@@ -39,7 +39,7 @@ pub struct Stage {
 /// in-memory table using the stages name as the table name
 /// Does not allow for ddl/dml queries or SQL statements (e.g. SET VARIABLE, CREATE TABLE, etc.)
 #[instrument(skip(ctx, stage), err)]
-pub async fn process_stage(ctx: &SessionContext, stage: Stage) -> Result<()> {
+pub async fn process_stage(ctx: Arc<SessionContext>, stage: Stage) -> Result<()> {
     info!("Running stage '{}'", stage.name);
     let options = SQLOptions::new()
         .with_allow_ddl(false)
