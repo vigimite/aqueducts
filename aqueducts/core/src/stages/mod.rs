@@ -29,7 +29,7 @@ pub struct Stage {
     #[serde(default)]
     pub explain_analyze: bool,
 
-    /// When set to 'true' the stage will pretty print the output schema of the excuted query
+    /// When set to 'true' the stage will pretty print the output schema of the executed query
     #[serde(default)]
     pub print_schema: bool,
 }

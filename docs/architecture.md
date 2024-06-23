@@ -18,7 +18,7 @@ An Aqueduct source can be:
 
 For file based sources a schema can be provided optionally.
 
-The source is registered within the `SessionContext` as a table that can be referenced using the sources configured name. A prerequisite here is that the necessary features for the underlying obejct stores are enabled.
+The source is registered within the `SessionContext` as a table that can be referenced using the sources configured name. A prerequisite here is that the necessary features for the underlying object stores are enabled.
 This can be provided by an external `SessionContext` passed into the `run_pipeline` function or by registering the correct handlers for deltalake.
 
 **EXPERIMENTAL ODBC support**

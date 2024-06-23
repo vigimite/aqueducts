@@ -298,12 +298,10 @@ fn calculate_ttl<'a>(
     let regex = Regex::new(stage_name_r.as_str())?;
 
     let ttl = stages
-        .into_iter()
+        .iter()
         .enumerate()
         .skip(stage_pos + 1)
-        .flat_map(|(forward_pos, parallel)| {
-            parallel.into_iter().map(move |stage| (forward_pos, stage))
-        })
+        .flat_map(|(forward_pos, parallel)| parallel.iter().map(move |stage| (forward_pos, stage)))
         .filter_map(|(forward_pos, stage)| {
             if regex.is_match(stage.query.as_str()) {
                 debug!("Registering TTL for {stage_name}. STAGE_POS={stage_pos} TTL={forward_pos}");

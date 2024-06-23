@@ -29,7 +29,7 @@ pub struct DeltaDestination {
     /// DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>
     pub table_properties: HashMap<String, Option<String>>,
 
-    /// Columns that will be used to determine uniquness during merge operation
+    /// Columns that will be used to determine uniqueness during merge operation
     /// Supported types: All primitive types and lists of primitive types
     pub write_mode: WriteMode,
 

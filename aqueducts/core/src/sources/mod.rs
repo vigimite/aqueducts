@@ -145,7 +145,7 @@ pub struct ParquetSourceOptions {
 #[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
 pub struct CsvSourceOptions {
     /// set to `true` to treat first row of CSV as the header
-    /// column names will be infered from the header, if there is no header the column names are `column_1, column_2, ... column_x`
+    /// column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
     has_header: Option<bool>,
 
     /// set a delimiter character to read this CSV with

@@ -11,11 +11,11 @@ This is a generated JSONSchema reference for the Aqueducts configuration.
 
 **Description:** Definition for an `Aqueduct` data pipeline
 
-| Property                       | Pattern | Type        | Title/Description                                                                                        |
-| ------------------------------ | ------- | ----------- | -------------------------------------------------------------------------------------------------------- |
-| + [sources](#sources )         | No      | array       | Definition of the data sources for this pipeline                                                         |
-| + [stages](#stages )           | No      | array       | A sequential list of transformations to execute within the context of this pipeline                      |
-| - [destination](#destination ) | No      | Combination | Destination for the final step of the \`Aqueduct\` takes the last stage as input for the write operation |
+| Property                       | Pattern | Type           | Title/Description                                                                                                          |
+| ------------------------------ | ------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| + [sources](#sources )         | No      | array          | Definition of the data sources for this pipeline                                                                           |
+| + [stages](#stages )           | No      | array of array | A sequential list of transformations to execute within the context of this pipeline Nested stages are executed in parallel |
+| - [destination](#destination ) | No      | Combination    | Destination for the final step of the \`Aqueduct\` takes the last stage as input for the write operation                   |
 
 ----------------------------------------------------
 
@@ -272,10 +272,10 @@ Must be one of:
 
 **Description:**  *No description...*
 
-| Property                                                                       | Pattern | Type            | Title/Description                                                                                                                                                                     |
-| ------------------------------------------------------------------------------ | ------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| - [has_header](#sources_items_oneOf_i1_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | set to \`true\` to treat first row of CSV as the header column names will be infered from the header, if there is no header the column names are \`column_1, column_2, ... column_x\` |
-| - [delimiter](#sources_items_oneOf_i1_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | set a delimiter character to read this CSV with                                                                                                                                       |
+| Property                                                                       | Pattern | Type            | Title/Description                                                                                                                                                                      |
+| ------------------------------------------------------------------------------ | ------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - [has_header](#sources_items_oneOf_i1_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | set to \`true\` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are \`column_1, column_2, ... column_x\` |
+| - [delimiter](#sources_items_oneOf_i1_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | set a delimiter character to read this CSV with                                                                                                                                        |
 
 ----------------------------------------------------
 
@@ -285,7 +285,7 @@ Must be one of:
 | -------- | ----------------- |
 | **Type** | `boolean or null` |
 
-**Description:** set to `true` to treat first row of CSV as the header column names will be infered from the header, if there is no header the column names are `column_1, column_2, ... column_x`
+**Description:** set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
 
 ----------------------------------------------------
 
@@ -514,10 +514,10 @@ Must be one of:
 
 **Description:**  *No description...*
 
-| Property                                                                       | Pattern | Type            | Title/Description                                                                                                                                                                     |
-| ------------------------------------------------------------------------------ | ------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| - [has_header](#sources_items_oneOf_i2_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | set to \`true\` to treat first row of CSV as the header column names will be infered from the header, if there is no header the column names are \`column_1, column_2, ... column_x\` |
-| - [delimiter](#sources_items_oneOf_i2_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | set a delimiter character to read this CSV with                                                                                                                                       |
+| Property                                                                       | Pattern | Type            | Title/Description                                                                                                                                                                      |
+| ------------------------------------------------------------------------------ | ------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - [has_header](#sources_items_oneOf_i2_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | set to \`true\` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are \`column_1, column_2, ... column_x\` |
+| - [delimiter](#sources_items_oneOf_i2_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | set a delimiter character to read this CSV with                                                                                                                                        |
 
 ----------------------------------------------------
 
@@ -527,7 +527,7 @@ Must be one of:
 | -------- | ----------------- |
 | **Type** | `boolean or null` |
 
-**Description:** set to `true` to treat first row of CSV as the header column names will be infered from the header, if there is no header the column names are `column_1, column_2, ... column_x`
+**Description:** set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
 
 ----------------------------------------------------
 
@@ -683,17 +683,29 @@ Must be one of:
 
 ## <a name="stages"></a>![Required](https://img.shields.io/badge/Required-blue) Field: stages
 
+|          |                  |
+| -------- | ---------------- |
+| **Type** | `array of array` |
+
+**Description:** A sequential list of transformations to execute within the context of this pipeline Nested stages are executed in parallel
+
+| Each item of this array must be | Description |
+| ------------------------------- | ----------- |
+| [stages items](#stages_items)   | -           |
+
+### <a name="autogenerated_heading_3"></a>Field: stages items
+
 |          |         |
 | -------- | ------- |
 | **Type** | `array` |
 
-**Description:** A sequential list of transformations to execute within the context of this pipeline
+**Description:**  *No description...*
 
 | Each item of this array must be | Description                                               |
 | ------------------------------- | --------------------------------------------------------- |
-| [Stage](#stages_items)          | Definition for a processing stage in an Aqueduct Pipeline |
+| [Stage](#stages_items_items)    | Definition for a processing stage in an Aqueduct Pipeline |
 
-### <a name="autogenerated_heading_3"></a>Field: Stage
+#### <a name="autogenerated_heading_4"></a>Field: Stage
 
 |                           |                                                                                                                                   |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -703,18 +715,18 @@ Must be one of:
 
 **Description:** Definition for a processing stage in an Aqueduct Pipeline
 
-| Property                                            | Pattern | Type            | Title/Description                                                                                                                                                          |
-| --------------------------------------------------- | ------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| + [name](#stages_items_name )                       | No      | string          | Name of the stage, used as the table name for the result of this stage                                                                                                     |
-| + [query](#stages_items_query )                     | No      | string          | SQL query that is executed against a datafusion context. Check the datafusion SQL reference for more information <https://datafusion.apache.org/user-guide/sql/index.html> |
-| - [show](#stages_items_show )                       | No      | integer or null | When set to a value of up to \`usize\`, will print the result of this stage to the stdout limited by the number Set value to 0 to not limit the outputs                    |
-| - [explain](#stages_items_explain )                 | No      | boolean         | When set to 'true' the stage will output the query execution plan                                                                                                          |
-| - [explain_analyze](#stages_items_explain_analyze ) | No      | boolean         | When set to 'true' the stage will output the query execution plan with added execution metrics                                                                             |
-| - [print_schema](#stages_items_print_schema )       | No      | boolean         | When set to 'true' the stage will pretty print the output schema of the excuted query                                                                                      |
+| Property                                                  | Pattern | Type            | Title/Description                                                                                                                                                          |
+| --------------------------------------------------------- | ------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| + [name](#stages_items_items_name )                       | No      | string          | Name of the stage, used as the table name for the result of this stage                                                                                                     |
+| + [query](#stages_items_items_query )                     | No      | string          | SQL query that is executed against a datafusion context. Check the datafusion SQL reference for more information <https://datafusion.apache.org/user-guide/sql/index.html> |
+| - [show](#stages_items_items_show )                       | No      | integer or null | When set to a value of up to \`usize\`, will print the result of this stage to the stdout limited by the number Set value to 0 to not limit the outputs                    |
+| - [explain](#stages_items_items_explain )                 | No      | boolean         | When set to 'true' the stage will output the query execution plan                                                                                                          |
+| - [explain_analyze](#stages_items_items_explain_analyze ) | No      | boolean         | When set to 'true' the stage will output the query execution plan with added execution metrics                                                                             |
+| - [print_schema](#stages_items_items_print_schema )       | No      | boolean         | When set to 'true' the stage will pretty print the output schema of the executed query                                                                                     |
 
 ----------------------------------------------------
 
-#### <a name="stages_items_name"></a>Field: name
+##### <a name="stages_items_items_name"></a>Field: name
 
 |          |          |
 | -------- | -------- |
@@ -724,7 +736,7 @@ Must be one of:
 
 ----------------------------------------------------
 
-#### <a name="stages_items_query"></a>Field: query
+##### <a name="stages_items_items_query"></a>Field: query
 
 |          |          |
 | -------- | -------- |
@@ -734,7 +746,7 @@ Must be one of:
 
 ----------------------------------------------------
 
-#### <a name="stages_items_show"></a>Field: show
+##### <a name="stages_items_items_show"></a>Field: show
 
 |            |                   |
 | ---------- | ----------------- |
@@ -749,7 +761,7 @@ Must be one of:
 
 ----------------------------------------------------
 
-#### <a name="stages_items_explain"></a>Field: explain
+##### <a name="stages_items_items_explain"></a>Field: explain
 
 |             |           |
 | ----------- | --------- |
@@ -760,7 +772,7 @@ Must be one of:
 
 ----------------------------------------------------
 
-#### <a name="stages_items_explain_analyze"></a>Field: explain_analyze
+##### <a name="stages_items_items_explain_analyze"></a>Field: explain_analyze
 
 |             |           |
 | ----------- | --------- |
@@ -771,14 +783,14 @@ Must be one of:
 
 ----------------------------------------------------
 
-#### <a name="stages_items_print_schema"></a>Field: print_schema
+##### <a name="stages_items_items_print_schema"></a>Field: print_schema
 
 |             |           |
 | ----------- | --------- |
 | **Type**    | `boolean` |
 | **Default** | `false`   |
 
-**Description:** When set to 'true' the stage will pretty print the output schema of the excuted query
+**Description:** When set to 'true' the stage will pretty print the output schema of the executed query
 
 ----------------------------------------------------
 
@@ -820,15 +832,15 @@ Must be one of:
 
 **Description:** A delta table destination
 
-| Property                                                               | Pattern | Type             | Title/Description                                                                                                                         |
-| ---------------------------------------------------------------------- | ------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| + [type](#destination_anyOf_i0_oneOf_i0_type )                         | No      | enum (of string) | -                                                                                                                                         |
-| + [name](#destination_anyOf_i0_oneOf_i0_name )                         | No      | string           | Name of the table                                                                                                                         |
-| + [location](#destination_anyOf_i0_oneOf_i0_location )                 | No      | string           | Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table                                                |
-| - [storage_options](#destination_anyOf_i0_oneOf_i0_storage_options )   | No      | object           | DeltaTable storage options                                                                                                                |
-| + [table_properties](#destination_anyOf_i0_oneOf_i0_table_properties ) | No      | object           | DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>                                                         |
-| + [write_mode](#destination_anyOf_i0_oneOf_i0_write_mode )             | No      | object           | Columns that will be used to determine uniquness during merge operation Supported types: All primitive types and lists of primitive types |
-| + [partition_cols](#destination_anyOf_i0_oneOf_i0_partition_cols )     | No      | array of string  | Columns to partition table by                                                                                                             |
+| Property                                                               | Pattern | Type             | Title/Description                                                                                                                          |
+| ---------------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| + [type](#destination_anyOf_i0_oneOf_i0_type )                         | No      | enum (of string) | -                                                                                                                                          |
+| + [name](#destination_anyOf_i0_oneOf_i0_name )                         | No      | string           | Name of the table                                                                                                                          |
+| + [location](#destination_anyOf_i0_oneOf_i0_location )                 | No      | string           | Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table                                                 |
+| - [storage_options](#destination_anyOf_i0_oneOf_i0_storage_options )   | No      | object           | DeltaTable storage options                                                                                                                 |
+| + [table_properties](#destination_anyOf_i0_oneOf_i0_table_properties ) | No      | object           | DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>                                                          |
+| + [write_mode](#destination_anyOf_i0_oneOf_i0_write_mode )             | No      | object           | Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types |
+| + [partition_cols](#destination_anyOf_i0_oneOf_i0_partition_cols )     | No      | array of string  | Columns to partition table by                                                                                                              |
 
 ----------------------------------------------------
 
@@ -925,7 +937,7 @@ Must be one of:
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 | **Defined in**            |                                                                                                                                   |
 
-**Description:** Columns that will be used to determine uniquness during merge operation Supported types: All primitive types and lists of primitive types
+**Description:** Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types
 
 | One of(Option)                                               |
 | ------------------------------------------------------------ |
@@ -1000,7 +1012,7 @@ Must be one of:
 | ------------------------------------------------------------------------------- | ----------- |
 | [params items](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params_items) | -           |
 
-###### <a name="autogenerated_heading_4"></a>Field: params items
+###### <a name="autogenerated_heading_5"></a>Field: params items
 
 |          |          |
 | -------- | -------- |
@@ -1049,7 +1061,7 @@ Must be one of:
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [ReplaceCondition](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items) | Condition used to build a predicate by which data should be replaced in a 'Destination' Expression built is checking equality for the given 'value' of a field with 'field_name' |
 
-###### <a name="autogenerated_heading_5"></a>Field: ReplaceCondition
+###### <a name="autogenerated_heading_6"></a>Field: ReplaceCondition
 
 |                           |                                                                                                                                   |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -1098,7 +1110,7 @@ Must be one of:
 | --------------------------------------------------------------------------- | ----------- |
 | [partition_cols items](#destination_anyOf_i0_oneOf_i0_partition_cols_items) | -           |
 
-###### <a name="autogenerated_heading_6"></a>Field: partition_cols items
+###### <a name="autogenerated_heading_7"></a>Field: partition_cols items
 
 |          |          |
 | -------- | -------- |
@@ -1350,7 +1362,7 @@ Must be one of:
 | --------------------------------------------------------------------------- | ----------- |
 | [partition_cols items](#destination_anyOf_i0_oneOf_i1_partition_cols_items) | -           |
 
-###### <a name="autogenerated_heading_7"></a>Field: partition_cols items
+###### <a name="autogenerated_heading_8"></a>Field: partition_cols items
 
 |          |          |
 | -------- | -------- |

@@ -16,10 +16,13 @@
       }
     },
     "stages": {
-      "description": "A sequential list of transformations to execute within the context of this pipeline",
+      "description": "A sequential list of transformations to execute within the context of this pipeline Nested stages are executed in parallel",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Stage"
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Stage"
+        }
       }
     },
     "destination": {
@@ -267,7 +270,7 @@
       "type": "object",
       "properties": {
         "has_header": {
-          "description": "set to `true` to treat first row of CSV as the header column names will be infered from the header, if there is no header the column names are `column_1, column_2, ... column_x`",
+          "description": "set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`",
           "type": [
             "boolean",
             "null"
@@ -323,7 +326,7 @@
           "type": "boolean"
         },
         "print_schema": {
-          "description": "When set to 'true' the stage will pretty print the output schema of the excuted query",
+          "description": "When set to 'true' the stage will pretty print the output schema of the executed query",
           "default": false,
           "type": "boolean"
         }
@@ -378,7 +381,7 @@
               }
             },
             "write_mode": {
-              "description": "Columns that will be used to determine uniquness during merge operation Supported types: All primitive types and lists of primitive types",
+              "description": "Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types",
               "allOf": [
                 {
                   "$ref": "#/definitions/WriteMode"
