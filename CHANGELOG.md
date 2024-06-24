@@ -5,12 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2024-06-24
+### Details
+#### Changed
+- Upgrade deltalake to 0.18.1 by @vigimite
+
 ## [0.3.0-rc1] - 2024-06-22
 ### Details
 #### Added
 - Add json support, add JSONSchema, add docs by @vigimite
 
 #### Changed
+- Upgrade datafusion to 0.39.0 by @vigimite
 - Add initial mkDocs documentation by @vigimite
 - Update serde_yml requirement from 0.0.8 to 0.0.10 
 - Implement parallel processing of stages by @vigimite in [#14](https://github.com/vigimite/aqueducts/pull/14)
