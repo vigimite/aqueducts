@@ -9,7 +9,7 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 **Features:**
 
 - Define ETL pipelines in YAML
-- Extract data from csv files, parquet files or delta tables
+- Extract data from csv files, JSONL, parquet files or delta tables
 - Process data using SQL
 - Load data into object stores as csv/parquet or delta tables
 - Support for file and delta table partitioning

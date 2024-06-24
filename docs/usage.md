@@ -55,6 +55,20 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
             location: ./examples/temp_readings_feb_2024.csv
         ```
 
+    === "local JSONL file source"
+
+        ```yaml
+        sources:
+          - type: File
+            name: feb_data
+            file_type:
+              type: Json
+              options:
+                has_header: true
+                delimiter: ","
+            location: ./examples/temp_readings_feb_2024.csv
+        ```
+
     === "Parquet file on S3"
 
         ```yaml
