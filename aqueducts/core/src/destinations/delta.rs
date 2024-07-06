@@ -85,6 +85,7 @@ pub(super) async fn create(table_def: &DeltaDestination) -> Result<DeltaTable> {
 pub(super) async fn write(table_def: &DeltaDestination, data: DataFrame) -> Result<DeltaTable> {
     let table_schema = StructType::new(table_def.schema.clone());
     let table_schema = TryInto::<Schema>::try_into(&table_schema)?;
+    let data = validate_schema(table_schema.clone(), data)?;
 
     let ops = DeltaOps::try_from_uri_with_storage_options(
         table_def.location.clone(),
@@ -203,6 +204,22 @@ async fn merge(
         .await?;
 
     Ok(table)
+}
+
+/// Validate if the table schema matches the data that is about to be written (casts the dataframe to the output schema)
+fn validate_schema(schema: Schema, data: DataFrame) -> Result<DataFrame> {
+    use datafusion::prelude::{cast, col, Expr};
+
+    let columns = schema
+        .fields
+        .into_iter()
+        .map(|field| cast(col(field.name()), field.data_type().clone()).alias(field.name()))
+        .collect::<Vec<Expr>>();
+
+    let result = data.select(columns)?;
+    assert!(result.schema().matches_arrow_schema(&schema));
+
+    Ok(result)
 }
 
 /// Build expression to replace values matching the `ReplaceCondition`s that was defined
