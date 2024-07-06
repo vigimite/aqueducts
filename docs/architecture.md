@@ -61,7 +61,7 @@ File based destinations have support for HDFS style partitioning (`output/locati
 
 For a DeltaTable there is some additional logic that is utilized to maintain the table integrity.
 
-The destination will first cast and validate the schema of the input data and then use one of 3 configurable modes to write the data:
+The destination will use one of 3 configurable modes to write the data:
 
 - Append -> appends the data to the destination
 - Upsert -> merges the data to the destination, using the provided configuration for this mode to identify cohort columns that are used to determine which data should be updated
