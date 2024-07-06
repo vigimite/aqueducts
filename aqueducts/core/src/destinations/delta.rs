@@ -208,12 +208,32 @@ async fn merge(
 
 /// Validate if the table schema matches the data that is about to be written (casts the dataframe to the output schema)
 fn validate_schema(schema: Schema, data: DataFrame) -> Result<DataFrame> {
+    use datafusion::arrow::datatypes::DataType;
     use datafusion::prelude::{cast, col, Expr};
 
     let columns = schema
         .fields
         .into_iter()
-        .map(|field| cast(col(field.name()), field.data_type().clone()).alias(field.name()))
+        .map(|field| {
+            let has_input_type = |data_type: DataType| {
+                data.schema()
+                    .field_with_unqualified_name(field.name())
+                    .map(|f| f.data_type().equals_datatype(&data_type))
+                    .unwrap_or_default()
+            };
+
+            match field.data_type() {
+                DataType::Utf8 if has_input_type(DataType::LargeUtf8) => {
+                    cast(col(field.name()), DataType::LargeUtf8).alias(field.name())
+                }
+                deltalake::arrow::datatypes::DataType::Binary
+                    if has_input_type(DataType::LargeBinary) =>
+                {
+                    cast(col(field.name()), DataType::LargeBinary).alias(field.name())
+                }
+                _ => cast(col(field.name()), field.data_type().clone()).alias(field.name()),
+            }
+        })
         .collect::<Vec<Expr>>();
 
     let result = data.select(columns)?;
