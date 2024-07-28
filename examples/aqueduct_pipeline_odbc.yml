@@ -48,3 +48,9 @@ stages:
     query: >
       SELECT count(*) FROM jan_aggregated
     show: 0
+
+destination:
+  type: Odbc
+  name: temp_readings_aggregated
+  connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
+  batch_size: 100

@@ -48,9 +48,9 @@ jobs:
           toolchain: stable
           components: rustfmt
 
-      - name: Execute init.sql script
+      - name: Setup test environment
         run: |
-          sudo apt-get update && sudo apt-get install -y postgresql-client
+          sudo apt-get update && sudo apt-get install -y postgresql-client unixodbc odbc-postgresql
           export CONTAINER_ID=$(docker ps --filter "name=postgres" --format "{{.ID}}")
           docker cp ./examples/temp_readings_jan_2024.csv $CONTAINER_ID:/opt/
           docker cp ./examples/temp_readings_feb_2024.csv $CONTAINER_ID:/opt/
@@ -89,9 +89,9 @@ jobs:
       - name: Build aqueducts in release mode
         run: |
           cd aqueducts/core
-          cargo build --release
+          cargo build --workspace --release
 
       - name: Build aqueducts-cli in release mode
         run: |
           cd aqueducts-cli
-          cargo build --release
+          cargo build --workspace --release
