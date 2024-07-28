@@ -1,0 +1,4689 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://vigimite.github.io/aqueducts/schema_reference/">
+      
+      
+        <link rel="prev" href="../usage/">
+      
+      
+        <link rel="next" href="../architecture/">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.30">
+    
+    
+      
+        <title>Schema Reference - Aqueducts Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.3cba04c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="Schema Reference - Aqueducts Documentation" >
+      
+        <meta  property="og:description"  content="None" >
+      
+        <meta  property="og:image"  content="https://vigimite.github.io/aqueducts/assets/images/social/schema_reference.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://vigimite.github.io/aqueducts/schema_reference/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="Schema Reference - Aqueducts Documentation" >
+      
+        <meta  name="twitter:description"  content="None" >
+      
+        <meta  name="twitter:image"  content="https://vigimite.github.io/aqueducts/assets/images/social/schema_reference.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#aqueduct" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Aqueducts Documentation" class="md-header__button md-logo" aria-label="Aqueducts Documentation" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Aqueducts Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Schema Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9h-1.9M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69m-9.15 3.96h2.3L12 9l-1.15 3.65Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/vigimite/aqueducts" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vigimite/aqueducts
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../usage/" class="md-tabs__link">
+        
+  
+    
+  
+  Usage
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Schema Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../cli/" class="md-tabs__link">
+        
+  
+    
+  
+  Aqueducts CLI
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Aqueducts Documentation" class="md-nav__button md-logo" aria-label="Aqueducts Documentation" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Aqueducts Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/vigimite/aqueducts" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vigimite/aqueducts
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Schema Reference
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Schema Reference
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#field-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: sources
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: Source
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: Source">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-item-0" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-version_ts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: version_ts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-storage_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: storage_options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-item-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 1
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-file_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: file_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-location_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-storage_options_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: storage_options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-item-2_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 2
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-file_type_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: file_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-location_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-storage_options_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: storage_options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-item-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 3
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-connection_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: connection_string
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: stages
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-stages-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: stages items
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: stages items">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: Stage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: Stage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-name_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-query_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: show
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-explain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: explain
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-explain_analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: explain_analyze
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-print_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: print_schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: destination
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: destination">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-destination_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: Destination
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: Destination">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-item-0_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-location_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-storage_options_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: storage_options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-table_properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: table_properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-write_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: write_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-partition_cols" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: partition_cols
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-item-1_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 1
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-location_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-file_type_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: file_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-single_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: single_file
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-partition_cols_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: partition_cols
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-storage_options_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: storage_options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-item-2_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 2
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field: item 2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-type_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-name_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-connection_string_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: connection_string
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-batch_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: batch_size
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-item-1_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Field: item 1
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Aqueducts CLI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    About
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="aqueduct">Aqueduct</h1>
+<p>This is a generated JSONSchema reference for the Aqueducts configuration.</p>
+<p><strong>Title:</strong> Aqueduct</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Definition for an <code>Aqueduct</code> data pipeline</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources">sources</a></td>
+<td>No</td>
+<td>array</td>
+<td>Definition of the data sources for this pipeline</td>
+</tr>
+<tr>
+<td>+ <a href="#stages">stages</a></td>
+<td>No</td>
+<td>array of array</td>
+<td>A sequential list of transformations to execute within the context of this pipeline Nested stages are executed in parallel</td>
+</tr>
+<tr>
+<td>- <a href="#destination">destination</a></td>
+<td>No</td>
+<td>Combination</td>
+<td>Destination for the final step of the `Aqueduct` takes the last stage as input for the write operation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="field-sources"><a name="sources"></a><img alt="Required" src="https://img.shields.io/badge/Required-blue" /> Field: sources</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Definition of the data sources for this pipeline</p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#sources_items">Source</a></td>
+<td>A data source that can be either a delta table ('delta'), a 'file', a 'directory' or an 'odbc' connection</td>
+</tr>
+</tbody>
+</table>
+<h3 id="field-source"><a name="autogenerated_heading_2"></a>Field: Source</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/Source</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A data source that can be either a delta table (<code>delta</code>), a <code>file</code>, a <code>directory</code> or an <code>odbc</code> connection</p>
+<table>
+<thead>
+<tr>
+<th>One of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#sources_items_oneOf_i0">item 0</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i1">item 1</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i2">item 2</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i3">item 3</a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="field-item-0"><a name="sources_items_oneOf_i0"></a><strong>Field: item 0</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A delta table source</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i0_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i0_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the delta source, will be the registered table name in the SQL context</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i0_location">location</a></td>
+<td>No</td>
+<td>string</td>
+<td>A URL or Path to the location of the delta table Supports relative local paths</td>
+</tr>
+<tr>
+<td>- <a href="#sources_items_oneOf_i0_version_ts">version_ts</a></td>
+<td>No</td>
+<td>string or null</td>
+<td>A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature</td>
+</tr>
+<tr>
+<td>- <a href="#sources_items_oneOf_i0_storage_options">storage_options</a></td>
+<td>No</td>
+<td>object</td>
+<td>Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <a href="https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs">https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs</a>) additionally also reference the `object_store` docs (e.g. <a href="https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html">https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html</a>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type"><a name="sources_items_oneOf_i0_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Delta"</p>
+<hr />
+<h5 id="field-name"><a name="sources_items_oneOf_i0_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the delta source, will be the registered table name in the SQL context</p>
+<hr />
+<h5 id="field-location"><a name="sources_items_oneOf_i0_location"></a>Field: location</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uri</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A URL or Path to the location of the delta table Supports relative local paths</p>
+<hr />
+<h5 id="field-version_ts"><a name="sources_items_oneOf_i0_version_ts"></a>Field: version_ts</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string or null</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>date-time</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature</p>
+<hr />
+<h5 id="field-storage_options"><a name="sources_items_oneOf_i0_storage_options"></a>Field: storage_options</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#sources_items_oneOf_i0_storage_options_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <a href="https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs">https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs</a>) additionally also reference the <code>object_store</code> docs (e.g. <a href="https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html">https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html</a>)</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#sources_items_oneOf_i0_storage_options_additionalProperties"></a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties"><a name="sources_items_oneOf_i0_storage_options_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h4 id="field-item-1"><a name="sources_items_oneOf_i1"></a><strong>Field: item 1</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A file source</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the file source, will be the registered table name in the SQL context</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type">file_type</a></td>
+<td>No</td>
+<td>object</td>
+<td>File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_location">location</a></td>
+<td>No</td>
+<td>string</td>
+<td>A URL or Path to the location of the delta table Supports relative local paths</td>
+</tr>
+<tr>
+<td>- <a href="#sources_items_oneOf_i1_storage_options">storage_options</a></td>
+<td>No</td>
+<td>object</td>
+<td>Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <a href="https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs">https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs</a>) additionally also reference the `object_store` docs (e.g. <a href="https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html">https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html</a>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type_1"><a name="sources_items_oneOf_i1_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "File"</p>
+<hr />
+<h5 id="field-name_1"><a name="sources_items_oneOf_i1_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the file source, will be the registered table name in the SQL context</p>
+<hr />
+<h5 id="field-file_type"><a name="sources_items_oneOf_i1_file_type"></a>Field: file_type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> File type of the file to be ingested Supports <code>Parquet</code> for parquet files, <code>Csv</code> for CSV files and <code>Json</code> for JSON files</p>
+<table>
+<thead>
+<tr>
+<th>One of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#sources_items_oneOf_i1_file_type_oneOf_i0">item 0</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i1_file_type_oneOf_i1">item 1</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i1_file_type_oneOf_i2">item 2</a></td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-0_1"><a name="sources_items_oneOf_i1_file_type_oneOf_i0"></a><strong>Field: item 0</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Parquet source options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type_oneOf_i0_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type_oneOf_i0_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_2"><a name="sources_items_oneOf_i1_file_type_oneOf_i0_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Parquet"</p>
+<hr />
+<h6 id="field-options"><a name="sources_items_oneOf_i1_file_type_oneOf_i0_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/ParquetSourceOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h6 id="field-item-1_1"><a name="sources_items_oneOf_i1_file_type_oneOf_i1"></a><strong>Field: item 1</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Csv source options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type_oneOf_i1_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type_oneOf_i1_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_3"><a name="sources_items_oneOf_i1_file_type_oneOf_i1_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Csv"</p>
+<hr />
+<h6 id="field-options_1"><a name="sources_items_oneOf_i1_file_type_oneOf_i1_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/CsvSourceOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#sources_items_oneOf_i1_file_type_oneOf_i1_options_has_header">has_header</a></td>
+<td>No</td>
+<td>boolean or null</td>
+<td>set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`</td>
+</tr>
+<tr>
+<td>- <a href="#sources_items_oneOf_i1_file_type_oneOf_i1_options_delimiter">delimiter</a></td>
+<td>No</td>
+<td>string or null</td>
+<td>set a delimiter character to read this CSV with</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-has_header"><a name="sources_items_oneOf_i1_file_type_oneOf_i1_options_has_header"></a>Field: has_header</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> set to <code>true</code> to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are <code>column_1, column_2, ... column_x</code></p>
+<hr />
+<h6 id="field-delimiter"><a name="sources_items_oneOf_i1_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> set a delimiter character to read this CSV with</p>
+<table>
+<thead>
+<tr>
+<th>Restrictions</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Min length</strong></td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Max length</strong></td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-2"><a name="sources_items_oneOf_i1_file_type_oneOf_i2"></a><strong>Field: item 2</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Json source options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type_oneOf_i2_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i1_file_type_oneOf_i2_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_4"><a name="sources_items_oneOf_i1_file_type_oneOf_i2_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Json"</p>
+<hr />
+<h6 id="field-options_2"><a name="sources_items_oneOf_i1_file_type_oneOf_i2_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/JsonSourceOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h5 id="field-location_1"><a name="sources_items_oneOf_i1_location"></a>Field: location</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uri</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A URL or Path to the location of the delta table Supports relative local paths</p>
+<hr />
+<h5 id="field-storage_options_1"><a name="sources_items_oneOf_i1_storage_options"></a>Field: storage_options</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#sources_items_oneOf_i1_storage_options_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <a href="https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs">https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs</a>) additionally also reference the <code>object_store</code> docs (e.g. <a href="https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html">https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html</a>)</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#sources_items_oneOf_i1_storage_options_additionalProperties"></a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties_1"><a name="sources_items_oneOf_i1_storage_options_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h4 id="field-item-2_1"><a name="sources_items_oneOf_i2"></a><strong>Field: item 2</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A directory source</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the directory source, will be the registered table name in the SQL context</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type">file_type</a></td>
+<td>No</td>
+<td>object</td>
+<td>File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_location">location</a></td>
+<td>No</td>
+<td>string</td>
+<td>A URL or Path to the location of the delta table Supports relative local paths</td>
+</tr>
+<tr>
+<td>- <a href="#sources_items_oneOf_i2_storage_options">storage_options</a></td>
+<td>No</td>
+<td>object</td>
+<td>Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <a href="https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs">https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs</a>) additionally also reference the `object_store` docs (e.g. <a href="https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html">https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html</a>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type_5"><a name="sources_items_oneOf_i2_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Directory"</p>
+<hr />
+<h5 id="field-name_2"><a name="sources_items_oneOf_i2_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the directory source, will be the registered table name in the SQL context</p>
+<hr />
+<h5 id="field-file_type_1"><a name="sources_items_oneOf_i2_file_type"></a>Field: file_type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> File type of the file to be ingested Supports <code>Parquet</code> for parquet files, <code>Csv</code> for CSV files and <code>Json</code> for JSON files</p>
+<table>
+<thead>
+<tr>
+<th>One of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#sources_items_oneOf_i2_file_type_oneOf_i0">item 0</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i2_file_type_oneOf_i1">item 1</a></td>
+</tr>
+<tr>
+<td><a href="#sources_items_oneOf_i2_file_type_oneOf_i2">item 2</a></td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-0_2"><a name="sources_items_oneOf_i2_file_type_oneOf_i0"></a><strong>Field: item 0</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Parquet source options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type_oneOf_i0_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type_oneOf_i0_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_6"><a name="sources_items_oneOf_i2_file_type_oneOf_i0_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Parquet"</p>
+<hr />
+<h6 id="field-options_3"><a name="sources_items_oneOf_i2_file_type_oneOf_i0_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/ParquetSourceOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h6 id="field-item-1_2"><a name="sources_items_oneOf_i2_file_type_oneOf_i1"></a><strong>Field: item 1</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Csv source options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type_oneOf_i1_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type_oneOf_i1_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_7"><a name="sources_items_oneOf_i2_file_type_oneOf_i1_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Csv"</p>
+<hr />
+<h6 id="field-options_4"><a name="sources_items_oneOf_i2_file_type_oneOf_i1_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/CsvSourceOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#sources_items_oneOf_i2_file_type_oneOf_i1_options_has_header">has_header</a></td>
+<td>No</td>
+<td>boolean or null</td>
+<td>set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`</td>
+</tr>
+<tr>
+<td>- <a href="#sources_items_oneOf_i2_file_type_oneOf_i1_options_delimiter">delimiter</a></td>
+<td>No</td>
+<td>string or null</td>
+<td>set a delimiter character to read this CSV with</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-has_header_1"><a name="sources_items_oneOf_i2_file_type_oneOf_i1_options_has_header"></a>Field: has_header</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> set to <code>true</code> to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are <code>column_1, column_2, ... column_x</code></p>
+<hr />
+<h6 id="field-delimiter_1"><a name="sources_items_oneOf_i2_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> set a delimiter character to read this CSV with</p>
+<table>
+<thead>
+<tr>
+<th>Restrictions</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Min length</strong></td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Max length</strong></td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-2_2"><a name="sources_items_oneOf_i2_file_type_oneOf_i2"></a><strong>Field: item 2</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Json source options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type_oneOf_i2_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i2_file_type_oneOf_i2_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_8"><a name="sources_items_oneOf_i2_file_type_oneOf_i2_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Json"</p>
+<hr />
+<h6 id="field-options_5"><a name="sources_items_oneOf_i2_file_type_oneOf_i2_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/JsonSourceOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h5 id="field-location_2"><a name="sources_items_oneOf_i2_location"></a>Field: location</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uri</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A URL or Path to the location of the delta table Supports relative local paths</p>
+<hr />
+<h5 id="field-storage_options_2"><a name="sources_items_oneOf_i2_storage_options"></a>Field: storage_options</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#sources_items_oneOf_i2_storage_options_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <a href="https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs">https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs</a>) additionally also reference the <code>object_store</code> docs (e.g. <a href="https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html">https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html</a>)</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#sources_items_oneOf_i2_storage_options_additionalProperties"></a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties_2"><a name="sources_items_oneOf_i2_storage_options_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h4 id="field-item-3"><a name="sources_items_oneOf_i3"></a><strong>Field: item 3</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> An ODBC source</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i3_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i3_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the ODBC source, will be the registered table name in the SQL context</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i3_query">query</a></td>
+<td>No</td>
+<td>string</td>
+<td>Query to execute when fetching data from the ODBC connection This query will execute eagerly before the data is processed by the pipeline Size of data returned from the query cannot exceed work memory</td>
+</tr>
+<tr>
+<td>+ <a href="#sources_items_oneOf_i3_connection_string">connection_string</a></td>
+<td>No</td>
+<td>string</td>
+<td>ODBC connection string Please reference the respective database connection string syntax (e.g. <a href="https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/">https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/</a>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type_9"><a name="sources_items_oneOf_i3_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Odbc"</p>
+<hr />
+<h5 id="field-name_3"><a name="sources_items_oneOf_i3_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the ODBC source, will be the registered table name in the SQL context</p>
+<hr />
+<h5 id="field-query"><a name="sources_items_oneOf_i3_query"></a>Field: query</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Query to execute when fetching data from the ODBC connection This query will execute eagerly before the data is processed by the pipeline Size of data returned from the query cannot exceed work memory</p>
+<hr />
+<h5 id="field-connection_string"><a name="sources_items_oneOf_i3_connection_string"></a>Field: connection_string</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> ODBC connection string Please reference the respective database connection string syntax (e.g. <a href="https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/">https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/</a>)</p>
+<hr />
+<h2 id="field-stages"><a name="stages"></a><img alt="Required" src="https://img.shields.io/badge/Required-blue" /> Field: stages</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array of array</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A sequential list of transformations to execute within the context of this pipeline Nested stages are executed in parallel</p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#stages_items">stages items</a></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h3 id="field-stages-items"><a name="autogenerated_heading_3"></a>Field: stages items</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#stages_items_items">Stage</a></td>
+<td>Definition for a processing stage in an Aqueduct Pipeline</td>
+</tr>
+</tbody>
+</table>
+<h4 id="field-stage"><a name="autogenerated_heading_4"></a>Field: Stage</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/Stage</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Definition for a processing stage in an Aqueduct Pipeline</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#stages_items_items_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the stage, used as the table name for the result of this stage</td>
+</tr>
+<tr>
+<td>+ <a href="#stages_items_items_query">query</a></td>
+<td>No</td>
+<td>string</td>
+<td>SQL query that is executed against a datafusion context. Check the datafusion SQL reference for more information <a href="https://datafusion.apache.org/user-guide/sql/index.html">https://datafusion.apache.org/user-guide/sql/index.html</a></td>
+</tr>
+<tr>
+<td>- <a href="#stages_items_items_show">show</a></td>
+<td>No</td>
+<td>integer or null</td>
+<td>When set to a value of up to `usize`, will print the result of this stage to the stdout limited by the number Set value to 0 to not limit the outputs</td>
+</tr>
+<tr>
+<td>- <a href="#stages_items_items_explain">explain</a></td>
+<td>No</td>
+<td>boolean</td>
+<td>When set to 'true' the stage will output the query execution plan</td>
+</tr>
+<tr>
+<td>- <a href="#stages_items_items_explain_analyze">explain_analyze</a></td>
+<td>No</td>
+<td>boolean</td>
+<td>When set to 'true' the stage will output the query execution plan with added execution metrics</td>
+</tr>
+<tr>
+<td>- <a href="#stages_items_items_print_schema">print_schema</a></td>
+<td>No</td>
+<td>boolean</td>
+<td>When set to 'true' the stage will pretty print the output schema of the executed query</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-name_4"><a name="stages_items_items_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the stage, used as the table name for the result of this stage</p>
+<hr />
+<h5 id="field-query_1"><a name="stages_items_items_query"></a>Field: query</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> SQL query that is executed against a datafusion context. Check the datafusion SQL reference for more information <a href="https://datafusion.apache.org/user-guide/sql/index.html">https://datafusion.apache.org/user-guide/sql/index.html</a></p>
+<hr />
+<h5 id="field-show"><a name="stages_items_items_show"></a>Field: show</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>integer or null</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uint</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> When set to a value of up to <code>usize</code>, will print the result of this stage to the stdout limited by the number Set value to 0 to not limit the outputs</p>
+<table>
+<thead>
+<tr>
+<th>Restrictions</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Minimum</strong></td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-explain"><a name="stages_items_items_explain"></a>Field: explain</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> When set to 'true' the stage will output the query execution plan</p>
+<hr />
+<h5 id="field-explain_analyze"><a name="stages_items_items_explain_analyze"></a>Field: explain_analyze</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> When set to 'true' the stage will output the query execution plan with added execution metrics</p>
+<hr />
+<h5 id="field-print_schema"><a name="stages_items_items_print_schema"></a>Field: print_schema</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> When set to 'true' the stage will pretty print the output schema of the executed query</p>
+<hr />
+<h2 id="field-destination"><a name="destination"></a><img alt="Optional" src="https://img.shields.io/badge/Optional-yellow" /> Field: destination</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Destination for the final step of the <code>Aqueduct</code> takes the last stage as input for the write operation</p>
+<table>
+<thead>
+<tr>
+<th>Any of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0">Destination</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i1">item 1</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="field-destination_1"><a name="destination_anyOf_i0"></a><strong>Field: Destination</strong></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/Destination</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Target output for the Aqueduct table</p>
+<table>
+<thead>
+<tr>
+<th>One of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0">item 0</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i1">item 1</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i2">item 2</a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="field-item-0_3"><a name="destination_anyOf_i0_oneOf_i0"></a><strong>Field: item 0</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A delta table destination</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the table</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_location">location</a></td>
+<td>No</td>
+<td>string</td>
+<td>Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table</td>
+</tr>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i0_storage_options">storage_options</a></td>
+<td>No</td>
+<td>object</td>
+<td>DeltaTable storage options</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_table_properties">table_properties</a></td>
+<td>No</td>
+<td>object</td>
+<td>DeltaTable table properties: <a href="https://docs.delta.io/latest/table-properties.html">https://docs.delta.io/latest/table-properties.html</a></td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode">write_mode</a></td>
+<td>No</td>
+<td>object</td>
+<td>Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_partition_cols">partition_cols</a></td>
+<td>No</td>
+<td>array of string</td>
+<td>Columns to partition table by</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type_10"><a name="destination_anyOf_i0_oneOf_i0_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Delta"</p>
+<hr />
+<h5 id="field-name_5"><a name="destination_anyOf_i0_oneOf_i0_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the table</p>
+<hr />
+<h5 id="field-location_3"><a name="destination_anyOf_i0_oneOf_i0_location"></a>Field: location</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uri</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table</p>
+<hr />
+<h5 id="field-storage_options_3"><a name="destination_anyOf_i0_oneOf_i0_storage_options"></a>Field: storage_options</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#destination_anyOf_i0_oneOf_i0_storage_options_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> DeltaTable storage options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i0_storage_options_additionalProperties"></a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties_3"><a name="destination_anyOf_i0_oneOf_i0_storage_options_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h5 id="field-table_properties"><a name="destination_anyOf_i0_oneOf_i0_table_properties"></a>Field: table_properties</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#destination_anyOf_i0_oneOf_i0_table_properties_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> DeltaTable table properties: <a href="https://docs.delta.io/latest/table-properties.html">https://docs.delta.io/latest/table-properties.html</a></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i0_table_properties_additionalProperties"></a></td>
+<td>No</td>
+<td>string or null</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties_4"><a name="destination_anyOf_i0_oneOf_i0_table_properties_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h5 id="field-write_mode"><a name="destination_anyOf_i0_oneOf_i0_write_mode"></a>Field: write_mode</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types</p>
+<table>
+<thead>
+<tr>
+<th>One of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0">item 0</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1">item 1</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2">item 2</a></td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-0_4"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0"></a><strong>Field: item 0</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> <code>Append</code>: appends data to the <code>Destination</code></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0_operation">operation</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-operation"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0_operation"></a>Field: operation</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Append"</p>
+<h6 id="field-item-1_3"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1"></a><strong>Field: item 1</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> <code>Upsert</code>: upserts data to the <code>Destination</code> using the specified merge columns</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_operation">operation</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params">params</a></td>
+<td>No</td>
+<td>array of string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-operation_1"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_operation"></a>Field: operation</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Upsert"</p>
+<hr />
+<h6 id="field-params"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params"></a>Field: params</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array of string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params_items">params items</a></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-params-items"><a name="autogenerated_heading_5"></a>Field: params items</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h6 id="field-item-2_3"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2"></a><strong>Field: item 2</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> <code>Replace</code>: replaces data to the <code>Destination</code> using the specified <code>ReplaceCondition</code>s</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_operation">operation</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params">params</a></td>
+<td>No</td>
+<td>array</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-operation_2"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_operation"></a>Field: operation</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Replace"</p>
+<hr />
+<h6 id="field-params_1"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params"></a>Field: params</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items">ReplaceCondition</a></td>
+<td>Condition used to build a predicate by which data should be replaced in a 'Destination' Expression built is checking equality for the given 'value' of a field with 'field_name'</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-replacecondition"><a name="autogenerated_heading_6"></a>Field: ReplaceCondition</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/ReplaceCondition</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Condition used to build a predicate by which data should be replaced in a <code>Destination</code> Expression built is checking equality for the given <code>value</code> of a field with <code>field_name</code></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_column">column</a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_value">value</a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-column"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_column"></a>Field: column</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h6 id="field-value"><a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_value"></a>Field: value</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h5 id="field-partition_cols"><a name="destination_anyOf_i0_oneOf_i0_partition_cols"></a>Field: partition_cols</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array of string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Columns to partition table by</p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i0_partition_cols_items">partition_cols items</a></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-partition_cols-items"><a name="autogenerated_heading_7"></a>Field: partition_cols items</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h4 id="field-item-1_4"><a name="destination_anyOf_i0_oneOf_i1"></a><strong>Field: item 1</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> A file output destination</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the file to write</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_location">location</a></td>
+<td>No</td>
+<td>string</td>
+<td>Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_file_type">file_type</a></td>
+<td>No</td>
+<td>object</td>
+<td>File type, supported types are Parquet and CSV</td>
+</tr>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_single_file">single_file</a></td>
+<td>No</td>
+<td>boolean</td>
+<td>Describes whether to write a single file (can be used to overwrite destination file)</td>
+</tr>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_partition_cols">partition_cols</a></td>
+<td>No</td>
+<td>array of string</td>
+<td>Columns to partition table by</td>
+</tr>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_storage_options">storage_options</a></td>
+<td>No</td>
+<td>object</td>
+<td>Object store storage options</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type_11"><a name="destination_anyOf_i0_oneOf_i1_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "File"</p>
+<hr />
+<h5 id="field-name_6"><a name="destination_anyOf_i0_oneOf_i1_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the file to write</p>
+<hr />
+<h5 id="field-location_4"><a name="destination_anyOf_i0_oneOf_i1_location"></a>Field: location</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uri</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix</p>
+<hr />
+<h5 id="field-file_type_2"><a name="destination_anyOf_i0_oneOf_i1_file_type"></a>Field: file_type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>combining</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> File type, supported types are Parquet and CSV</p>
+<table>
+<thead>
+<tr>
+<th>One of(Option)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0">item 0</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1">item 1</a></td>
+</tr>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2">item 2</a></td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-0_5"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0"></a><strong>Field: item 0</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Parquet options map, please refer to <a href="https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html">https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html</a> for possible options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_12"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Parquet"</p>
+<hr />
+<h6 id="field-options_6"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options_additionalProperties"></a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties_5"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h6 id="field-item-1_5"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1"></a><strong>Field: item 1</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> CSV options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options">options</a></td>
+<td>No</td>
+<td>object</td>
+<td>Csv options</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_13"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Csv"</p>
+<hr />
+<h6 id="field-options_7"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options"></a>Field: options</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+<tr>
+<td><strong>Defined in</strong></td>
+<td>#/definitions/CsvDestinationOptions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Csv options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_has_header">has_header</a></td>
+<td>No</td>
+<td>boolean or null</td>
+<td>Defaults to true, sets a header for the CSV file</td>
+</tr>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_delimiter">delimiter</a></td>
+<td>No</td>
+<td>string or null</td>
+<td>Defaults to `,`, sets the delimiter char for the CSV file</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-has_header_2"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_has_header"></a>Field: has_header</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Defaults to true, sets a header for the CSV file</p>
+<hr />
+<h6 id="field-delimiter_2"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string or null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Defaults to <code>,</code>, sets the delimiter char for the CSV file</p>
+<table>
+<thead>
+<tr>
+<th>Restrictions</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Min length</strong></td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Max length</strong></td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-item-2_4"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2"></a><strong>Field: item 2</strong></h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Json destination, no supported options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-type_14"><a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2_type"></a>Field: type</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Json"</p>
+<hr />
+<h5 id="field-single_file"><a name="destination_anyOf_i0_oneOf_i1_single_file"></a>Field: single_file</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Describes whether to write a single file (can be used to overwrite destination file)</p>
+<hr />
+<h5 id="field-partition_cols_1"><a name="destination_anyOf_i0_oneOf_i1_partition_cols"></a>Field: partition_cols</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>array of string</code></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>[]</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Columns to partition table by</p>
+<table>
+<thead>
+<tr>
+<th>Each item of this array must be</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#destination_anyOf_i0_oneOf_i1_partition_cols_items">partition_cols items</a></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h6 id="field-partition_cols-items_1"><a name="autogenerated_heading_8"></a>Field: partition_cols items</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<h5 id="field-storage_options_4"><a name="destination_anyOf_i0_oneOf_i1_storage_options"></a>Field: storage_options</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#destination_anyOf_i0_oneOf_i1_storage_options_additionalProperties" title="Each additional property must conform to the following schema"><img alt="Should-conform" src="https://img.shields.io/badge/Should-conform-blue" /></a></td>
+</tr>
+<tr>
+<td><strong>Default</strong></td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Object store storage options</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>- <a href="#destination_anyOf_i0_oneOf_i1_storage_options_additionalProperties"></a></td>
+<td>No</td>
+<td>string</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h6 id="field-additionalproperties_6"><a name="destination_anyOf_i0_oneOf_i1_storage_options_additionalProperties"></a>Field: additionalProperties</h6>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<h4 id="field-item-2_5"><a name="destination_anyOf_i0_oneOf_i2"></a><strong>Field: item 2</strong></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><strong>Additional properties</strong></td>
+<td><a href="#" title="Additional Properties of any type are allowed."><img alt="Any type: allowed" src="https://img.shields.io/badge/Any%20type-allowed-green" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> An ODBC insert query to write to a DB table</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Pattern</th>
+<th>Type</th>
+<th>Title/Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i2_type">type</a></td>
+<td>No</td>
+<td>enum (of string)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i2_name">name</a></td>
+<td>No</td>
+<td>string</td>
+<td>Name of the ODBC destination</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i2_connection_string">connection_string</a></td>
+<td>No</td>
+<td>string</td>
+<td>ODBC connection string Please reference the respective database connection string syntax (e.g. <a href="https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/">https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/</a>)</td>
+</tr>
+<tr>
+<td>+ <a href="#destination_anyOf_i0_oneOf_i2_batch_size">batch_size</a></td>
+<td>No</td>
+<td>integer</td>
+<td>batch size (rows) to use when inserting data</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="field-type_15"><a name="destination_anyOf_i0_oneOf_i2_type"></a>Field: type</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>enum (of string)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<p>Must be one of:
+* "Odbc"</p>
+<hr />
+<h5 id="field-name_7"><a name="destination_anyOf_i0_oneOf_i2_name"></a>Field: name</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> Name of the ODBC destination</p>
+<hr />
+<h5 id="field-connection_string_1"><a name="destination_anyOf_i0_oneOf_i2_connection_string"></a>Field: connection_string</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>string</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> ODBC connection string Please reference the respective database connection string syntax (e.g. <a href="https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/">https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/</a>)</p>
+<hr />
+<h5 id="field-batch_size"><a name="destination_anyOf_i0_oneOf_i2_batch_size"></a>Field: batch_size</h5>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>uint</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong> batch size (rows) to use when inserting data</p>
+<table>
+<thead>
+<tr>
+<th>Restrictions</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Minimum</strong></td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<h3 id="field-item-1_6"><a name="destination_anyOf_i1"></a><strong>Field: item 1</strong></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type</strong></td>
+<td><code>null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Description:</strong>  <em>No description...</em></p>
+<hr />
+<p>Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a></p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Michele Vigilante
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+      
+    
+    
+    
+      
+      
+    
+    <a href="https://fosstodon.org/@kato" target="_blank" rel="noopener me" title="fosstodon.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M433 179.11c0-97.2-63.71-125.7-63.71-125.7-62.52-28.7-228.56-28.4-290.48 0 0 0-63.72 28.5-63.72 125.7 0 115.7-6.6 259.4 105.63 289.1 40.51 10.7 75.32 13 103.33 11.4 50.81-2.8 79.32-18.1 79.32-18.1l-1.7-36.9s-36.31 11.4-77.12 10.1c-40.41-1.4-83-4.4-89.63-54a102.54 102.54 0 0 1-.9-13.9c85.63 20.9 158.65 9.1 178.75 6.7 56.12-6.7 105-41.3 111.23-72.9 9.8-49.8 9-121.5 9-121.5zm-75.12 125.2h-46.63v-114.2c0-49.7-64-51.6-64 6.9v62.5h-46.33V197c0-58.5-64-56.6-64-6.9v114.2H90.19c0-122.1-5.2-147.9 18.41-175 25.9-28.9 79.82-30.8 103.83 6.1l11.6 19.5 11.6-19.5c24.11-37.1 78.12-34.8 103.83-6.1 23.71 27.3 18.4 53 18.4 175z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/vigimite" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.path", "navigation.top", "toc.integrate", "toc.follow", "search.suggest", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>
