@@ -1,5 +1,5 @@
 [package]
-name = "aqueducts-utils"
+name = "aqueducts-odbc"
 authors.workspace = true
 edition.workspace = true
 description.workspace = true
@@ -11,19 +11,14 @@ keywords.workspace = true
 categories.workspace = true
 license-file.workspace = true
 
-[features]
-default = []
-s3 = ["deltalake/s3"]
-gcs = ["deltalake/gcs"]
-azure = ["deltalake/azure"]
-
 [dependencies]
 datafusion.workspace = true
 deltalake.workspace = true
-url.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+
+arrow-odbc = { version = "11.2.0" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

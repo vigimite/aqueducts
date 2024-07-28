@@ -6,6 +6,8 @@ use tracing::{info, instrument};
 
 pub mod delta;
 pub mod file;
+#[cfg(feature = "odbc")]
+pub mod odbc;
 
 pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
@@ -19,11 +21,17 @@ pub enum Destination {
     Delta(delta::DeltaDestination),
     /// A file output destination
     File(file::FileDestination),
+    #[cfg(feature = "odbc")]
+    /// An ODBC insert query to write to a DB table
+    Odbc(odbc::OdbcDestination),
 }
 
 /// Creates a `Destination`
 #[instrument(skip(ctx, destination), err)]
-pub async fn create_destination(ctx: Arc<SessionContext>, destination: &Destination) -> Result<()> {
+pub async fn register_destination(
+    ctx: Arc<SessionContext>,
+    destination: &Destination,
+) -> Result<()> {
     match destination {
         Destination::Delta(table_def) => {
             info!(
@@ -36,6 +44,15 @@ pub async fn create_destination(ctx: Arc<SessionContext>, destination: &Destinat
         }
         Destination::File(file_dest) => {
             register_object_store(ctx, &file_dest.location, &file_dest.storage_options)?;
+            Ok(())
+        }
+        #[cfg(feature = "odbc")]
+        Destination::Odbc(odbc_def) => {
+            aqueducts_odbc::register_odbc_destination(
+                odbc_def.connection_string.as_str(),
+                odbc_def.name.as_str(),
+            )
+            .await?;
             Ok(())
         }
     }
@@ -57,6 +74,12 @@ pub async fn write_to_destination(destination: &Destination, data: DataFrame) ->
         Destination::File(file_def) => {
             info!("Writing data to file at location '{}'", file_def.location);
             file::write(file_def, data).await?;
+
+            Ok(())
+        }
+        #[cfg(feature = "odbc")]
+        Destination::Odbc(odbc_def) => {
+            odbc::write(odbc_def, data).await?;
 
             Ok(())
         }

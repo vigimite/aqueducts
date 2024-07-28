@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "aqueducts/core",
+  "aqueducts/odbc",
   "aqueducts/utils",
   "aqueducts/schema_gen",
   "aqueducts-cli"
@@ -21,6 +22,7 @@ license-file = "LICENSE"
 
 [workspace.dependencies]
 aqueducts = { path = "aqueducts/core", version = "0.3.2" }
+aqueducts-odbc = { path = "aqueducts/odbc", version = "0.3.2" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.3.2" }
 
 datafusion = "39"

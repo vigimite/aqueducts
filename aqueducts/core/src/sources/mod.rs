@@ -29,6 +29,7 @@ pub enum Source {
     File(FileSource),
     /// A directory source
     Directory(DirSource),
+    #[cfg(feature = "odbc")]
     /// An ODBC source
     Odbc(OdbcSource),
 }
@@ -109,6 +110,7 @@ pub struct DirSource {
 }
 
 /// An ODBC source
+#[cfg(feature = "odbc")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct OdbcSource {
@@ -204,22 +206,19 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result
             register_dir_source(ctx, dir_source).await?
         }
         #[cfg(feature = "odbc")]
-        Source::Odbc(odbc_source) if cfg!(feature = "odbc") => {
+        Source::Odbc(odbc_source) => {
             info!(
                 "Registering ODBC source '{}' using query '{}'",
                 odbc_source.name, odbc_source.query
             );
 
-            aqueducts_utils::odbc::register_odbc_source(
+            aqueducts_odbc::register_odbc_source(
                 ctx,
                 odbc_source.connection_string.as_str(),
                 odbc_source.query.as_str(),
                 odbc_source.name.as_str(),
             )
             .await?
-        }
-        Source::Odbc(_) => {
-            return Err(error::Error::OdbcFeatureDisabled);
         }
     };
 
