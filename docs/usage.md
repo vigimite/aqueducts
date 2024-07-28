@@ -209,7 +209,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
         ```yaml
     
         destination:
-          type: file
+          type: File
           name: results
           file_type:
             type: Csv
@@ -221,7 +221,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         destination:
-          type: delta
+          type: Delta
           name: example_output
           location: ${local_path}/examples/output_delta_example/${run_id}
           storage_options: {}
@@ -229,7 +229,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
           write_mode:
             # appends data to the table
-            operation: append
+            operation: Append
 
           # columns by which to partition the table
           partition_cols:
@@ -259,7 +259,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         destination:
-          type: delta
+          type: Delta
           name: example_output
           location: ${local_path}/examples/output_delta_example/${run_id}
           storage_options: {}
@@ -267,7 +267,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
           write_mode:
             # upserts using the date as the "primary" key
-            operation: upsert
+            operation: Upsert
             params: 
               - date
 
@@ -299,7 +299,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
         ```yaml
         destination:
-          type: delta
+          type: Delta
           name: example_output
           location: ${local_path}/examples/output_delta_example/${run_id}
           storage_options: {}
@@ -307,7 +307,7 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
           write_mode:
             # replaces using the date column to delete all data for that date
-            operation: replace
+            operation: Replace
             params: 
               - column: date
                 value: '2024-01-01'
@@ -334,4 +334,14 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
               type: double
               nullable: true
               metadata: {}
+        ```
+
+    === "ODBC destination"
+
+        ```yaml
+        destination:
+          type: Odbc
+          name: temp_readings_aggregated
+          connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
+          batch_size: 100
         ```

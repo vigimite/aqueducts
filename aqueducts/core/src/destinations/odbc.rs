@@ -11,9 +11,6 @@ pub struct OdbcDestination {
     /// Name of the ODBC destination
     pub name: String,
 
-    /// Query to execute when writing data to the ODBC connection
-    pub query: String,
-
     /// ODBC connection string
     /// Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
     pub connection_string: String,

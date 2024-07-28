@@ -44,10 +44,9 @@ stages:
       # print the entire result for this query to stdout
       show: 0
 
-  - name: union
-    query: >
-      SELECT count(*) FROM jan_aggregated
-    show: 0
+  - - name: union
+      query: >
+        SELECT * FROM jan_aggregated UNION ALL SELECT * FROM feb_aggregated
 
 destination:
   type: Odbc
