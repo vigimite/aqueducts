@@ -15,15 +15,15 @@ description = "Framework to build ETL data pipelines declaratively"
 homepage = "https://github.com/vigimite/aqueducts"
 repository = "https://github.com/vigimite/aqueducts"
 readme = "README.md"
-version = "0.3.2"
+version = "0.4.0"
 keywords = ["aqueducts", "ETL", "data", "pipeline"]
 categories = ["api-bindings"]
 license-file = "LICENSE"
 
 [workspace.dependencies]
-aqueducts = { path = "aqueducts/core", version = "0.3.2" }
-aqueducts-odbc = { path = "aqueducts/odbc", version = "0.3.2" }
-aqueducts-utils = { path = "aqueducts/utils", version = "0.3.2" }
+aqueducts = { path = "aqueducts/core", version = "0.4.0" }
+aqueducts-odbc = { path = "aqueducts/odbc", version = "0.4.0" }
+aqueducts-utils = { path = "aqueducts/utils", version = "0.4.0" }
 
 datafusion = "39"
 object_store = "0.10"

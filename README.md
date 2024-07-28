@@ -29,6 +29,8 @@ Please show these projects some support :heart:!
 
 You can find the docs at <https://vigimite.github.io/aqueducts>
 
+Change log: [CHANGELOG](CHANGELOG.md)
+
 ## Quick start
 
 To define and execute an Aqueduct pipeline there are a couple of options
