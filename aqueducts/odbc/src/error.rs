@@ -1,15 +1,14 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    // -- Modules
-    #[cfg(feature = "odbc")]
-    #[error("OdbcError({0})")]
-    OdbcError(#[from] aqueducts_odbc::error::Error),
-
     // -- External
     #[error("ArrowError({0})")]
     ArrowError(#[from] datafusion::arrow::error::ArrowError),
     #[error("DataFusionError({0})")]
     DataFusionError(#[from] datafusion::error::DataFusionError),
-    #[error("DeltaTableError({0})")]
-    DeltaTableError(#[from] deltalake::errors::DeltaTableError),
+    #[error("OdbcError({0})")]
+    OdbcError(#[from] arrow_odbc::Error),
+    #[error("OdbcApiError({0})")]
+    OdbcApiError(#[from] arrow_odbc::odbc_api::Error),
+    #[error("OdbcWriterError({0})")]
+    OdbcWriterError(#[from] arrow_odbc::WriterError),
 }

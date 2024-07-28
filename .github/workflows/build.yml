@@ -12,6 +12,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,11 +48,19 @@ jobs:
           toolchain: stable
           components: rustfmt
 
+      - name: Setup test environment
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client unixodbc odbc-postgresql
+          export CONTAINER_ID=$(docker ps --filter "name=postgres" --format "{{.ID}}")
+          docker cp ./examples/temp_readings_jan_2024.csv $CONTAINER_ID:/opt/
+          docker cp ./examples/temp_readings_feb_2024.csv $CONTAINER_ID:/opt/
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -f ./db/init.sql
+
       - name: Test aqueducts
         run: |
           cd aqueducts/core
           cargo fmt -- --check
-          cargo test
+          cargo test --workspace --all-features
 
   build:
     runs-on: ubuntu-latest
@@ -67,9 +89,9 @@ jobs:
       - name: Build aqueducts in release mode
         run: |
           cd aqueducts/core
-          cargo build --release
+          cargo build --workspace --release
 
       - name: Build aqueducts-cli in release mode
         run: |
           cd aqueducts-cli
-          cargo build --release
+          cargo build --workspace --release

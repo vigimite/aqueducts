@@ -16,7 +16,7 @@ default = []
 s3 = ["aqueducts-utils/s3", "object_store/aws"]
 gcs = ["aqueducts-utils/gcs", "object_store/gcp"]
 azure = ["aqueducts-utils/azure", "object_store/azure"]
-odbc = ["aqueducts-utils/odbc"]
+odbc = ["aqueducts-odbc"]
 schema_gen = ["schemars"]
 
 [dependencies]
@@ -37,6 +37,7 @@ regex.workspace = true
 derive-new.workspace = true
 chrono.workspace = true
 
+aqueducts-odbc = { workspace = true, optional = true }
 aqueducts-utils.workspace = true
 
 [dev-dependencies]

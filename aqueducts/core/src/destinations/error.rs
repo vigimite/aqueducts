@@ -3,6 +3,11 @@ pub enum Error {
     #[error("Unknown parquet config key: {0}")]
     UnknownConfigOption(String),
 
+    // -- Modules
+    #[cfg(feature = "odbc")]
+    #[error("OdbcError({0})")]
+    OdbcError(#[from] aqueducts_odbc::error::Error),
+
     // -- External
     #[error("ArrowError({0})")]
     ArrowError(#[from] datafusion::arrow::error::ArrowError),
