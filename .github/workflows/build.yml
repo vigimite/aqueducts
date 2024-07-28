@@ -48,12 +48,6 @@ jobs:
           toolchain: stable
           components: rustfmt
 
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          until docker-compose exec postgres pg_isready -U user -d postgres; do
-            sleep 1
-          done
-
       - name: Execute init.db script
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
