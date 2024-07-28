@@ -51,15 +51,13 @@ jobs:
       - name: Execute init.db script
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
-          mkdir /opt/examples
-          cp -v ./examples/temp_readings_* /opt/examples
           PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -f ./db/init.sql
 
       - name: Test aqueducts
         run: |
           cd aqueducts/core
           cargo fmt -- --check
-          cargo test --features odbc
+          cargo test --workspace --all-features
 
   build:
     runs-on: ubuntu-latest
