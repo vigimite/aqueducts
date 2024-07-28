@@ -822,6 +822,7 @@ Must be one of:
 | ---------------------------------------- |
 | [item 0](#destination_anyOf_i0_oneOf_i0) |
 | [item 1](#destination_anyOf_i0_oneOf_i1) |
+| [item 2](#destination_anyOf_i0_oneOf_i2) |
 
 #### <a name="destination_anyOf_i0_oneOf_i0"></a>**Field: item 0**
 
@@ -1395,6 +1396,70 @@ Must be one of:
 | **Type** | `string` |
 
 **Description:**  *No description...*
+
+#### <a name="destination_anyOf_i0_oneOf_i2"></a>**Field: item 2**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** An ODBC insert query to write to a DB table
+
+| Property                                                                 | Pattern | Type             | Title/Description                                                                                                                                                    |
+| ------------------------------------------------------------------------ | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| + [type](#destination_anyOf_i0_oneOf_i2_type )                           | No      | enum (of string) | -                                                                                                                                                                    |
+| + [name](#destination_anyOf_i0_oneOf_i2_name )                           | No      | string           | Name of the ODBC destination                                                                                                                                         |
+| + [connection_string](#destination_anyOf_i0_oneOf_i2_connection_string ) | No      | string           | ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>) |
+| + [batch_size](#destination_anyOf_i0_oneOf_i2_batch_size )               | No      | integer          | batch size (rows) to use when inserting data                                                                                                                         |
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Odbc"
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_name"></a>Field: name
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:** Name of the ODBC destination
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_connection_string"></a>Field: connection_string
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:** ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_batch_size"></a>Field: batch_size
+
+|            |           |
+| ---------- | --------- |
+| **Type**   | `integer` |
+| **Format** | `uint`    |
+
+**Description:** batch size (rows) to use when inserting data
+
+| Restrictions |     |
+| ------------ | --- |
+| **Minimum**  | N/A |
 
 ### <a name="destination_anyOf_i1"></a>**Field: item 1**
 

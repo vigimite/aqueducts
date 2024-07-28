@@ -452,6 +452,38 @@
               }
             }
           }
+        },
+        {
+          "description": "An ODBC insert query to write to a DB table",
+          "type": "object",
+          "required": [
+            "batch_size",
+            "connection_string",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Odbc"
+              ]
+            },
+            "name": {
+              "description": "Name of the ODBC destination",
+              "type": "string"
+            },
+            "connection_string": {
+              "description": "ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)",
+              "type": "string"
+            },
+            "batch_size": {
+              "description": "batch size (rows) to use when inserting data",
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0.0
+            }
+          }
         }
       ]
     },
