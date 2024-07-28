@@ -25,7 +25,7 @@ aqueducts = { path = "aqueducts/core", version = "0.4.0" }
 aqueducts-odbc = { path = "aqueducts/odbc", version = "0.4.0" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.4.0" }
 
-datafusion = "39"
+datafusion = "40"
 object_store = "0.10"
 deltalake = { version = "0.18.1", features = ["datafusion"] }
 
