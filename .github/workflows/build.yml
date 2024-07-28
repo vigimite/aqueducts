@@ -51,6 +51,8 @@ jobs:
       - name: Execute init.db script
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
+          mkdir /opt/examples
+          cp ./examples/temp_readings_* /opt/examples
           PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -f ./db/init.sql
 
       - name: Test aqueducts

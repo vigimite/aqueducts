@@ -14,5 +14,5 @@ CREATE TABLE temp_readings_empty (
     weather_condition VARCHAR(50)
 );
 
-COPY temp_readings FROM '/data/temp_readings_jan_2024.csv' DELIMITER ',' CSV HEADER;
-COPY temp_readings FROM '/data/temp_readings_feb_2024.csv' DELIMITER ',' CSV HEADER;
+COPY temp_readings FROM '/opt/examples/temp_readings_jan_2024.csv' DELIMITER ',' CSV HEADER;
+COPY temp_readings FROM '/opt/examples/temp_readings_feb_2024.csv' DELIMITER ',' CSV HEADER;
