@@ -1,8 +1,5 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("To use ODBC type you need to enable the odbc feature")]
-    OdbcFeatureDisabled,
-
     // -- Modules
     #[cfg(feature = "odbc")]
     #[error("OdbcError({0})")]

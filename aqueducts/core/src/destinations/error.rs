@@ -2,8 +2,6 @@
 pub enum Error {
     #[error("Unknown parquet config key: {0}")]
     UnknownConfigOption(String),
-    #[error("To use ODBC type you need to enable the odbc feature")]
-    OdbcFeatureDisabled,
 
     // -- Modules
     #[cfg(feature = "odbc")]
