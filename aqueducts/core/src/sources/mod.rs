@@ -19,7 +19,8 @@ pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
 /// A data source that can be either a delta table (`delta`), a `file`, a `directory` or an `odbc` connection
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum Source {
     /// A delta table source
@@ -33,7 +34,8 @@ pub enum Source {
 }
 
 /// A delta table source
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct DeltaSource {
     /// Name of the delta source, will be the registered table name in the SQL context
     pub name: String,
@@ -55,7 +57,8 @@ pub struct DeltaSource {
 }
 
 /// A file source
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct FileSource {
     /// Name of the file source, will be the registered table name in the SQL context
     pub name: String,
@@ -77,7 +80,8 @@ pub struct FileSource {
 }
 
 /// A Directory Source
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct DirSource {
     /// Name of the directory source, will be the registered table name in the SQL context
     pub name: String,
@@ -88,7 +92,7 @@ pub struct DirSource {
 
     /// Columns to partition the table by
     /// This is a list of key value tuples where the key is the column name and the value is an [arrow::datatypes::DataType](https://docs.rs/arrow/latest/arrow/datatypes/enum.DataType.html)
-    #[schemars(skip)]
+    #[cfg_attr(feature = "schema_gen", schemars(skip))]
     #[serde(default)]
     pub partition_cols: Vec<(String, DataType)>,
 
@@ -105,7 +109,8 @@ pub struct DirSource {
 }
 
 /// An ODBC source
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct OdbcSource {
     /// Name of the ODBC source, will be the registered table name in the SQL context
     pub name: String,
@@ -121,7 +126,8 @@ pub struct OdbcSource {
 }
 
 /// File type of the source file, supports `Parquet`, `Csv` or `Json`
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type", content = "options")]
 pub enum FileType {
     /// Parquet source options
@@ -134,15 +140,17 @@ pub enum FileType {
     Json(JsonSourceOptions),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct ParquetSourceOptions {
     /// schema to read this CSV with
     /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
-    #[schemars(skip)]
+    #[cfg_attr(feature = "schema_gen", schemars(skip))]
     schema: Option<Schema>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct CsvSourceOptions {
     /// set to `true` to treat first row of CSV as the header
     /// column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
@@ -153,15 +161,16 @@ pub struct CsvSourceOptions {
 
     /// schema to read this CSV with
     /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
-    #[schemars(skip)]
+    #[cfg_attr(feature = "schema_gen", schemars(skip))]
     schema: Option<Schema>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct JsonSourceOptions {
     /// schema to read this JSON with
     /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
-    #[schemars(skip)]
+    #[cfg_attr(feature = "schema_gen", schemars(skip))]
     schema: Option<Schema>,
 }
 
@@ -194,7 +203,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result
 
             register_dir_source(ctx, dir_source).await?
         }
-        #[cfg(any(feature = "odbc", rust_analyzer))]
+        #[cfg(feature = "odbc")]
         Source::Odbc(odbc_source) if cfg!(feature = "odbc") => {
             info!(
                 "Registering ODBC source '{}' using query '{}'",

@@ -1,6 +1,5 @@
 use datafusion::execution::context::{SQLOptions, SessionContext};
 use deltalake::arrow::datatypes::Schema;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::instrument;
@@ -9,7 +8,8 @@ pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
 /// Definition for a processing stage in an Aqueduct Pipeline
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct Stage {
     /// Name of the stage, used as the table name for the result of this stage
     pub name: String,
@@ -45,7 +45,11 @@ pub async fn process_stage(ctx: Arc<SessionContext>, stage: Stage) -> Result<()>
         .with_allow_dml(false)
         .with_allow_statements(false);
 
-    let result = ctx.sql_with_options(stage.query.as_str(), options).await?;
+    let result = ctx
+        .sql_with_options(stage.query.as_str(), options)
+        .await?
+        .cache()
+        .await?;
 
     if stage.explain || stage.explain_analyze {
         println!("\n*** Stage query plan: {} ***", stage.name.as_str());

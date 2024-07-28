@@ -11,7 +11,8 @@ pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
 /// Target output for the Aqueduct table
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum Destination {
     /// A delta table destination

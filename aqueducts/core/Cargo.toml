@@ -17,6 +17,7 @@ s3 = ["aqueducts-utils/s3", "object_store/aws"]
 gcs = ["aqueducts-utils/gcs", "object_store/gcp"]
 azure = ["aqueducts-utils/azure", "object_store/azure"]
 odbc = ["aqueducts-utils/odbc"]
+schema_gen = ["schemars"]
 
 [dependencies]
 datafusion.workspace = true
@@ -26,7 +27,7 @@ deltalake.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 serde_yml.workspace = true
-schemars.workspace = true
+schemars = { workspace = true, optional = true }
 
 tokio.workspace = true
 thiserror.workspace = true

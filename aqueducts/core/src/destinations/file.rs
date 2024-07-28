@@ -9,7 +9,8 @@ use url::Url;
 use super::Result;
 
 /// A file output destination
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct FileDestination {
     ///  Name of the file to write
     pub name: String,
@@ -35,7 +36,8 @@ pub struct FileDestination {
 }
 
 /// File type and options
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type", content = "options")]
 pub enum FileType {
     /// Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options
@@ -49,7 +51,8 @@ pub enum FileType {
 }
 
 /// Csv options
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new, schemars::JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct CsvDestinationOptions {
     /// Defaults to true, sets a header for the CSV file
     has_header: Option<bool>,

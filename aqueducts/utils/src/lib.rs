@@ -81,17 +81,17 @@ pub mod store {
     /// register deltalake object store handlers
     #[allow(dead_code)]
     pub fn register_handlers() {
-        #[cfg(any(feature = "s3", rust_analyzer))]
+        #[cfg(feature = "s3")]
         {
             deltalake::aws::register_handlers(None);
         }
 
-        #[cfg(any(feature = "gcs", rust_analyzer))]
+        #[cfg(feature = "gcs")]
         {
             deltalake::gcp::register_handlers(None);
         }
 
-        #[cfg(any(feature = "azure", rust_analyzer))]
+        #[cfg(feature = "azure")]
         {
             deltalake::azure::register_handlers(None);
         }
@@ -124,7 +124,7 @@ pub mod store {
 }
 
 /// odbc functionality
-#[cfg(any(feature = "odbc", rust_analyzer))]
+#[cfg(feature = "odbc")]
 pub mod odbc {
     use std::sync::Arc;
 
