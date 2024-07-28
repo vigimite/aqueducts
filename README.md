@@ -120,7 +120,7 @@ aqueducts --file examples/aqueduct_pipeline_example.yml --param year=2024 --para
 
 - [x] Docs
 - [x] ODBC source
-- [ ] ODBC destination
+- [x] ODBC destination
 - [x] Parallel processing of stages
 - [ ] Streaming Source (initially kafka + maybe aws kinesis)
 - [ ] Streaming destination (initially kafka)
