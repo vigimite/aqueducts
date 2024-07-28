@@ -48,9 +48,12 @@ jobs:
           toolchain: stable
           components: rustfmt
 
-      - name: Execute init.db script
+      - name: Execute init.sql script
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
+          export CONTAINER_ID=$(docker ps --filter "name=postgres" --format "{{.ID}}")
+          docker cp ./examples/temp_readings_jan_2024.csv $CONTAINER_ID:/opt/
+          docker cp ./examples/temp_readings_feb_2024.csv $CONTAINER_ID:/opt/
           PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -f ./db/init.sql
 
       - name: Test aqueducts
