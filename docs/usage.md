@@ -41,6 +41,14 @@ Here are some examples on how to use the Aqueducts deserialization schema for YA
 
 !!! example
 
+    === "provided in memory table"
+
+        ```yaml
+        sources:
+          - type: InMemory
+            name: existing_in_context
+        ```
+
     === "local CSV file source"
 
         ```yaml

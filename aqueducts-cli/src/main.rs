@@ -1,7 +1,7 @@
 use aqueducts::prelude::*;
 use clap::Parser;
 use env_logger::Env;
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, sync::Arc};
 
 #[derive(Debug, Parser)]
 struct Args {
@@ -44,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut ctx = datafusion::prelude::SessionContext::new();
     datafusion_functions_json::register_all(&mut ctx).expect("failed to register json functions");
 
-    run_pipeline(aqueduct, Some(ctx)).await?;
+    run_pipeline(Arc::new(ctx), aqueduct).await?;
 
     Ok(())
 }

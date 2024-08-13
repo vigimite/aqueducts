@@ -4,6 +4,7 @@ use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
 use arrow_odbc::{insert_into_table, OdbcReaderBuilder};
 use datafusion::arrow::datatypes::Schema;
 use datafusion::arrow::{array::RecordBatch, error::ArrowError};
+use datafusion::datasource::MemTable;
 use datafusion::execution::context::SessionContext;
 use deltalake::arrow::array::RecordBatchIterator;
 
@@ -58,10 +59,12 @@ pub async fn register_odbc_source(
         .collect::<std::result::Result<Vec<RecordBatch>, ArrowError>>()?;
 
     let df = ctx.read_batches(batches)?;
-    let schema: Arc<Schema> = Arc::new(df.schema().into());
-    let batch = deltalake::arrow::compute::concat_batches(&schema, df.collect().await?.iter())?;
 
-    ctx.register_batch(source_name, batch)?;
+    let schema = df.schema().clone();
+    let partitioned = df.collect_partitioned().await?;
+    let table = MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned)?;
+
+    ctx.register_table(source_name, Arc::new(table))?;
 
     Ok(())
 }

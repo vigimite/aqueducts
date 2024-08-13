@@ -47,6 +47,7 @@ This is a generated JSONSchema reference for the Aqueducts configuration.
 | [item 1](#sources_items_oneOf_i1) |
 | [item 2](#sources_items_oneOf_i2) |
 | [item 3](#sources_items_oneOf_i3) |
+| [item 4](#sources_items_oneOf_i4) |
 
 #### <a name="sources_items_oneOf_i0"></a>**Field: item 0**
 
@@ -55,15 +56,12 @@ This is a generated JSONSchema reference for the Aqueducts configuration.
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** A delta table source
+**Description:** An in-memory source
 
-| Property                                                      | Pattern | Type             | Title/Description                                                                                                                                                                                                                                                                                                                                      |
-| ------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| + [type](#sources_items_oneOf_i0_type )                       | No      | enum (of string) | -                                                                                                                                                                                                                                                                                                                                                      |
-| + [name](#sources_items_oneOf_i0_name )                       | No      | string           | Name of the delta source, will be the registered table name in the SQL context                                                                                                                                                                                                                                                                         |
-| + [location](#sources_items_oneOf_i0_location )               | No      | string           | A URL or Path to the location of the delta table Supports relative local paths                                                                                                                                                                                                                                                                         |
-| - [version_ts](#sources_items_oneOf_i0_version_ts )           | No      | string or null   | A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature                                                                                                                                                                                                                         |
-| - [storage_options](#sources_items_oneOf_i0_storage_options ) | No      | object           | Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the \`object_store\` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>) |
+| Property                                | Pattern | Type             | Title/Description                                                 |
+| --------------------------------------- | ------- | ---------------- | ----------------------------------------------------------------- |
+| + [type](#sources_items_oneOf_i0_type ) | No      | enum (of string) | -                                                                 |
+| + [name](#sources_items_oneOf_i0_name ) | No      | string           | Name of the in-memory table, existence will be checked at runtime |
 
 ----------------------------------------------------
 
@@ -76,7 +74,7 @@ This is a generated JSONSchema reference for the Aqueducts configuration.
 **Description:**  *No description...*
 
 Must be one of:
-* "Delta"
+* "InMemory"
 
 ----------------------------------------------------
 
@@ -86,55 +84,7 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
-**Description:** Name of the delta source, will be the registered table name in the SQL context
-
-----------------------------------------------------
-
-##### <a name="sources_items_oneOf_i0_location"></a>Field: location
-
-|            |          |
-| ---------- | -------- |
-| **Type**   | `string` |
-| **Format** | `uri`    |
-
-**Description:** A URL or Path to the location of the delta table Supports relative local paths
-
-----------------------------------------------------
-
-##### <a name="sources_items_oneOf_i0_version_ts"></a>Field: version_ts
-
-|            |                  |
-| ---------- | ---------------- |
-| **Type**   | `string or null` |
-| **Format** | `date-time`      |
-
-**Description:** A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature
-
-----------------------------------------------------
-
-##### <a name="sources_items_oneOf_i0_storage_options"></a>Field: storage_options
-
-|                           |                                                                                                                                                                                                     |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                                                                                            |
-| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#sources_items_oneOf_i0_storage_options_additionalProperties "Each additional property must conform to the following schema") |
-| **Default**               | `{}`                                                                                                                                                                                                |
-
-**Description:** Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
-
-| Property                                                            | Pattern | Type   | Title/Description |
-| ------------------------------------------------------------------- | ------- | ------ | ----------------- |
-| - [](#sources_items_oneOf_i0_storage_options_additionalProperties ) | No      | string | -                 |
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i0_storage_options_additionalProperties"></a>Field: additionalProperties
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
+**Description:** Name of the in-memory table, existence will be checked at runtime
 
 #### <a name="sources_items_oneOf_i1"></a>**Field: item 1**
 
@@ -143,14 +93,14 @@ Must be one of:
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** A file source
+**Description:** A delta table source
 
 | Property                                                      | Pattern | Type             | Title/Description                                                                                                                                                                                                                                                                                                                                      |
 | ------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | + [type](#sources_items_oneOf_i1_type )                       | No      | enum (of string) | -                                                                                                                                                                                                                                                                                                                                                      |
-| + [name](#sources_items_oneOf_i1_name )                       | No      | string           | Name of the file source, will be the registered table name in the SQL context                                                                                                                                                                                                                                                                          |
-| + [file_type](#sources_items_oneOf_i1_file_type )             | No      | object           | File type of the file to be ingested Supports \`Parquet\` for parquet files, \`Csv\` for CSV files and \`Json\` for JSON files                                                                                                                                                                                                                         |
+| + [name](#sources_items_oneOf_i1_name )                       | No      | string           | Name of the delta source, will be the registered table name in the SQL context                                                                                                                                                                                                                                                                         |
 | + [location](#sources_items_oneOf_i1_location )               | No      | string           | A URL or Path to the location of the delta table Supports relative local paths                                                                                                                                                                                                                                                                         |
+| - [version_ts](#sources_items_oneOf_i1_version_ts )           | No      | string or null   | A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature                                                                                                                                                                                                                         |
 | - [storage_options](#sources_items_oneOf_i1_storage_options ) | No      | object           | Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the \`object_store\` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>) |
 
 ----------------------------------------------------
@@ -164,7 +114,7 @@ Must be one of:
 **Description:**  *No description...*
 
 Must be one of:
-* "File"
+* "Delta"
 
 ----------------------------------------------------
 
@@ -174,172 +124,7 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
-**Description:** Name of the file source, will be the registered table name in the SQL context
-
-----------------------------------------------------
-
-##### <a name="sources_items_oneOf_i1_file_type"></a>Field: file_type
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `combining`                                                                                                                       |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            |                                                                                                                                   |
-
-**Description:** File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
-
-| One of(Option)                                       |
-| ---------------------------------------------------- |
-| [item 0](#sources_items_oneOf_i1_file_type_oneOf_i0) |
-| [item 1](#sources_items_oneOf_i1_file_type_oneOf_i1) |
-| [item 2](#sources_items_oneOf_i1_file_type_oneOf_i2) |
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i0"></a>**Field: item 0**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** Parquet source options
-
-| Property                                                         | Pattern | Type             | Title/Description |
-| ---------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [type](#sources_items_oneOf_i1_file_type_oneOf_i0_type )       | No      | enum (of string) | -                 |
-| + [options](#sources_items_oneOf_i1_file_type_oneOf_i0_options ) | No      | object           | -                 |
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i0_type"></a>Field: type
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Parquet"
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i0_options"></a>Field: options
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            | #/definitions/ParquetSourceOptions                                                                                                |
-
-**Description:**  *No description...*
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i1"></a>**Field: item 1**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** Csv source options
-
-| Property                                                         | Pattern | Type             | Title/Description |
-| ---------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [type](#sources_items_oneOf_i1_file_type_oneOf_i1_type )       | No      | enum (of string) | -                 |
-| + [options](#sources_items_oneOf_i1_file_type_oneOf_i1_options ) | No      | object           | -                 |
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i1_type"></a>Field: type
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Csv"
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i1_options"></a>Field: options
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            | #/definitions/CsvSourceOptions                                                                                                    |
-
-**Description:**  *No description...*
-
-| Property                                                                       | Pattern | Type            | Title/Description                                                                                                                                                                      |
-| ------------------------------------------------------------------------------ | ------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| - [has_header](#sources_items_oneOf_i1_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | set to \`true\` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are \`column_1, column_2, ... column_x\` |
-| - [delimiter](#sources_items_oneOf_i1_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | set a delimiter character to read this CSV with                                                                                                                                        |
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i1_options_has_header"></a>Field: has_header
-
-|          |                   |
-| -------- | ----------------- |
-| **Type** | `boolean or null` |
-
-**Description:** set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter
-
-|          |                  |
-| -------- | ---------------- |
-| **Type** | `string or null` |
-
-**Description:** set a delimiter character to read this CSV with
-
-| Restrictions   |   |
-| -------------- | - |
-| **Min length** | 1 |
-| **Max length** | 1 |
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i2"></a>**Field: item 2**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** Json source options
-
-| Property                                                         | Pattern | Type             | Title/Description |
-| ---------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [type](#sources_items_oneOf_i1_file_type_oneOf_i2_type )       | No      | enum (of string) | -                 |
-| + [options](#sources_items_oneOf_i1_file_type_oneOf_i2_options ) | No      | object           | -                 |
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i2_type"></a>Field: type
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Json"
-
-----------------------------------------------------
-
-###### <a name="sources_items_oneOf_i1_file_type_oneOf_i2_options"></a>Field: options
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            | #/definitions/JsonSourceOptions                                                                                                   |
-
-**Description:**  *No description...*
+**Description:** Name of the delta source, will be the registered table name in the SQL context
 
 ----------------------------------------------------
 
@@ -351,6 +136,17 @@ Must be one of:
 | **Format** | `uri`    |
 
 **Description:** A URL or Path to the location of the delta table Supports relative local paths
+
+----------------------------------------------------
+
+##### <a name="sources_items_oneOf_i1_version_ts"></a>Field: version_ts
+
+|            |                  |
+| ---------- | ---------------- |
+| **Type**   | `string or null` |
+| **Format** | `date-time`      |
+
+**Description:** A RFC3339 compliant timestamp to load the delta table state at a specific point in time Used for deltas time traveling feature
 
 ----------------------------------------------------
 
@@ -385,12 +181,12 @@ Must be one of:
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** A directory source
+**Description:** A file source
 
 | Property                                                      | Pattern | Type             | Title/Description                                                                                                                                                                                                                                                                                                                                      |
 | ------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | + [type](#sources_items_oneOf_i2_type )                       | No      | enum (of string) | -                                                                                                                                                                                                                                                                                                                                                      |
-| + [name](#sources_items_oneOf_i2_name )                       | No      | string           | Name of the directory source, will be the registered table name in the SQL context                                                                                                                                                                                                                                                                     |
+| + [name](#sources_items_oneOf_i2_name )                       | No      | string           | Name of the file source, will be the registered table name in the SQL context                                                                                                                                                                                                                                                                          |
 | + [file_type](#sources_items_oneOf_i2_file_type )             | No      | object           | File type of the file to be ingested Supports \`Parquet\` for parquet files, \`Csv\` for CSV files and \`Json\` for JSON files                                                                                                                                                                                                                         |
 | + [location](#sources_items_oneOf_i2_location )               | No      | string           | A URL or Path to the location of the delta table Supports relative local paths                                                                                                                                                                                                                                                                         |
 | - [storage_options](#sources_items_oneOf_i2_storage_options ) | No      | object           | Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the \`object_store\` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>) |
@@ -406,7 +202,7 @@ Must be one of:
 **Description:**  *No description...*
 
 Must be one of:
-* "Directory"
+* "File"
 
 ----------------------------------------------------
 
@@ -416,7 +212,7 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
-**Description:** Name of the directory source, will be the registered table name in the SQL context
+**Description:** Name of the file source, will be the registered table name in the SQL context
 
 ----------------------------------------------------
 
@@ -627,14 +423,15 @@ Must be one of:
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** An ODBC source
+**Description:** A directory source
 
-| Property                                                          | Pattern | Type             | Title/Description                                                                                                                                                                                        |
-| ----------------------------------------------------------------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| + [type](#sources_items_oneOf_i3_type )                           | No      | enum (of string) | -                                                                                                                                                                                                        |
-| + [name](#sources_items_oneOf_i3_name )                           | No      | string           | Name of the ODBC source, will be the registered table name in the SQL context                                                                                                                            |
-| + [query](#sources_items_oneOf_i3_query )                         | No      | string           | Query to execute when fetching data from the ODBC connection This query will execute eagerly before the data is processed by the pipeline Size of data returned from the query cannot exceed work memory |
-| + [connection_string](#sources_items_oneOf_i3_connection_string ) | No      | string           | ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)                                     |
+| Property                                                      | Pattern | Type             | Title/Description                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| + [type](#sources_items_oneOf_i3_type )                       | No      | enum (of string) | -                                                                                                                                                                                                                                                                                                                                                      |
+| + [name](#sources_items_oneOf_i3_name )                       | No      | string           | Name of the directory source, will be the registered table name in the SQL context                                                                                                                                                                                                                                                                     |
+| + [file_type](#sources_items_oneOf_i3_file_type )             | No      | object           | File type of the file to be ingested Supports \`Parquet\` for parquet files, \`Csv\` for CSV files and \`Json\` for JSON files                                                                                                                                                                                                                         |
+| + [location](#sources_items_oneOf_i3_location )               | No      | string           | A URL or Path to the location of the delta table Supports relative local paths                                                                                                                                                                                                                                                                         |
+| - [storage_options](#sources_items_oneOf_i3_storage_options ) | No      | object           | Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the \`object_store\` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>) |
 
 ----------------------------------------------------
 
@@ -647,7 +444,7 @@ Must be one of:
 **Description:**  *No description...*
 
 Must be one of:
-* "Odbc"
+* "Directory"
 
 ----------------------------------------------------
 
@@ -657,11 +454,252 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
+**Description:** Name of the directory source, will be the registered table name in the SQL context
+
+----------------------------------------------------
+
+##### <a name="sources_items_oneOf_i3_file_type"></a>Field: file_type
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `combining`                                                                                                                       |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            |                                                                                                                                   |
+
+**Description:** File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
+
+| One of(Option)                                       |
+| ---------------------------------------------------- |
+| [item 0](#sources_items_oneOf_i3_file_type_oneOf_i0) |
+| [item 1](#sources_items_oneOf_i3_file_type_oneOf_i1) |
+| [item 2](#sources_items_oneOf_i3_file_type_oneOf_i2) |
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i0"></a>**Field: item 0**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** Parquet source options
+
+| Property                                                         | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [type](#sources_items_oneOf_i3_file_type_oneOf_i0_type )       | No      | enum (of string) | -                 |
+| + [options](#sources_items_oneOf_i3_file_type_oneOf_i0_options ) | No      | object           | -                 |
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i0_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Parquet"
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i0_options"></a>Field: options
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            | #/definitions/ParquetSourceOptions                                                                                                |
+
+**Description:**  *No description...*
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i1"></a>**Field: item 1**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** Csv source options
+
+| Property                                                         | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [type](#sources_items_oneOf_i3_file_type_oneOf_i1_type )       | No      | enum (of string) | -                 |
+| + [options](#sources_items_oneOf_i3_file_type_oneOf_i1_options ) | No      | object           | -                 |
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i1_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Csv"
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i1_options"></a>Field: options
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            | #/definitions/CsvSourceOptions                                                                                                    |
+
+**Description:**  *No description...*
+
+| Property                                                                       | Pattern | Type            | Title/Description                                                                                                                                                                      |
+| ------------------------------------------------------------------------------ | ------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - [has_header](#sources_items_oneOf_i3_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | set to \`true\` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are \`column_1, column_2, ... column_x\` |
+| - [delimiter](#sources_items_oneOf_i3_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | set a delimiter character to read this CSV with                                                                                                                                        |
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i1_options_has_header"></a>Field: has_header
+
+|          |                   |
+| -------- | ----------------- |
+| **Type** | `boolean or null` |
+
+**Description:** set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter
+
+|          |                  |
+| -------- | ---------------- |
+| **Type** | `string or null` |
+
+**Description:** set a delimiter character to read this CSV with
+
+| Restrictions   |   |
+| -------------- | - |
+| **Min length** | 1 |
+| **Max length** | 1 |
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i2"></a>**Field: item 2**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** Json source options
+
+| Property                                                         | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [type](#sources_items_oneOf_i3_file_type_oneOf_i2_type )       | No      | enum (of string) | -                 |
+| + [options](#sources_items_oneOf_i3_file_type_oneOf_i2_options ) | No      | object           | -                 |
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i2_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Json"
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_file_type_oneOf_i2_options"></a>Field: options
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            | #/definitions/JsonSourceOptions                                                                                                   |
+
+**Description:**  *No description...*
+
+----------------------------------------------------
+
+##### <a name="sources_items_oneOf_i3_location"></a>Field: location
+
+|            |          |
+| ---------- | -------- |
+| **Type**   | `string` |
+| **Format** | `uri`    |
+
+**Description:** A URL or Path to the location of the delta table Supports relative local paths
+
+----------------------------------------------------
+
+##### <a name="sources_items_oneOf_i3_storage_options"></a>Field: storage_options
+
+|                           |                                                                                                                                                                                                     |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                                                                                            |
+| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#sources_items_oneOf_i3_storage_options_additionalProperties "Each additional property must conform to the following schema") |
+| **Default**               | `{}`                                                                                                                                                                                                |
+
+**Description:** Storage options for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
+
+| Property                                                            | Pattern | Type   | Title/Description |
+| ------------------------------------------------------------------- | ------- | ------ | ----------------- |
+| - [](#sources_items_oneOf_i3_storage_options_additionalProperties ) | No      | string | -                 |
+
+----------------------------------------------------
+
+###### <a name="sources_items_oneOf_i3_storage_options_additionalProperties"></a>Field: additionalProperties
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+#### <a name="sources_items_oneOf_i4"></a>**Field: item 4**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** An ODBC source
+
+| Property                                                          | Pattern | Type             | Title/Description                                                                                                                                                                                        |
+| ----------------------------------------------------------------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| + [type](#sources_items_oneOf_i4_type )                           | No      | enum (of string) | -                                                                                                                                                                                                        |
+| + [name](#sources_items_oneOf_i4_name )                           | No      | string           | Name of the ODBC source, will be the registered table name in the SQL context                                                                                                                            |
+| + [query](#sources_items_oneOf_i4_query )                         | No      | string           | Query to execute when fetching data from the ODBC connection This query will execute eagerly before the data is processed by the pipeline Size of data returned from the query cannot exceed work memory |
+| + [connection_string](#sources_items_oneOf_i4_connection_string ) | No      | string           | ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)                                     |
+
+----------------------------------------------------
+
+##### <a name="sources_items_oneOf_i4_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Odbc"
+
+----------------------------------------------------
+
+##### <a name="sources_items_oneOf_i4_name"></a>Field: name
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
 **Description:** Name of the ODBC source, will be the registered table name in the SQL context
 
 ----------------------------------------------------
 
-##### <a name="sources_items_oneOf_i3_query"></a>Field: query
+##### <a name="sources_items_oneOf_i4_query"></a>Field: query
 
 |          |          |
 | -------- | -------- |
@@ -671,7 +709,7 @@ Must be one of:
 
 ----------------------------------------------------
 
-##### <a name="sources_items_oneOf_i3_connection_string"></a>Field: connection_string
+##### <a name="sources_items_oneOf_i4_connection_string"></a>Field: connection_string
 
 |          |          |
 | -------- | -------- |
@@ -823,6 +861,7 @@ Must be one of:
 | [item 0](#destination_anyOf_i0_oneOf_i0) |
 | [item 1](#destination_anyOf_i0_oneOf_i1) |
 | [item 2](#destination_anyOf_i0_oneOf_i2) |
+| [item 3](#destination_anyOf_i0_oneOf_i3) |
 
 #### <a name="destination_anyOf_i0_oneOf_i0"></a>**Field: item 0**
 
@@ -831,17 +870,12 @@ Must be one of:
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** A delta table destination
+**Description:** An in-memory destination
 
-| Property                                                               | Pattern | Type             | Title/Description                                                                                                                          |
-| ---------------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| + [type](#destination_anyOf_i0_oneOf_i0_type )                         | No      | enum (of string) | -                                                                                                                                          |
-| + [name](#destination_anyOf_i0_oneOf_i0_name )                         | No      | string           | Name of the table                                                                                                                          |
-| + [location](#destination_anyOf_i0_oneOf_i0_location )                 | No      | string           | Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table                                                 |
-| - [storage_options](#destination_anyOf_i0_oneOf_i0_storage_options )   | No      | object           | DeltaTable storage options                                                                                                                 |
-| + [table_properties](#destination_anyOf_i0_oneOf_i0_table_properties ) | No      | object           | DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>                                                          |
-| + [write_mode](#destination_anyOf_i0_oneOf_i0_write_mode )             | No      | object           | Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types |
-| + [partition_cols](#destination_anyOf_i0_oneOf_i0_partition_cols )     | No      | array of string  | Columns to partition table by                                                                                                              |
+| Property                                       | Pattern | Type             | Title/Description                                                  |
+| ---------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------ |
+| + [type](#destination_anyOf_i0_oneOf_i0_type ) | No      | enum (of string) | -                                                                  |
+| + [name](#destination_anyOf_i0_oneOf_i0_name ) | No      | string           | Name to register the table with in the provided \`SessionContext\` |
 
 ----------------------------------------------------
 
@@ -854,7 +888,7 @@ Must be one of:
 **Description:**  *No description...*
 
 Must be one of:
-* "Delta"
+* "InMemory"
 
 ----------------------------------------------------
 
@@ -864,260 +898,7 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
-**Description:** Name of the table
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i0_location"></a>Field: location
-
-|            |          |
-| ---------- | -------- |
-| **Type**   | `string` |
-| **Format** | `uri`    |
-
-**Description:** Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i0_storage_options"></a>Field: storage_options
-
-|                           |                                                                                                                                                                                                            |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                                                                                                   |
-| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i0_storage_options_additionalProperties "Each additional property must conform to the following schema") |
-| **Default**               | `{}`                                                                                                                                                                                                       |
-
-**Description:** DeltaTable storage options
-
-| Property                                                                   | Pattern | Type   | Title/Description |
-| -------------------------------------------------------------------------- | ------- | ------ | ----------------- |
-| - [](#destination_anyOf_i0_oneOf_i0_storage_options_additionalProperties ) | No      | string | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_storage_options_additionalProperties"></a>Field: additionalProperties
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i0_table_properties"></a>Field: table_properties
-
-|                           |                                                                                                                                                                                                             |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                                                                                                    |
-| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i0_table_properties_additionalProperties "Each additional property must conform to the following schema") |
-
-**Description:** DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>
-
-| Property                                                                    | Pattern | Type           | Title/Description |
-| --------------------------------------------------------------------------- | ------- | -------------- | ----------------- |
-| - [](#destination_anyOf_i0_oneOf_i0_table_properties_additionalProperties ) | No      | string or null | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_table_properties_additionalProperties"></a>Field: additionalProperties
-
-|          |                  |
-| -------- | ---------------- |
-| **Type** | `string or null` |
-
-**Description:**  *No description...*
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i0_write_mode"></a>Field: write_mode
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `combining`                                                                                                                       |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            |                                                                                                                                   |
-
-**Description:** Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types
-
-| One of(Option)                                               |
-| ------------------------------------------------------------ |
-| [item 0](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0) |
-| [item 1](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1) |
-| [item 2](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2) |
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0"></a>**Field: item 0**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** `Append`: appends data to the `Destination`
-
-| Property                                                                     | Pattern | Type             | Title/Description |
-| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [operation](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0_operation ) | No      | enum (of string) | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i0_operation"></a>Field: operation
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Append"
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1"></a>**Field: item 1**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** `Upsert`: upserts data to the `Destination` using the specified merge columns
-
-| Property                                                                     | Pattern | Type             | Title/Description |
-| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [operation](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_operation ) | No      | enum (of string) | -                 |
-| + [params](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params )       | No      | array of string  | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_operation"></a>Field: operation
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Upsert"
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params"></a>Field: params
-
-|          |                   |
-| -------- | ----------------- |
-| **Type** | `array of string` |
-
-**Description:**  *No description...*
-
-| Each item of this array must be                                                 | Description |
-| ------------------------------------------------------------------------------- | ----------- |
-| [params items](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i1_params_items) | -           |
-
-###### <a name="autogenerated_heading_5"></a>Field: params items
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2"></a>**Field: item 2**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** `Replace`: replaces data to the `Destination` using the specified `ReplaceCondition`s
-
-| Property                                                                     | Pattern | Type             | Title/Description |
-| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [operation](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_operation ) | No      | enum (of string) | -                 |
-| + [params](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params )       | No      | array            | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_operation"></a>Field: operation
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Replace"
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params"></a>Field: params
-
-|          |         |
-| -------- | ------- |
-| **Type** | `array` |
-
-**Description:**  *No description...*
-
-| Each item of this array must be                                                     | Description                                                                                                                                                                      |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ReplaceCondition](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items) | Condition used to build a predicate by which data should be replaced in a 'Destination' Expression built is checking equality for the given 'value' of a field with 'field_name' |
-
-###### <a name="autogenerated_heading_6"></a>Field: ReplaceCondition
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            | #/definitions/ReplaceCondition                                                                                                    |
-
-**Description:** Condition used to build a predicate by which data should be replaced in a `Destination` Expression built is checking equality for the given `value` of a field with `field_name`
-
-| Property                                                                            | Pattern | Type   | Title/Description |
-| ----------------------------------------------------------------------------------- | ------- | ------ | ----------------- |
-| + [column](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_column ) | No      | string | -                 |
-| + [value](#destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_value )   | No      | string | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_column"></a>Field: column
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i0_write_mode_oneOf_i2_params_items_value"></a>Field: value
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i0_partition_cols"></a>Field: partition_cols
-
-|          |                   |
-| -------- | ----------------- |
-| **Type** | `array of string` |
-
-**Description:** Columns to partition table by
-
-| Each item of this array must be                                             | Description |
-| --------------------------------------------------------------------------- | ----------- |
-| [partition_cols items](#destination_anyOf_i0_oneOf_i0_partition_cols_items) | -           |
-
-###### <a name="autogenerated_heading_7"></a>Field: partition_cols items
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
+**Description:** Name to register the table with in the provided `SessionContext`
 
 #### <a name="destination_anyOf_i0_oneOf_i1"></a>**Field: item 1**
 
@@ -1126,17 +907,17 @@ Must be one of:
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** A file output destination
+**Description:** A delta table destination
 
-| Property                                                             | Pattern | Type             | Title/Description                                                                                                           |
-| -------------------------------------------------------------------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| + [type](#destination_anyOf_i0_oneOf_i1_type )                       | No      | enum (of string) | -                                                                                                                           |
-| + [name](#destination_anyOf_i0_oneOf_i1_name )                       | No      | string           | Name of the file to write                                                                                                   |
-| + [location](#destination_anyOf_i0_oneOf_i1_location )               | No      | string           | Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix |
-| + [file_type](#destination_anyOf_i0_oneOf_i1_file_type )             | No      | object           | File type, supported types are Parquet and CSV                                                                              |
-| - [single_file](#destination_anyOf_i0_oneOf_i1_single_file )         | No      | boolean          | Describes whether to write a single file (can be used to overwrite destination file)                                        |
-| - [partition_cols](#destination_anyOf_i0_oneOf_i1_partition_cols )   | No      | array of string  | Columns to partition table by                                                                                               |
-| - [storage_options](#destination_anyOf_i0_oneOf_i1_storage_options ) | No      | object           | Object store storage options                                                                                                |
+| Property                                                               | Pattern | Type             | Title/Description                                                                                                                          |
+| ---------------------------------------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| + [type](#destination_anyOf_i0_oneOf_i1_type )                         | No      | enum (of string) | -                                                                                                                                          |
+| + [name](#destination_anyOf_i0_oneOf_i1_name )                         | No      | string           | Name of the table                                                                                                                          |
+| + [location](#destination_anyOf_i0_oneOf_i1_location )                 | No      | string           | Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table                                                 |
+| - [storage_options](#destination_anyOf_i0_oneOf_i1_storage_options )   | No      | object           | DeltaTable storage options                                                                                                                 |
+| + [table_properties](#destination_anyOf_i0_oneOf_i1_table_properties ) | No      | object           | DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>                                                          |
+| + [write_mode](#destination_anyOf_i0_oneOf_i1_write_mode )             | No      | object           | Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types |
+| + [partition_cols](#destination_anyOf_i0_oneOf_i1_partition_cols )     | No      | array of string  | Columns to partition table by                                                                                                              |
 
 ----------------------------------------------------
 
@@ -1149,7 +930,7 @@ Must be one of:
 **Description:**  *No description...*
 
 Must be one of:
-* "File"
+* "Delta"
 
 ----------------------------------------------------
 
@@ -1159,7 +940,7 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
-**Description:** Name of the file to write
+**Description:** Name of the table
 
 ----------------------------------------------------
 
@@ -1170,206 +951,7 @@ Must be one of:
 | **Type**   | `string` |
 | **Format** | `uri`    |
 
-**Description:** Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i1_file_type"></a>Field: file_type
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `combining`                                                                                                                       |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            |                                                                                                                                   |
-
-**Description:** File type, supported types are Parquet and CSV
-
-| One of(Option)                                              |
-| ----------------------------------------------------------- |
-| [item 0](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0) |
-| [item 1](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1) |
-| [item 2](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2) |
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0"></a>**Field: item 0**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options
-
-| Property                                                                | Pattern | Type             | Title/Description |
-| ----------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [type](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_type )       | No      | enum (of string) | -                 |
-| + [options](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options ) | No      | object           | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_type"></a>Field: type
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Parquet"
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options"></a>Field: options
-
-|                           |                                                                                                                                                                                                                       |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                                                                                                              |
-| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options_additionalProperties "Each additional property must conform to the following schema") |
-
-**Description:**  *No description...*
-
-| Property                                                                              | Pattern | Type   | Title/Description |
-| ------------------------------------------------------------------------------------- | ------- | ------ | ----------------- |
-| - [](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options_additionalProperties ) | No      | string | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i0_options_additionalProperties"></a>Field: additionalProperties
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1"></a>**Field: item 1**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** CSV options
-
-| Property                                                                | Pattern | Type             | Title/Description |
-| ----------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [type](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_type )       | No      | enum (of string) | -                 |
-| + [options](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options ) | No      | object           | Csv options       |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_type"></a>Field: type
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Csv"
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options"></a>Field: options
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-| **Defined in**            | #/definitions/CsvDestinationOptions                                                                                               |
-
-**Description:** Csv options
-
-| Property                                                                              | Pattern | Type            | Title/Description                                           |
-| ------------------------------------------------------------------------------------- | ------- | --------------- | ----------------------------------------------------------- |
-| - [has_header](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | Defaults to true, sets a header for the CSV file            |
-| - [delimiter](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | Defaults to \`,\`, sets the delimiter char for the CSV file |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_has_header"></a>Field: has_header
-
-|          |                   |
-| -------- | ----------------- |
-| **Type** | `boolean or null` |
-
-**Description:** Defaults to true, sets a header for the CSV file
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter
-
-|          |                  |
-| -------- | ---------------- |
-| **Type** | `string or null` |
-
-**Description:** Defaults to `,`, sets the delimiter char for the CSV file
-
-| Restrictions   |   |
-| -------------- | - |
-| **Min length** | 1 |
-| **Max length** | 1 |
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2"></a>**Field: item 2**
-
-|                           |                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Type**                  | `object`                                                                                                                          |
-| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
-
-**Description:** Json destination, no supported options
-
-| Property                                                          | Pattern | Type             | Title/Description |
-| ----------------------------------------------------------------- | ------- | ---------------- | ----------------- |
-| + [type](#destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2_type ) | No      | enum (of string) | -                 |
-
-----------------------------------------------------
-
-###### <a name="destination_anyOf_i0_oneOf_i1_file_type_oneOf_i2_type"></a>Field: type
-
-|          |                    |
-| -------- | ------------------ |
-| **Type** | `enum (of string)` |
-
-**Description:**  *No description...*
-
-Must be one of:
-* "Json"
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i1_single_file"></a>Field: single_file
-
-|             |           |
-| ----------- | --------- |
-| **Type**    | `boolean` |
-| **Default** | `false`   |
-
-**Description:** Describes whether to write a single file (can be used to overwrite destination file)
-
-----------------------------------------------------
-
-##### <a name="destination_anyOf_i0_oneOf_i1_partition_cols"></a>Field: partition_cols
-
-|             |                   |
-| ----------- | ----------------- |
-| **Type**    | `array of string` |
-| **Default** | `[]`              |
-
-**Description:** Columns to partition table by
-
-| Each item of this array must be                                             | Description |
-| --------------------------------------------------------------------------- | ----------- |
-| [partition_cols items](#destination_anyOf_i0_oneOf_i1_partition_cols_items) | -           |
-
-###### <a name="autogenerated_heading_8"></a>Field: partition_cols items
-
-|          |          |
-| -------- | -------- |
-| **Type** | `string` |
-
-**Description:**  *No description...*
+**Description:** Location of the table as a URL e.g. file:///tmp/delta_table/, s3://bucket_name/delta_table
 
 ----------------------------------------------------
 
@@ -1381,7 +963,7 @@ Must be one of:
 | **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i1_storage_options_additionalProperties "Each additional property must conform to the following schema") |
 | **Default**               | `{}`                                                                                                                                                                                                       |
 
-**Description:** Object store storage options
+**Description:** DeltaTable storage options
 
 | Property                                                                   | Pattern | Type   | Title/Description |
 | -------------------------------------------------------------------------- | ------- | ------ | ----------------- |
@@ -1397,6 +979,222 @@ Must be one of:
 
 **Description:**  *No description...*
 
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i1_table_properties"></a>Field: table_properties
+
+|                           |                                                                                                                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                                                                                                    |
+| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i1_table_properties_additionalProperties "Each additional property must conform to the following schema") |
+
+**Description:** DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>
+
+| Property                                                                    | Pattern | Type           | Title/Description |
+| --------------------------------------------------------------------------- | ------- | -------------- | ----------------- |
+| - [](#destination_anyOf_i0_oneOf_i1_table_properties_additionalProperties ) | No      | string or null | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_table_properties_additionalProperties"></a>Field: additionalProperties
+
+|          |                  |
+| -------- | ---------------- |
+| **Type** | `string or null` |
+
+**Description:**  *No description...*
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i1_write_mode"></a>Field: write_mode
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `combining`                                                                                                                       |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            |                                                                                                                                   |
+
+**Description:** Columns that will be used to determine uniqueness during merge operation Supported types: All primitive types and lists of primitive types
+
+| One of(Option)                                               |
+| ------------------------------------------------------------ |
+| [item 0](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i0) |
+| [item 1](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1) |
+| [item 2](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2) |
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i0"></a>**Field: item 0**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** `Append`: appends data to the `Destination`
+
+| Property                                                                     | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [operation](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i0_operation ) | No      | enum (of string) | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i0_operation"></a>Field: operation
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Append"
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1"></a>**Field: item 1**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** `Upsert`: upserts data to the `Destination` using the specified merge columns
+
+| Property                                                                     | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [operation](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1_operation ) | No      | enum (of string) | -                 |
+| + [params](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1_params )       | No      | array of string  | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1_operation"></a>Field: operation
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Upsert"
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1_params"></a>Field: params
+
+|          |                   |
+| -------- | ----------------- |
+| **Type** | `array of string` |
+
+**Description:**  *No description...*
+
+| Each item of this array must be                                                 | Description |
+| ------------------------------------------------------------------------------- | ----------- |
+| [params items](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i1_params_items) | -           |
+
+###### <a name="autogenerated_heading_5"></a>Field: params items
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2"></a>**Field: item 2**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** `Replace`: replaces data to the `Destination` using the specified `ReplaceCondition`s
+
+| Property                                                                     | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [operation](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_operation ) | No      | enum (of string) | -                 |
+| + [params](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params )       | No      | array            | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_operation"></a>Field: operation
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Replace"
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params"></a>Field: params
+
+|          |         |
+| -------- | ------- |
+| **Type** | `array` |
+
+**Description:**  *No description...*
+
+| Each item of this array must be                                                     | Description                                                                                                                                                                      |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ReplaceCondition](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params_items) | Condition used to build a predicate by which data should be replaced in a 'Destination' Expression built is checking equality for the given 'value' of a field with 'field_name' |
+
+###### <a name="autogenerated_heading_6"></a>Field: ReplaceCondition
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            | #/definitions/ReplaceCondition                                                                                                    |
+
+**Description:** Condition used to build a predicate by which data should be replaced in a `Destination` Expression built is checking equality for the given `value` of a field with `field_name`
+
+| Property                                                                            | Pattern | Type   | Title/Description |
+| ----------------------------------------------------------------------------------- | ------- | ------ | ----------------- |
+| + [column](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params_items_column ) | No      | string | -                 |
+| + [value](#destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params_items_value )   | No      | string | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params_items_column"></a>Field: column
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i1_write_mode_oneOf_i2_params_items_value"></a>Field: value
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i1_partition_cols"></a>Field: partition_cols
+
+|          |                   |
+| -------- | ----------------- |
+| **Type** | `array of string` |
+
+**Description:** Columns to partition table by
+
+| Each item of this array must be                                             | Description |
+| --------------------------------------------------------------------------- | ----------- |
+| [partition_cols items](#destination_anyOf_i0_oneOf_i1_partition_cols_items) | -           |
+
+###### <a name="autogenerated_heading_7"></a>Field: partition_cols items
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
 #### <a name="destination_anyOf_i0_oneOf_i2"></a>**Field: item 2**
 
 |                           |                                                                                                                                   |
@@ -1404,14 +1202,17 @@ Must be one of:
 | **Type**                  | `object`                                                                                                                          |
 | **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
 
-**Description:** An ODBC insert query to write to a DB table
+**Description:** A file output destination
 
-| Property                                                                 | Pattern | Type             | Title/Description                                                                                                                                                    |
-| ------------------------------------------------------------------------ | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| + [type](#destination_anyOf_i0_oneOf_i2_type )                           | No      | enum (of string) | -                                                                                                                                                                    |
-| + [name](#destination_anyOf_i0_oneOf_i2_name )                           | No      | string           | Name of the ODBC destination                                                                                                                                         |
-| + [connection_string](#destination_anyOf_i0_oneOf_i2_connection_string ) | No      | string           | ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>) |
-| + [batch_size](#destination_anyOf_i0_oneOf_i2_batch_size )               | No      | integer          | batch size (rows) to use when inserting data                                                                                                                         |
+| Property                                                             | Pattern | Type             | Title/Description                                                                                                           |
+| -------------------------------------------------------------------- | ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| + [type](#destination_anyOf_i0_oneOf_i2_type )                       | No      | enum (of string) | -                                                                                                                           |
+| + [name](#destination_anyOf_i0_oneOf_i2_name )                       | No      | string           | Name of the file to write                                                                                                   |
+| + [location](#destination_anyOf_i0_oneOf_i2_location )               | No      | string           | Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix |
+| + [file_type](#destination_anyOf_i0_oneOf_i2_file_type )             | No      | object           | File type, supported types are Parquet and CSV                                                                              |
+| - [single_file](#destination_anyOf_i0_oneOf_i2_single_file )         | No      | boolean          | Describes whether to write a single file (can be used to overwrite destination file)                                        |
+| - [partition_cols](#destination_anyOf_i0_oneOf_i2_partition_cols )   | No      | array of string  | Columns to partition table by                                                                                               |
+| - [storage_options](#destination_anyOf_i0_oneOf_i2_storage_options ) | No      | object           | Object store storage options                                                                                                |
 
 ----------------------------------------------------
 
@@ -1424,7 +1225,7 @@ Must be one of:
 **Description:**  *No description...*
 
 Must be one of:
-* "Odbc"
+* "File"
 
 ----------------------------------------------------
 
@@ -1434,11 +1235,286 @@ Must be one of:
 | -------- | -------- |
 | **Type** | `string` |
 
+**Description:** Name of the file to write
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_location"></a>Field: location
+
+|            |          |
+| ---------- | -------- |
+| **Type**   | `string` |
+| **Format** | `uri`    |
+
+**Description:** Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_file_type"></a>Field: file_type
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `combining`                                                                                                                       |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            |                                                                                                                                   |
+
+**Description:** File type, supported types are Parquet and CSV
+
+| One of(Option)                                              |
+| ----------------------------------------------------------- |
+| [item 0](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0) |
+| [item 1](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1) |
+| [item 2](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i2) |
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0"></a>**Field: item 0**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options
+
+| Property                                                                | Pattern | Type             | Title/Description |
+| ----------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [type](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_type )       | No      | enum (of string) | -                 |
+| + [options](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_options ) | No      | object           | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Parquet"
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_options"></a>Field: options
+
+|                           |                                                                                                                                                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                                                                                                              |
+| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_options_additionalProperties "Each additional property must conform to the following schema") |
+
+**Description:**  *No description...*
+
+| Property                                                                              | Pattern | Type   | Title/Description |
+| ------------------------------------------------------------------------------------- | ------- | ------ | ----------------- |
+| - [](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_options_additionalProperties ) | No      | string | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i0_options_additionalProperties"></a>Field: additionalProperties
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1"></a>**Field: item 1**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** CSV options
+
+| Property                                                                | Pattern | Type             | Title/Description |
+| ----------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [type](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_type )       | No      | enum (of string) | -                 |
+| + [options](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_options ) | No      | object           | Csv options       |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Csv"
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_options"></a>Field: options
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            | #/definitions/CsvDestinationOptions                                                                                               |
+
+**Description:** Csv options
+
+| Property                                                                              | Pattern | Type            | Title/Description                                           |
+| ------------------------------------------------------------------------------------- | ------- | --------------- | ----------------------------------------------------------- |
+| - [has_header](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_options_has_header ) | No      | boolean or null | Defaults to true, sets a header for the CSV file            |
+| - [delimiter](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_options_delimiter )   | No      | string or null  | Defaults to \`,\`, sets the delimiter char for the CSV file |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_options_has_header"></a>Field: has_header
+
+|          |                   |
+| -------- | ----------------- |
+| **Type** | `boolean or null` |
+
+**Description:** Defaults to true, sets a header for the CSV file
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i1_options_delimiter"></a>Field: delimiter
+
+|          |                  |
+| -------- | ---------------- |
+| **Type** | `string or null` |
+
+**Description:** Defaults to `,`, sets the delimiter char for the CSV file
+
+| Restrictions   |   |
+| -------------- | - |
+| **Min length** | 1 |
+| **Max length** | 1 |
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i2"></a>**Field: item 2**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** Json destination, no supported options
+
+| Property                                                          | Pattern | Type             | Title/Description |
+| ----------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [type](#destination_anyOf_i0_oneOf_i2_file_type_oneOf_i2_type ) | No      | enum (of string) | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_file_type_oneOf_i2_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Json"
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_single_file"></a>Field: single_file
+
+|             |           |
+| ----------- | --------- |
+| **Type**    | `boolean` |
+| **Default** | `false`   |
+
+**Description:** Describes whether to write a single file (can be used to overwrite destination file)
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_partition_cols"></a>Field: partition_cols
+
+|             |                   |
+| ----------- | ----------------- |
+| **Type**    | `array of string` |
+| **Default** | `[]`              |
+
+**Description:** Columns to partition table by
+
+| Each item of this array must be                                             | Description |
+| --------------------------------------------------------------------------- | ----------- |
+| [partition_cols items](#destination_anyOf_i0_oneOf_i2_partition_cols_items) | -           |
+
+###### <a name="autogenerated_heading_8"></a>Field: partition_cols items
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i2_storage_options"></a>Field: storage_options
+
+|                           |                                                                                                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                                                                                                   |
+| **Additional properties** | [![Should-conform](https://img.shields.io/badge/Should-conform-blue)](#destination_anyOf_i0_oneOf_i2_storage_options_additionalProperties "Each additional property must conform to the following schema") |
+| **Default**               | `{}`                                                                                                                                                                                                       |
+
+**Description:** Object store storage options
+
+| Property                                                                   | Pattern | Type   | Title/Description |
+| -------------------------------------------------------------------------- | ------- | ------ | ----------------- |
+| - [](#destination_anyOf_i0_oneOf_i2_storage_options_additionalProperties ) | No      | string | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i2_storage_options_additionalProperties"></a>Field: additionalProperties
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:**  *No description...*
+
+#### <a name="destination_anyOf_i0_oneOf_i3"></a>**Field: item 3**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** An ODBC insert query to write to a DB table
+
+| Property                                                                 | Pattern | Type             | Title/Description                                                                                                                                                    |
+| ------------------------------------------------------------------------ | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| + [type](#destination_anyOf_i0_oneOf_i3_type )                           | No      | enum (of string) | -                                                                                                                                                                    |
+| + [name](#destination_anyOf_i0_oneOf_i3_name )                           | No      | string           | Name of the ODBC destination                                                                                                                                         |
+| + [connection_string](#destination_anyOf_i0_oneOf_i3_connection_string ) | No      | string           | ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>) |
+| + [batch_size](#destination_anyOf_i0_oneOf_i3_batch_size )               | No      | integer          | batch size (rows) to use when inserting data                                                                                                                         |
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i3_type"></a>Field: type
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Odbc"
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i3_name"></a>Field: name
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
 **Description:** Name of the ODBC destination
 
 ----------------------------------------------------
 
-##### <a name="destination_anyOf_i0_oneOf_i2_connection_string"></a>Field: connection_string
+##### <a name="destination_anyOf_i0_oneOf_i3_connection_string"></a>Field: connection_string
 
 |          |          |
 | -------- | -------- |
@@ -1448,7 +1524,7 @@ Must be one of:
 
 ----------------------------------------------------
 
-##### <a name="destination_anyOf_i0_oneOf_i2_batch_size"></a>Field: batch_size
+##### <a name="destination_anyOf_i0_oneOf_i3_batch_size"></a>Field: batch_size
 
 |            |           |
 | ---------- | --------- |

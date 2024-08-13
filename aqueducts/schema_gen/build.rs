@@ -11,7 +11,7 @@ fn main() {
 
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = PathBuf::from(out_dir).join("aqueducts.schema.json");
-    let mut file = File::create(&dest_path).expect("Failed to create schema file");
+    let mut file = File::create(dest_path).expect("Failed to create schema file");
     file.write_all(schema_json.as_bytes())
         .expect("Failed to write schema file");
 

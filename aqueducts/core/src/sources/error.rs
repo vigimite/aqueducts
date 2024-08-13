@@ -1,5 +1,8 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("Missing in-memory source '{0}'")]
+    MissingInMemory(String),
+
     // -- Modules
     #[cfg(feature = "odbc")]
     #[error("OdbcError({0})")]

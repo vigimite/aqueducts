@@ -23,6 +23,8 @@ pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum Source {
+    /// An in-memory source
+    InMemory(InMemorySource),
     /// A delta table source
     Delta(DeltaSource),
     /// A file source
@@ -32,6 +34,14 @@ pub enum Source {
     #[cfg(feature = "odbc")]
     /// An ODBC source
     Odbc(OdbcSource),
+}
+
+/// An in memory source already present in the provided session context
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
+pub struct InMemorySource {
+    /// Name of the in-memory table, existence will be checked at runtime
+    pub name: String,
 }
 
 /// A delta table source
@@ -181,6 +191,13 @@ pub struct JsonSourceOptions {
 #[instrument(skip(ctx, source), err)]
 pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result<()> {
     match source {
+        Source::InMemory(memory_source) => {
+            info!("Registering in-memory source '{}'", memory_source.name);
+
+            if !ctx.table_exist(memory_source.name.as_str())? {
+                return Err(error::Error::MissingInMemory(memory_source.name));
+            }
+        }
         Source::Delta(delta_source) => {
             info!(
                 "Registering delta source '{}' at location '{}'",

@@ -42,6 +42,26 @@
       "description": "A data source that can be either a delta table (`delta`), a `file`, a `directory` or an `odbc` connection",
       "oneOf": [
         {
+          "description": "An in-memory source",
+          "type": "object",
+          "required": [
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "InMemory"
+              ]
+            },
+            "name": {
+              "description": "Name of the in-memory table, existence will be checked at runtime",
+              "type": "string"
+            }
+          }
+        },
+        {
           "description": "A delta table source",
           "type": "object",
           "required": [
@@ -335,6 +355,26 @@
     "Destination": {
       "description": "Target output for the Aqueduct table",
       "oneOf": [
+        {
+          "description": "An in-memory destination",
+          "type": "object",
+          "required": [
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "InMemory"
+              ]
+            },
+            "name": {
+              "description": "Name to register the table with in the provided `SessionContext`",
+              "type": "string"
+            }
+          }
+        },
         {
           "description": "A delta table destination",
           "type": "object",

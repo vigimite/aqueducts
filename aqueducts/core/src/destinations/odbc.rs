@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use super::Result;
 
-/// A file output destination
+/// An ODBC output destination
 #[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct OdbcDestination {

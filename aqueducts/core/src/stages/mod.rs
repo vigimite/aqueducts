@@ -1,5 +1,7 @@
-use datafusion::execution::context::{SQLOptions, SessionContext};
-use deltalake::arrow::datatypes::Schema;
+use datafusion::{
+    datasource::MemTable,
+    execution::context::{SQLOptions, SessionContext},
+};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::instrument;
@@ -86,10 +88,11 @@ pub async fn process_stage(ctx: Arc<SessionContext>, stage: Stage) -> Result<()>
         );
     }
 
-    let schema: Arc<Schema> = Arc::new(result.schema().into());
-    let batch = deltalake::arrow::compute::concat_batches(&schema, result.collect().await?.iter())?;
+    let schema = result.schema().clone();
+    let partitioned = result.collect_partitioned().await?;
+    let table = MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned)?;
 
-    let _ = ctx.register_batch(stage.name.as_str(), batch)?;
+    ctx.register_table(stage.name.as_str(), Arc::new(table))?;
 
     Ok(())
 }

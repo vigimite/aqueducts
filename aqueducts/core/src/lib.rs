@@ -181,12 +181,14 @@ pub fn register_handlers() {
     aqueducts_utils::store::register_handlers();
 }
 
-/// Execute an `Aqueduct` pipeline, optionally with a provided datafusion `SessionContext`
+/// Execute an `Aqueduct` pipeline, using a provided datafusion `SessionContext`
+/// Returns the provided context once the pipeline completes
 #[instrument(skip(ctx, aqueduct), err)]
-pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Result<()> {
+pub async fn run_pipeline(
+    ctx: Arc<SessionContext>,
+    aqueduct: Aqueduct,
+) -> Result<Arc<SessionContext>> {
     let mut stage_ttls: HashMap<String, usize> = HashMap::new();
-
-    let ctx = Arc::new(ctx.unwrap_or_default());
     let start_time = Instant::now();
 
     info!("Running Aqueduct ...");
@@ -269,7 +271,9 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         let time = Instant::now();
 
         let df = ctx.table(last_stage.name.as_str()).await?;
-        write_to_destination(destination, df).await?;
+        write_to_destination(ctx.clone(), destination, df).await?;
+
+        ctx.deregister_table(last_stage.name.as_str())?;
 
         info!(
             "Finished writing to destination ... Elapsed time: {:.2?}",
@@ -284,7 +288,7 @@ pub async fn run_pipeline(aqueduct: Aqueduct, ctx: Option<SessionContext>) -> Re
         start_time.elapsed()
     );
 
-    Ok(())
+    Ok(ctx)
 }
 
 // calculate time to live for a stage based on the position of the stage
@@ -292,7 +296,7 @@ fn calculate_ttl<'a>(
     stage_ttls: &'a mut HashMap<String, usize>,
     stage_name: &'a str,
     stage_pos: usize,
-    stages: &Vec<Vec<Stage>>,
+    stages: &[Vec<Stage>],
 ) -> Result<()> {
     let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\.|$)");
     let regex = Regex::new(stage_name_r.as_str())?;
