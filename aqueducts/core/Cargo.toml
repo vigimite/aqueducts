@@ -41,6 +41,6 @@ aqueducts-odbc = { workspace = true, optional = true }
 aqueducts-utils.workspace = true
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
 rand = "0.8"
 tracing-test = "0.2"

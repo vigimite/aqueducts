@@ -1,6 +1,6 @@
 [package]
 name = "aqueducts-cli"
-authors = ["<michelevig@protonmail.com>"]
+authors = ["<vigimite@protonmail.com>"]
 edition = "2021"
 description = "CLI application to run pipelines defined for the aqueducts framework"
 homepage = "https://github.com/vigimite/aqueducts"
@@ -22,11 +22,11 @@ odbc = ["aqueducts/odbc"]
 datafusion.workspace = true
 
 aqueducts = { path = "../aqueducts/core", version = "0.4.0" }
-datafusion-functions-json = "0.2"
+datafusion-functions-json = "0.40"
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
-tokio = { version = "1.37.0", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
 
 [[bin]]
 name = "aqueducts"

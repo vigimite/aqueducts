@@ -26,5 +26,5 @@ thiserror.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
 tracing-test = "0.2"
