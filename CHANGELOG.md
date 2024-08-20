@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2024-08-20
+### Details
+#### Added
+- Add InMemory source and destination by @vigimite
+
+#### Changed
+- Update release workflow by @vigimite
+- Update schema docs to include ODBC destinations by @vigimite
+- Bump datafusion to v40 by @vigimite
+- Bump datafusion to v41 and delta-rs to 0.19.0 by @vigimite
+- Update object_store requirement from 0.10 to 0.11
+
+Updates the requirements on [object_store](https://github.com/apache/arrow-rs) to permit the latest version.
+- [Changelog](https://github.com/apache/arrow-rs/blob/master/CHANGELOG-old.md)
+- [Commits](https://github.com/apache/arrow-rs/compare/object_store_0.10.0...object_store_0.10.2)
+
+---
+updated-dependencies:
+- dependency-name: object_store
+  dependency-type: direct:production
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> by @dependabot[bot] in [#20](https://github.com/vigimite/aqueducts/pull/20)
+
 ## [0.4.0] - 2024-07-28
 ### Details
 #### Added
@@ -126,6 +151,7 @@ feat: add odbc support for source by @vigimite in [#2](https://github.com/vigimi
 - Add release workflow by @vigimite
 - Cleaned up workflows by @vigimite
 
+[0.5.0]: https://github.com/vigimite/aqueducts/compare/v0.4.0..v0.5.0
 [0.4.0]: https://github.com/vigimite/aqueducts/compare/v0.3.2..v0.4.0
 [0.3.2]: https://github.com/vigimite/aqueducts/compare/v0.3.1..v0.3.2
 [0.3.1]: https://github.com/vigimite/aqueducts/compare/v0.3.0..v0.3.1
