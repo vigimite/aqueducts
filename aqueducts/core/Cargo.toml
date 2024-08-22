@@ -13,15 +13,14 @@ license-file.workspace = true
 
 [features]
 default = []
-s3 = ["aqueducts-utils/s3", "object_store/aws"]
-gcs = ["aqueducts-utils/gcs", "object_store/gcp"]
-azure = ["aqueducts-utils/azure", "object_store/azure"]
+s3 = ["aqueducts-utils/s3"]
+gcs = ["aqueducts-utils/gcs"]
+azure = ["aqueducts-utils/azure"]
 odbc = ["aqueducts-odbc"]
 schema_gen = ["schemars"]
 
 [dependencies]
 datafusion.workspace = true
-object_store.workspace = true
 deltalake.workspace = true
 
 serde.workspace = true
