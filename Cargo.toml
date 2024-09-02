@@ -37,7 +37,7 @@ tokio = { version = "1", features = ["rt"] }
 tracing = "0.1"
 thiserror = "1"
 regex = "1"
-derive-new = "0.6"
+derive-new = "0.7"
 url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 
