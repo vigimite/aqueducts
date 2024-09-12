@@ -26,18 +26,18 @@ aqueducts-odbc = { path = "aqueducts/odbc", version = "0.5.0" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.5.0" }
 
 datafusion = "41"
-deltalake = { version = "0.19.0", features = ["datafusion"] }
+deltalake = { version = "0.19.1", features = ["datafusion"] }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_yml = "0.0.11"
+serde_yml = "0.0.12"
 schemars = { version = "0.8", features = ["chrono", "url", "preserve_order"] }
 
 tokio = { version = "1", features = ["rt"] }
 tracing = "0.1"
 thiserror = "1"
 regex = "1"
-derive-new = "0.6"
+derive-new = "0.7"
 url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 
