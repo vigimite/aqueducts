@@ -33,7 +33,7 @@ pub enum Destination {
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 pub struct InMemoryDestination {
     /// Name to register the table with in the provided `SessionContext`
-    name: String,
+    pub name: String,
 }
 
 /// Creates a `Destination`
