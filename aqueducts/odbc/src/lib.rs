@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
 use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
-use arrow_odbc::{insert_into_table, OdbcReaderBuilder};
+use arrow_odbc::{insert_into_table, OdbcReaderBuilder, OdbcWriter};
 use datafusion::arrow::datatypes::Schema;
 use datafusion::arrow::{array::RecordBatch, error::ArrowError};
 use datafusion::datasource::MemTable;
 use datafusion::execution::context::SessionContext;
 use deltalake::arrow::array::RecordBatchIterator;
+use tracing::error;
 
 pub mod error;
 
@@ -140,6 +141,52 @@ pub async fn write_arrow_batches(
     Ok(())
 }
 
+/// Performs an insert with a prepared statement provided.
+/// Optionally, it can execute preliminary statements (such as `delete from ...`).
+/// All statemets are executed within the same transaction and it gets rolled back
+/// in case of any errors.
+pub async fn custom(
+    connection_string: &str,
+    pre_insert: Option<String>,
+    insert: &str,
+    batches: Vec<RecordBatch>,
+    schema: Arc<Schema>,
+    batch_size: usize,
+) -> Result<()> {
+    let odbc_environment = Environment::new()?;
+
+    let connection = odbc_environment
+        .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    let record_batch_iterator =
+        RecordBatchIterator::new(batches.into_iter().map(Ok), schema.clone());
+
+    let mut writer = OdbcWriter::new(batch_size, &schema, connection.prepare(&insert)?)?;
+
+    let _ = connection.set_autocommit(false);
+
+    let result = || -> Result<()> {
+        if let Some(stmt) = pre_insert {
+            connection.execute(&stmt, ())?;
+        }
+        let _ = writer.write_all(record_batch_iterator)?;
+
+        Ok(())
+    };
+
+    match result() {
+        Ok(()) => {
+            connection.commit()?;
+        }
+        Err(err) => {
+            connection.rollback()?;
+            error!("ROLLBACK transaction: {err:?}")
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use datafusion::arrow::array::*;
@@ -248,5 +295,162 @@ mod tests {
         .await;
 
         assert!(result.is_ok());
+    }
+
+    /// Tests a trasaction with a delete and an insert
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_custom_delete_insert_ok() {
+        let odbc_environment = Environment::new().unwrap();
+        let connection_string: &str = "\
+            Driver={PostgreSQL Unicode};\
+            Server=localhost;\
+            UID=postgres;\
+            PWD=postgres;\
+        ";
+        let connection = odbc_environment
+            .connect_with_connection_string(connection_string, ConnectionOptions::default())
+            .unwrap();
+        let _ = connection
+            .execute("truncate test_custom_delete_insert_ok", ())
+            .unwrap();
+
+        let record_batch = RecordBatch::try_from_iter(vec![
+            ("id", Arc::new(Int32Array::from(vec![1, 2])) as ArrayRef),
+            (
+                "value",
+                Arc::new(StringArray::from(vec!["original", "original"])) as ArrayRef,
+            ),
+        ])
+        .unwrap();
+        let schema = record_batch.schema();
+
+        let _ = write_arrow_batches(
+            connection_string,
+            "test_custom_delete_insert_ok",
+            vec![record_batch],
+            schema.clone(),
+            100,
+        )
+        .await;
+
+        let new_batch = RecordBatch::try_from_iter(vec![
+            ("id", Arc::new(Int32Array::from(vec![1])) as ArrayRef),
+            (
+                "value",
+                Arc::new(StringArray::from(vec!["updated"])) as ArrayRef,
+            ),
+        ])
+        .unwrap();
+
+        custom(
+            connection_string,
+            Some("delete from test_custom_delete_insert_ok where id = 1".to_string()),
+            "insert into test_custom_delete_insert_ok values (?, ?)",
+            vec![new_batch],
+            schema,
+            50,
+        )
+        .await
+        .unwrap();
+
+        let cursor = connection
+            .execute("select * from test_custom_delete_insert_ok order by id", ())
+            .unwrap()
+            .unwrap();
+        let result = OdbcReaderBuilder::new().build(cursor).unwrap();
+        for batch in result {
+            assert_batches_eq!(
+                [
+                    "+----+----------+",
+                    "| id | value    |",
+                    "+----+----------+",
+                    "| 1  | updated  |",
+                    "| 2  | original |",
+                    "+----+----------+",
+                ],
+                &[batch.unwrap()]
+            );
+        }
+    }
+
+    /// Checks transaction is rolled back in case of error
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_custom_delete_insert_failed() {
+        let odbc_environment = Environment::new().unwrap();
+        let connection_string: &str = "\
+            Driver={PostgreSQL Unicode};\
+            Server=localhost;\
+            UID=postgres;\
+            PWD=postgres;\
+        ";
+        let connection = odbc_environment
+            .connect_with_connection_string(connection_string, ConnectionOptions::default())
+            .unwrap();
+        let _ = connection
+            .execute("truncate test_custom_delete_insert_failed", ())
+            .unwrap();
+
+        let record_batch = RecordBatch::try_from_iter(vec![
+            ("id", Arc::new(Int32Array::from(vec![1, 2])) as ArrayRef),
+            (
+                "value",
+                Arc::new(StringArray::from(vec!["original", "original"])) as ArrayRef,
+            ),
+        ])
+        .unwrap();
+        let schema = record_batch.schema();
+
+        let _ = write_arrow_batches(
+            connection_string,
+            "test_custom_delete_insert_failed",
+            vec![record_batch],
+            schema.clone(),
+            100,
+        )
+        .await;
+
+        let new_batch = RecordBatch::try_from_iter(vec![
+            ("id", Arc::new(Int32Array::from(vec![1])) as ArrayRef),
+            (
+                "value",
+                Arc::new(StringArray::from(vec!["updated"])) as ArrayRef,
+            ),
+        ])
+        .unwrap();
+
+        custom(
+            connection_string,
+            Some("delete from test_custom_delete_insert_failed where id = 1".to_string()),
+            "insert into WRONG_TABLE values (?, ?)",
+            vec![new_batch],
+            schema,
+            50,
+        )
+        .await
+        .unwrap();
+
+        let cursor = connection
+            .execute(
+                "select * from test_custom_delete_insert_failed order by id",
+                (),
+            )
+            .unwrap()
+            .unwrap();
+        let result = OdbcReaderBuilder::new().build(cursor).unwrap();
+        for batch in result {
+            assert_batches_eq!(
+                [
+                    "+----+----------+",
+                    "| id | value    |",
+                    "+----+----------+",
+                    "| 1  | original |",
+                    "| 2  | original |",
+                    "+----+----------+",
+                ],
+                &[batch.unwrap()]
+            );
+        }
     }
 }
