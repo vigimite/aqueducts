@@ -27,3 +27,13 @@ CREATE TABLE temp_readings_aggregated (
 
 COPY temp_readings FROM '/opt/temp_readings_jan_2024.csv' DELIMITER ',' CSV HEADER;
 COPY temp_readings FROM '/opt/temp_readings_feb_2024.csv' DELIMITER ',' CSV HEADER;
+
+CREATE TABLE test_custom_delete_insert_ok (
+    id          INTEGER,
+    value       VARCHAR(50)
+);
+
+CREATE TABLE test_custom_delete_insert_failed (
+    id          INTEGER,
+    value       VARCHAR(50)
+);
