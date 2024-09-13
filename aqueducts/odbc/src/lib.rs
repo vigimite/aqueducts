@@ -165,7 +165,7 @@ pub async fn custom(
 
     let _ = connection.set_autocommit(false);
 
-    let result: Result<()> = {
+    let result = || -> Result<()> {
         if let Some(stmt) = pre_insert {
             connection.execute(&stmt, ())?;
         }
@@ -174,7 +174,7 @@ pub async fn custom(
         Ok(())
     };
 
-    match result {
+    match result() {
         Ok(()) => {
             connection.commit()?;
         }
