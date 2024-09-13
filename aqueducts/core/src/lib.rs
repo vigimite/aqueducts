@@ -298,7 +298,7 @@ fn calculate_ttl<'a>(
     stage_pos: usize,
     stages: &[Vec<Stage>],
 ) -> Result<()> {
-    let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\.|$)");
+    let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\)|\\.|$)");
     let regex = Regex::new(stage_name_r.as_str())?;
 
     let ttl = stages

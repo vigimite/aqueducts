@@ -1,5 +1,4 @@
 .cargo/**
-Cargo.lock
 /target
 /aqueducts-cli/target
 /examples/output*
