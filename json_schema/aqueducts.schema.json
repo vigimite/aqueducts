@@ -500,7 +500,8 @@
             "batch_size",
             "connection_string",
             "name",
-            "type"
+            "type",
+            "write_mode"
           ],
           "properties": {
             "type": {
@@ -516,6 +517,14 @@
             "connection_string": {
               "description": "ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)",
               "type": "string"
+            },
+            "write_mode": {
+              "description": "Strategy for performing ODBC write operation",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/WriteMode2"
+                }
+              ]
             },
             "batch_size": {
               "description": "batch size (rows) to use when inserting data",
@@ -687,6 +696,65 @@
           ],
           "maxLength": 1,
           "minLength": 1
+        }
+      }
+    },
+    "WriteMode2": {
+      "description": "Write modes for the `Destination` output.",
+      "oneOf": [
+        {
+          "description": "`Append`: appends data to the `Destination`",
+          "type": "object",
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "Append"
+              ]
+            }
+          }
+        },
+        {
+          "description": "`Custom`: Inserts data with a prepared stament. Option to perform any number of (non-insert) preliminary statements",
+          "type": "object",
+          "required": [
+            "operation",
+            "transaction"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "Custom"
+              ]
+            },
+            "transaction": {
+              "$ref": "#/definitions/CustomStatements"
+            }
+          }
+        }
+      ]
+    },
+    "CustomStatements": {
+      "description": "SQL statements for `Custom` write mode.",
+      "type": "object",
+      "required": [
+        "insert"
+      ],
+      "properties": {
+        "pre_insert": {
+          "description": "Optional (non-insert) preliminary statement",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "insert": {
+          "description": "Insert prepared statement",
+          "type": "string"
         }
       }
     }

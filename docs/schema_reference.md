@@ -1487,6 +1487,7 @@ Must be one of:
 | + [type](#destination_anyOf_i0_oneOf_i3_type )                           | No      | enum (of string) | -                                                                                                                                                                    |
 | + [name](#destination_anyOf_i0_oneOf_i3_name )                           | No      | string           | Name of the ODBC destination                                                                                                                                         |
 | + [connection_string](#destination_anyOf_i0_oneOf_i3_connection_string ) | No      | string           | ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>) |
+| + [write_mode](#destination_anyOf_i0_oneOf_i3_write_mode )               | No      | object           | Strategy for performing ODBC write operation                                                                                                                         |
 | + [batch_size](#destination_anyOf_i0_oneOf_i3_batch_size )               | No      | integer          | batch size (rows) to use when inserting data                                                                                                                         |
 
 ----------------------------------------------------
@@ -1521,6 +1522,113 @@ Must be one of:
 | **Type** | `string` |
 
 **Description:** ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
+
+----------------------------------------------------
+
+##### <a name="destination_anyOf_i0_oneOf_i3_write_mode"></a>Field: write_mode
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `combining`                                                                                                                       |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            |                                                                                                                                   |
+
+**Description:** Strategy for performing ODBC write operation
+
+| One of(Option)                                               |
+| ------------------------------------------------------------ |
+| [item 0](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i0) |
+| [item 1](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1) |
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i0"></a>**Field: item 0**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** `Append`: appends data to the `Destination`
+
+| Property                                                                     | Pattern | Type             | Title/Description |
+| ---------------------------------------------------------------------------- | ------- | ---------------- | ----------------- |
+| + [operation](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i0_operation ) | No      | enum (of string) | -                 |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i0_operation"></a>Field: operation
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Append"
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1"></a>**Field: item 1**
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+
+**Description:** `Custom`: Inserts data with a prepared stament. Option to perform any number of (non-insert) preliminary statements
+
+| Property                                                                         | Pattern | Type             | Title/Description                         |
+| -------------------------------------------------------------------------------- | ------- | ---------------- | ----------------------------------------- |
+| + [operation](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_operation )     | No      | enum (of string) | -                                         |
+| + [transaction](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_transaction ) | No      | object           | SQL statements for \`Custom\` write mode. |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_operation"></a>Field: operation
+
+|          |                    |
+| -------- | ------------------ |
+| **Type** | `enum (of string)` |
+
+**Description:**  *No description...*
+
+Must be one of:
+* "Custom"
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_transaction"></a>Field: transaction
+
+|                           |                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Type**                  | `object`                                                                                                                          |
+| **Additional properties** | [![Any type: allowed](https://img.shields.io/badge/Any%20type-allowed-green)](# "Additional Properties of any type are allowed.") |
+| **Defined in**            | #/definitions/CustomStatements                                                                                                    |
+
+**Description:** SQL statements for `Custom` write mode.
+
+| Property                                                                                   | Pattern | Type           | Title/Description                           |
+| ------------------------------------------------------------------------------------------ | ------- | -------------- | ------------------------------------------- |
+| - [pre_insert](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_transaction_pre_insert ) | No      | string or null | Optional (non-insert) preliminary statement |
+| + [insert](#destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_transaction_insert )         | No      | string         | Insert prepared statement                   |
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_transaction_pre_insert"></a>Field: pre_insert
+
+|          |                  |
+| -------- | ---------------- |
+| **Type** | `string or null` |
+
+**Description:** Optional (non-insert) preliminary statement
+
+----------------------------------------------------
+
+###### <a name="destination_anyOf_i0_oneOf_i3_write_mode_oneOf_i1_transaction_insert"></a>Field: insert
+
+|          |          |
+| -------- | -------- |
+| **Type** | `string` |
+
+**Description:** Insert prepared statement
 
 ----------------------------------------------------
 
