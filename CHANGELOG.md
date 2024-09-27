@@ -5,6 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2024-09-27
+### Details
+#### Changed
+- Bump clap from 4.5.17 to 4.5.18
+
+Bumps [clap](https://github.com/clap-rs/clap) from 4.5.17 to 4.5.18.
+- [Release notes](https://github.com/clap-rs/clap/releases)
+- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)
+- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.5.17...clap_complete-v4.5.18)
+
+---
+updated-dependencies:
+- dependency-name: clap
+  dependency-type: direct:production
+  update-type: version-update:semver-patch
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> by @dependabot[bot] in [#27](https://github.com/vigimite/aqueducts/pull/27)
+- Bump thiserror from 1.0.63 to 1.0.64
+
+Bumps [thiserror](https://github.com/dtolnay/thiserror) from 1.0.63 to 1.0.64.
+- [Release notes](https://github.com/dtolnay/thiserror/releases)
+- [Commits](https://github.com/dtolnay/thiserror/compare/1.0.63...1.0.64)
+
+---
+updated-dependencies:
+- dependency-name: thiserror
+  dependency-type: direct:production
+  update-type: version-update:semver-patch
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> by @dependabot[bot] in [#26](https://github.com/vigimite/aqueducts/pull/26)
+- Bump arrow-odbc from 12.1.0 to 12.2.0
+
+Bumps [arrow-odbc](https://github.com/pacman82/arrow-odbc) from 12.1.0 to 12.2.0.
+- [Changelog](https://github.com/pacman82/arrow-odbc/blob/main/Changelog.md)
+- [Commits](https://github.com/pacman82/arrow-odbc/compare/v12.1.0...v12.2.0)
+
+---
+updated-dependencies:
+- dependency-name: arrow-odbc
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> by @dependabot[bot] in [#25](https://github.com/vigimite/aqueducts/pull/25)
+- Merge branch 'main' of https://github.com/vigimite/aqueducts
+
+#### Fixed
+- Incorrect record batch handling for custom ODBC insert case by @vigimite
+- Incorrect record batch handling for custom ODBC insert case (2nd case)
+
 ## [0.6.0] - 2024-09-17
 ### Details
 #### Changed
@@ -160,6 +215,7 @@ feat: add odbc support for source by @vigimite in [#2](https://github.com/vigimi
 - Add release workflow by @vigimite
 - Cleaned up workflows by @vigimite
 
+[0.6.1]: https://github.com/vigimite/aqueducts/compare/v0.6.0..v0.6.1
 [0.6.0]: https://github.com/vigimite/aqueducts/compare/v0.5.0..v0.6.0
 [0.5.0]: https://github.com/vigimite/aqueducts/compare/v0.4.0..v0.5.0
 [0.4.0]: https://github.com/vigimite/aqueducts/compare/v0.3.2..v0.4.0
