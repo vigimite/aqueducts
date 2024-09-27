@@ -130,6 +130,7 @@ pub async fn write_arrow_batches(
     let connection = odbc_environment
         .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
 
+    let batches = [concat_batches(&schema, batches.iter())?];
     let mut record_batch_iterator = RecordBatchIterator::new(batches.into_iter().map(Ok), schema);
 
     insert_into_table(
