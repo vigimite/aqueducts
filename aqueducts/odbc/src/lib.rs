@@ -2,11 +2,12 @@ use std::sync::Arc;
 
 use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
 use arrow_odbc::{insert_into_table, OdbcReaderBuilder, OdbcWriter};
+use datafusion::arrow::array::RecordBatchIterator;
+use datafusion::arrow::compute::concat_batches;
 use datafusion::arrow::datatypes::Schema;
 use datafusion::arrow::{array::RecordBatch, error::ArrowError};
 use datafusion::datasource::MemTable;
 use datafusion::execution::context::SessionContext;
-use deltalake::arrow::array::RecordBatchIterator;
 use tracing::error;
 
 pub mod error;
@@ -158,6 +159,7 @@ pub async fn custom(
     let connection = odbc_environment
         .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
 
+    let batches = [concat_batches(&schema, batches.iter())?];
     let record_batch_iterator =
         RecordBatchIterator::new(batches.into_iter().map(Ok), schema.clone());
 
@@ -169,13 +171,13 @@ pub async fn custom(
         if let Some(stmt) = pre_insert {
             connection.execute(&stmt, ())?;
         }
-        let _ = writer.write_all(record_batch_iterator)?;
+        writer.write_all(record_batch_iterator)?;
 
         Ok(())
     };
 
     match result() {
-        Ok(()) => {
+        Ok(_) => {
             connection.commit()?;
         }
         Err(err) => {
