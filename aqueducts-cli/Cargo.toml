@@ -23,7 +23,7 @@ datafusion.workspace = true
 
 aqueducts = { path = "../aqueducts/core", version = "0.6.0" }
 datafusion-functions-json = "0.41"
-clap = { version = "4.5.4", features = ["derive"] }
+clap = { version = "4.5.18", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
 tokio = { workspace = true, features = ["full"] }
