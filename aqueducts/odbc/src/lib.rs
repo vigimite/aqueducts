@@ -180,14 +180,14 @@ pub async fn custom(
     match result() {
         Ok(_) => {
             connection.commit()?;
+            Ok(())
         }
         Err(err) => {
             connection.rollback()?;
-            error!("ROLLBACK transaction: {err:?}")
+            error!("ROLLBACK transaction: {err:?}");
+            Err(err)
         }
     }
-
-    Ok(())
 }
 
 #[cfg(test)]
