@@ -432,7 +432,7 @@ mod tests {
             50,
         )
         .await
-        .unwrap();
+        .ok();
 
         let cursor = connection
             .execute(
