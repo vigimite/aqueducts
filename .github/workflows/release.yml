@@ -33,27 +33,27 @@ jobs:
       - name: Publish aqueducts-utils
         run: |
           cd aqueducts/utils
-          cargo publish --no-verify
+          cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Publish aqueducts-odbc
         run: |
           cd aqueducts/odbc
-          cargo publish --no-verify
+          cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Publish aqueducts
         run: |
           cd aqueducts/core
-          cargo publish --no-verify
+          cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Publish aqueducts-cli
         run: |
           cd aqueducts-cli
-          cargo publish --no-verify
+          cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
