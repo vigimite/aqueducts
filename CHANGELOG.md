@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2024-10-31
+### Details
+#### Changed
+- Bump thiserror from 1.0.64 to 1.0.65 by @dependabot[bot] in [#35](https://github.com/vigimite/aqueducts/pull/35)
+- Bump serde from 1.0.210 to 1.0.213 by @dependabot[bot] in [#34](https://github.com/vigimite/aqueducts/pull/34)
+- Bump tokio from 1.40.0 to 1.41.0 by @dependabot[bot] in [#32](https://github.com/vigimite/aqueducts/pull/32)
+- Bump serde_json from 1.0.128 to 1.0.132 by @dependabot[bot] in [#31](https://github.com/vigimite/aqueducts/pull/31)
+- Bump clap from 4.5.18 to 4.5.20 by @dependabot[bot] in [#30](https://github.com/vigimite/aqueducts/pull/30)
+- Update deltalake dependency
+
+#### Fixed
+- Failing test by @vigimite
+
 ## [0.6.2] - 2024-09-30
 ### Details
 
@@ -222,6 +235,7 @@ feat: add odbc support for source by @vigimite in [#2](https://github.com/vigimi
 - Add release workflow by @vigimite
 - Cleaned up workflows by @vigimite
 
+[0.6.3]: https://github.com/vigimite/aqueducts/compare/v0.6.2..v0.6.3
 [0.6.2]: https://github.com/vigimite/aqueducts/compare/v0.6.1..v0.6.2
 [0.6.1]: https://github.com/vigimite/aqueducts/compare/v0.6.0..v0.6.1
 [0.6.0]: https://github.com/vigimite/aqueducts/compare/v0.5.0..v0.6.0
