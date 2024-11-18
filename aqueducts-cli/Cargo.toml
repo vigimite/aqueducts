@@ -22,7 +22,7 @@ odbc = ["aqueducts/odbc"]
 datafusion.workspace = true
 
 aqueducts = { path = "../aqueducts/core", version = "0.6.3" }
-datafusion-functions-json = "0.41"
+datafusion-functions-json = "0.43"
 clap = { version = "4.5.20", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
