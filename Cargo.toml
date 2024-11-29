@@ -35,7 +35,7 @@ schemars = { version = "0.8", features = ["chrono", "url", "preserve_order"] }
 
 tokio = { version = "1", features = ["rt"] }
 tracing = "0.1"
-thiserror = "1"
+thiserror = "2"
 regex = "1"
 derive-new = "0.7"
 url = { version = "2", features = ["serde"] }
