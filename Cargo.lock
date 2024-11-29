@@ -160,7 +160,7 @@ checksum = "4c95c10ba0b00a02636238b814946408b1322d5ac4760326e6fb8ec956d85775"
 
 [[package]]
 name = "aqueducts"
-version = "0.6.3"
+version = "0.7.0"
 dependencies = [
  "aqueducts-odbc",
  "aqueducts-utils",
@@ -183,7 +183,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-cli"
-version = "0.6.3"
+version = "0.7.0"
 dependencies = [
  "aqueducts",
  "clap",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-odbc"
-version = "0.6.3"
+version = "0.7.0"
 dependencies = [
  "arrow-odbc",
  "datafusion",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-utils"
-version = "0.6.3"
+version = "0.7.0"
 dependencies = [
  "datafusion",
  "deltalake",
@@ -4222,7 +4222,7 @@ dependencies = [
 
 [[package]]
 name = "schema_gen"
-version = "0.6.3"
+version = "0.7.0"
 dependencies = [
  "aqueducts",
  "schemars",
