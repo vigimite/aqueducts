@@ -26,7 +26,7 @@ aqueducts-odbc = { path = "aqueducts/odbc", version = "0.7.0" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.7.0" }
 
 datafusion = "43"
-deltalake = { version = "0.22.0", features = ["datafusion"] }
+deltalake = { version = "0.22.2", features = ["datafusion"] }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
