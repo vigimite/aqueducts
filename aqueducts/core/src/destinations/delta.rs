@@ -106,7 +106,7 @@ pub(super) async fn write(table_def: &DeltaDestination, data: DataFrame) -> Resu
             let batches = data.collect().await?;
 
             ops.write(batches)
-                .with_schema_mode(deltalake::operations::write::SchemaMode::Merge)
+                .with_schema_mode(deltalake::operations::write::SchemaMode::Overwrite)
                 .with_save_mode(SaveMode::Overwrite)
                 .with_replace_where(build_expression(conditions.clone()))
                 .await?
