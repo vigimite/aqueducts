@@ -6,7 +6,7 @@ description = "CLI application to run pipelines defined for the aqueducts framew
 homepage = "https://github.com/vigimite/aqueducts"
 repository = "https://github.com/vigimite/aqueducts/aqueducts-cli"
 readme = "README.md"
-version = "0.7.1"
+version = "0.8.0"
 keywords = ["aqueducts", "ETL", "data", "pipeline", "cli"]
 categories = ["command-line-utilities"]
 license-file = "../LICENSE"
@@ -24,7 +24,7 @@ yaml = ["aqueducts/yaml"]
 [dependencies]
 datafusion.workspace = true
 
-aqueducts = { path = "../aqueducts/core", version = "0.7.1" }
+aqueducts = { path = "../aqueducts/core", version = "0.8.0" }
 datafusion-functions-json = "0.44"
 clap = { version = "4.5.20", features = ["derive"] }
 env_logger = "0.11.6"

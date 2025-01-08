@@ -23,7 +23,7 @@ stages = [
         round(avg(temperature_c),2) avg_temp_c,
         round(avg(humidity),2) avg_humidity
       FROM feb_data GROUP by 1,2 ORDER by 1 asc
-  """, show = 0 },
+    """, show = 0 },
   ],
   [
     { name = "union", query = "SELECT * FROM jan_aggregated UNION (SELECT * FROM feb_aggregated)", print_schema = true },
