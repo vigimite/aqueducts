@@ -12,7 +12,7 @@ categories = ["command-line-utilities"]
 license-file = "../LICENSE"
 
 [features]
-default = ["s3", "gcs", "azure"]
+default = ["s3", "gcs", "azure", "yaml"]
 s3 = ["aqueducts/s3"]
 gcs = ["aqueducts/gcs"]
 azure = ["aqueducts/azure"]
