@@ -42,6 +42,7 @@ mod destination_delta {
         Aqueduct::try_from_yml_str(contents.as_str(), params).unwrap();
     }
 
+    #[cfg(feature = "json")]
     #[test]
     fn test_try_from_json_ok() {
         let params = HashMap::from_iter(vec![
@@ -53,6 +54,7 @@ mod destination_delta {
         Aqueduct::try_from_json("../../examples/aqueduct_pipeline_example.json", params).unwrap();
     }
 
+    #[cfg(feature = "json")]
     #[test]
     fn test_try_from_json_str_ok() {
         let local_path = Path::new("../../")
