@@ -12,12 +12,15 @@ categories.workspace = true
 license-file.workspace = true
 
 [features]
-default = []
+default = ["yaml"]
 s3 = ["aqueducts-utils/s3"]
 gcs = ["aqueducts-utils/gcs"]
 azure = ["aqueducts-utils/azure"]
 odbc = ["aqueducts-odbc"]
 schema_gen = ["schemars"]
+json = ["dep:serde_json"]
+yaml = ["dep:serde_yml"]
+toml = ["dep:toml"]
 
 [dependencies]
 datafusion.workspace = true
@@ -25,7 +28,11 @@ deltalake.workspace = true
 
 serde.workspace = true
 serde_json.workspace = true
+serde_json.optional = true
 serde_yml.workspace = true
+serde_yml.optional = true
+toml.workspace = true
+toml.optional = true
 schemars = { workspace = true, optional = true }
 
 tokio.workspace = true

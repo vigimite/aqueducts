@@ -18,8 +18,16 @@ pub enum Error {
     // -- External
     #[error("Failed to read definition file: {0}")]
     IoError(#[from] std::io::Error),
+    #[cfg(feature = "json")]
     #[error("Failed to deserialize definition file: {0}")]
     JsonError(#[from] serde_json::Error),
+    #[cfg(feature = "toml")]
+    #[error("Failed to deserialize definition file: {0}")]
+    TomlDeserializationError(#[from] toml::de::Error),
+    #[cfg(feature = "toml")]
+    #[error("Failed to serialize definition file: {0}")]
+    TomlSerializationError(#[from] toml::ser::Error),
+    #[cfg(feature = "yaml")]
     #[error("Failed to deserialize definition file: {0}")]
     YmlError(#[from] serde_yml::Error),
     #[error("Failed to build regex: {0}")]

@@ -57,6 +57,7 @@ impl Aqueduct {
 
     /// Load an Aqueduct table definition from a local fs path containing a json file
     /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    #[cfg(feature = "json")]
     pub fn try_from_json<P>(path: P, params: HashMap<String, String>) -> Result<Self>
     where
         P: AsRef<Path>,
@@ -70,8 +71,25 @@ impl Aqueduct {
         Ok(aqueduct)
     }
 
+    /// Load an Aqueduct table definition from a local fs path containing a toml file
+    /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    #[cfg(feature = "toml")]
+    pub fn try_from_toml<P>(path: P, params: HashMap<String, String>) -> Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let raw = std::fs::read_to_string(path)?;
+        let parsed = toml::from_str::<toml::Value>(raw.as_str())?;
+        let parsed = toml::to_string(&parsed)?;
+        let definition = Self::substitute_params(parsed.as_str(), params)?;
+        let aqueduct = toml::from_str::<Aqueduct>(definition.as_str())?;
+
+        Ok(aqueduct)
+    }
+
     /// Load an Aqueduct table definition from a local fs path containing a yaml configuration file
     /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    #[cfg(feature = "yaml")]
     pub fn try_from_yml<P>(path: P, params: HashMap<String, String>) -> Result<Self>
     where
         P: AsRef<Path>,
@@ -85,8 +103,9 @@ impl Aqueduct {
         Ok(aqueduct)
     }
 
-    /// Load an Aqueduct table definition from a &str containing a json configuration file
+    /// Load an Aqueduct table definition from a &str containing a json string
     /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    #[cfg(feature = "json")]
     pub fn try_from_json_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
         let parsed = serde_json::from_str::<serde_json::Value>(contents)?;
         let parsed = serde_json::to_string(&parsed)?;
@@ -96,8 +115,21 @@ impl Aqueduct {
         Ok(aqueduct)
     }
 
-    /// Load an Aqueduct table definition from a &str containing a yaml configuration file
+    /// Load an Aqueduct table definition from a &str containing a toml string
     /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    #[cfg(feature = "toml")]
+    pub fn try_from_toml_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
+        let parsed = toml::from_str::<toml::Value>(contents)?;
+        let parsed = toml::to_string(&parsed)?;
+        let definition = Self::substitute_params(parsed.as_str(), params)?;
+        let aqueduct = toml::from_str::<Aqueduct>(definition.as_str())?;
+
+        Ok(aqueduct)
+    }
+
+    /// Load an Aqueduct table definition from a &str containing a yaml string
+    /// Provided params will be substituted throughout the file (format: `${param}`) with the corresponding value
+    #[cfg(feature = "yaml")]
     pub fn try_from_yml_str(contents: &str, params: HashMap<String, String>) -> Result<Self> {
         let parsed = serde_yml::from_str::<serde_yml::Value>(contents)?;
         let parsed = serde_yml::to_string(&parsed)?;

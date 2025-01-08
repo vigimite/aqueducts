@@ -17,6 +17,9 @@ s3 = ["aqueducts/s3"]
 gcs = ["aqueducts/gcs"]
 azure = ["aqueducts/azure"]
 odbc = ["aqueducts/odbc"]
+json = ["aqueducts/json"]
+toml = ["aqueducts/toml"]
+yaml = ["aqueducts/yaml"]
 
 [dependencies]
 datafusion.workspace = true
@@ -27,6 +30,7 @@ clap = { version = "4.5.20", features = ["derive"] }
 env_logger = "0.11.6"
 log = "0.4.21"
 tokio = { workspace = true, features = ["full"] }
+anyhow = "1.0.95"
 
 [[bin]]
 name = "aqueducts"

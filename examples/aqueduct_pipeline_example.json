@@ -11,7 +11,7 @@
           "schema": null
         }
       },
-      "location": "file:///path1/examples/test_data/example_1.csv"
+      "location": "${local_path}/examples/test_data/example_1.csv"
     },
     {
       "type": "File",
@@ -24,7 +24,7 @@
           "schema": null
         }
       },
-      "location": "file:///path1/examples/test_data/example_2.csv"
+      "location": "${local_path}/examples/test_data/example_2.csv"
     }
   ],
   "stages": [
@@ -51,7 +51,7 @@
   "destination": {
     "type": "Delta",
     "name": "example_output",
-    "location": "file:///path1/examples/output/example_output/12345678",
+    "location": "${local_path}/examples/output_delta_example/${run_id}",
     "storage_options": {},
     "table_properties": {},
     "write_mode": {

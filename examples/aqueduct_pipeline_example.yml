@@ -29,7 +29,7 @@ stages:
             round(max(humidity),2) max_humidity,
             round(avg(temperature_c),2) avg_temp_c,
             round(avg(humidity),2) avg_humidity
-          FROM temp_readings
+          FROM jan_data
           GROUP by 1,2
           ORDER by 1 asc
       # print 20 rows of the result for this query to stdout
@@ -46,7 +46,7 @@ stages:
             round(max(humidity),2) max_humidity,
             round(avg(temperature_c),2) avg_temp_c,
             round(avg(humidity),2) avg_humidity
-          FROM temp_readings
+          FROM feb_data
           GROUP by 1,2
           ORDER by 1 asc
       # print the entire result for this query to stdout
