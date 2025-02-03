@@ -48,5 +48,5 @@ aqueducts-utils.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
-rand = "0.8"
+rand = "0.9"
 tracing-test = "0.2"
