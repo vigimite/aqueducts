@@ -18,7 +18,7 @@ serde.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-arrow-odbc = { version = "=14.0.0" }
+arrow-odbc = { version = "=14.2.0" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
