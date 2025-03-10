@@ -25,13 +25,13 @@ aqueducts = { path = "aqueducts/core", version = "0.8.0" }
 aqueducts-odbc = { path = "aqueducts/odbc", version = "0.8.0" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.8.0" }
 
-datafusion = "44"
-deltalake = { version = "0.23.0", features = ["datafusion"] }
+datafusion = "46"
+deltalake = { version = "0.25.0", features = ["datafusion"] }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yml = "0.0.10"
-toml = "0.8.19"
+toml = "0.8"
 schemars = { version = "0.8", features = ["chrono", "url", "preserve_order"] }
 
 tokio = { version = "1", features = ["rt"] }
@@ -41,6 +41,3 @@ regex = "1"
 derive-new = "0.7"
 url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
-
-[profile.dev]
-debug = 0

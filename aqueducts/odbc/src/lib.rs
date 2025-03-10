@@ -51,7 +51,7 @@ pub async fn register_odbc_source(
     let parameters = ();
 
     let cursor = connection
-        .execute(query, parameters)?
+        .execute(query, parameters, None)?
         .expect("SELECT statement must produce a cursor");
 
     let reader = OdbcReaderBuilder::new().build(cursor)?;
@@ -86,7 +86,7 @@ pub async fn register_odbc_destination(
 
     let query = format!("SELECT * FROM {destination_name} LIMIT 1");
     connection
-        .execute(query.as_str(), parameters)?
+        .execute(query.as_str(), parameters, None)?
         .expect("SELECT statement must produce a cursor");
 
     Ok(())
@@ -164,13 +164,13 @@ pub async fn custom(
     let record_batch_iterator =
         RecordBatchIterator::new(batches.into_iter().map(Ok), schema.clone());
 
-    let mut writer = OdbcWriter::new(batch_size, &schema, connection.prepare(&insert)?)?;
+    let mut writer = OdbcWriter::new(batch_size, &schema, connection.prepare(insert)?)?;
 
     let _ = connection.set_autocommit(false);
 
     let result = || -> Result<()> {
         if let Some(stmt) = pre_insert {
-            connection.execute(&stmt, ())?;
+            connection.execute(&stmt, (), None)?;
         }
         writer.write_all(record_batch_iterator)?;
 
@@ -315,7 +315,7 @@ mod tests {
             .connect_with_connection_string(connection_string, ConnectionOptions::default())
             .unwrap();
         let _ = connection
-            .execute("truncate test_custom_delete_insert_ok", ())
+            .execute("truncate test_custom_delete_insert_ok", (), None)
             .unwrap();
 
         let record_batch = RecordBatch::try_from_iter(vec![
@@ -358,7 +358,11 @@ mod tests {
         .unwrap();
 
         let cursor = connection
-            .execute("select * from test_custom_delete_insert_ok order by id", ())
+            .execute(
+                "select * from test_custom_delete_insert_ok order by id",
+                (),
+                None,
+            )
             .unwrap()
             .unwrap();
         let result = OdbcReaderBuilder::new().build(cursor).unwrap();
@@ -392,7 +396,7 @@ mod tests {
             .connect_with_connection_string(connection_string, ConnectionOptions::default())
             .unwrap();
         let _ = connection
-            .execute("truncate test_custom_delete_insert_failed", ())
+            .execute("truncate test_custom_delete_insert_failed", (), None)
             .unwrap();
 
         let record_batch = RecordBatch::try_from_iter(vec![
@@ -438,6 +442,7 @@ mod tests {
             .execute(
                 "select * from test_custom_delete_insert_failed order by id",
                 (),
+                None,
             )
             .unwrap()
             .unwrap();

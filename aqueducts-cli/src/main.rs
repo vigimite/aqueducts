@@ -53,8 +53,8 @@ async fn main() -> Result<(), anyhow::Error> {
         _ => Aqueduct::try_from_yml(file, params).context("failed to parse provided file")?,
     };
 
-    let mut ctx = datafusion::prelude::SessionContext::new();
-    datafusion_functions_json::register_all(&mut ctx).expect("failed to register json functions");
+    let ctx = datafusion::prelude::SessionContext::new();
+    // datafusion_functions_json::register_all(&mut ctx).expect("failed to register json functions");
 
     run_pipeline(Arc::new(ctx), aqueduct)
         .await
