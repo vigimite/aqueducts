@@ -20,11 +20,6 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout repository
@@ -89,9 +84,4 @@ jobs:
       - name: Build aqueducts in release mode
         run: |
           cd aqueducts/core
-          cargo build --workspace --release
-
-      - name: Build aqueducts-cli in release mode
-        run: |
-          cd aqueducts-cli
           cargo build --workspace --release
