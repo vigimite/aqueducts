@@ -45,7 +45,7 @@ jobs:
 
       - name: Setup test environment
         run: |
-          sudo apt-get update && sudo apt-get install -y postgresql-client unixodbc odbc-postgresql
+          sudo apt-get update && sudo apt-get install -y postgresql-client unixodbc-dev odbc-postgresql
           export CONTAINER_ID=$(docker ps --filter "name=postgres" --format "{{.ID}}")
           docker cp ./examples/temp_readings_jan_2024.csv $CONTAINER_ID:/opt/
           docker cp ./examples/temp_readings_feb_2024.csv $CONTAINER_ID:/opt/
@@ -53,7 +53,6 @@ jobs:
 
       - name: Test aqueducts
         run: |
-          cd aqueducts/core
           cargo fmt -- --check
           cargo test --workspace --all-features
 
@@ -81,7 +80,10 @@ jobs:
           profile: minimal
           toolchain: stable
 
+      - name: Setup build environment
+        run: |
+          sudo apt-get update && sudo apt-get install -y unixodbc-dev
+
       - name: Build aqueducts in release mode
         run: |
-          cd aqueducts/core
           cargo build --workspace --release
