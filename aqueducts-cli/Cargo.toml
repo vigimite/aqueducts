@@ -25,6 +25,7 @@ yaml = ["aqueducts/yaml"]
 datafusion.workspace = true
 
 aqueducts = { path = "../aqueducts/core", version = "0.8.0" }
+datafusion-functions-json = "0.46"
 clap = { version = "4.5.31", features = ["derive"] }
 env_logger = "0.11.6"
 log = "0.4.21"
