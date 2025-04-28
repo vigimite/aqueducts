@@ -4,8 +4,9 @@ members = [
   "aqueducts/odbc",
   "aqueducts/utils",
   "aqueducts/schema_gen",
-  "aqueducts-cli"
-]
+  "aqueducts-cli",
+  "aqueducts/server"
+, "aqueducts/web"]
 resolver = "2"
 
 [workspace.package]
@@ -24,6 +25,7 @@ license-file = "LICENSE"
 aqueducts = { path = "aqueducts/core", version = "0.9.0" }
 aqueducts-odbc = { path = "aqueducts/odbc", version = "0.9.0" }
 aqueducts-utils = { path = "aqueducts/utils", version = "0.9.0" }
+aqueducts-web = { path = "aqueducts/web", version = "0.9.0" }
 
 datafusion = "46"
 deltalake = { version = "0.25.0", features = ["datafusion"] }

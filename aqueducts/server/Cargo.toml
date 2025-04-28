@@ -1,0 +1,19 @@
+[package]
+name = "aqueducts-server"
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license-file.workspace = true
+
+[dependencies]
+aqueducts-web.workspace = true
+
+axum = { version = "0.8.3", features = ["macros"] }
+config = "0.15.11"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
