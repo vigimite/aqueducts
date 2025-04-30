@@ -11,6 +11,7 @@ use axum::{
     Router,
 };
 use config::Config;
+use tower_http::services::ServeDir;
 
 struct App {
     config: Config,
@@ -24,10 +25,13 @@ impl App {
     }
 
     async fn run(&self) {
+        let static_files = ServeDir::new("static").append_index_html_on_directories(false);
+
         let app = Router::new()
             .route("/health", get(|| async { StatusCode::OK }))
             .route("/web", get(get_page))
-            .route("/", get(|| async { Redirect::permanent("/web") }));
+            .route("/", get(|| async { Redirect::permanent("/web") }))
+            .nest_service("/static", static_files);
 
         let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", self.port))
             .await
@@ -38,7 +42,10 @@ impl App {
 }
 
 async fn get_page() -> impl IntoResponse {
-    aqueducts_web::page("Aqueducts")
+    aqueducts_web::page(
+        "Aqueducts Pipeline Editor",
+        aqueducts_web::pipeline_editor(None),
+    )
 }
 
 #[tokio::main]
