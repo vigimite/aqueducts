@@ -4,12 +4,12 @@ authors = ["<vigimite@protonmail.com>"]
 edition = "2021"
 description = "CLI application to run pipelines defined for the aqueducts framework"
 homepage = "https://github.com/vigimite/aqueducts"
-repository = "https://github.com/vigimite/aqueducts/aqueducts-cli"
+repository = "https://github.com/vigimite/aqueducts"
 readme = "README.md"
 version = "0.9.0"
 keywords = ["aqueducts", "ETL", "data", "pipeline", "cli"]
 categories = ["command-line-utilities"]
-license-file = "../LICENSE"
+license = "Apache-2.0"
 
 [features]
 default = ["s3", "gcs", "azure", "yaml"]
@@ -22,15 +22,33 @@ toml = ["aqueducts/toml"]
 yaml = ["aqueducts/yaml"]
 
 [dependencies]
+# Data processing
 datafusion.workspace = true
+datafusion-functions-json.workspace = true
 
-aqueducts = { path = "../aqueducts/core", version = "0.9.0" }
-datafusion-functions-json = "0.46"
-clap = { version = "4.5.31", features = ["derive"] }
-env_logger = "0.11.6"
-log = "0.4.21"
+# Core aqueducts library
+aqueducts.workspace = true
+
+# CLI and configuration
+clap.workspace = true
+
+# Logging
+env_logger.workspace = true
+log.workspace = true
+
+# Async runtime
 tokio = { workspace = true, features = ["full"] }
-anyhow = "1.0.95"
+tokio-stream.workspace = true
+
+# Error handling
+anyhow.workspace = true
+
+# Network
+reqwest.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
 
 [[bin]]
 name = "aqueducts"

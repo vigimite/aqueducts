@@ -9,7 +9,7 @@ version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 categories.workspace = true
-license-file.workspace = true
+license.workspace = true
 
 [features]
 default = []
@@ -18,13 +18,23 @@ gcs = ["deltalake/gcs"]
 azure = ["deltalake/azure"]
 
 [dependencies]
+# Data processing
 datafusion.workspace = true
 deltalake.workspace = true
+
+# Utilities
 url.workspace = true
+
+# Serialization
 serde.workspace = true
+
+# Error handling
 thiserror.workspace = true
+
+# Logging
 tracing.workspace = true
 
 [dev-dependencies]
+# Testing
 tokio = { workspace = true, features = ["full"] }
-tracing-test = "0.2"
+tracing-test.workspace = true

@@ -9,17 +9,26 @@ version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 categories.workspace = true
-license-file.workspace = true
+license.workspace = true
 
 [dependencies]
+# Data processing
 datafusion.workspace = true
 deltalake.workspace = true
+
+# Serialization
 serde.workspace = true
+
+# Error handling
 thiserror.workspace = true
+
+# Logging
 tracing.workspace = true
 
-arrow-odbc = { version = "=15.1.1" }
+# ODBC integration
+arrow-odbc.workspace = true
 
 [dev-dependencies]
+# Testing
 tokio = { workspace = true, features = ["full"] }
-tracing-test = "0.2"
+tracing-test.workspace = true

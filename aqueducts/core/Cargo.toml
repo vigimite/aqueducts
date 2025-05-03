@@ -9,7 +9,7 @@ version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 categories.workspace = true
-license-file.workspace = true
+license.workspace = true
 
 [features]
 default = ["yaml"]
@@ -23,30 +23,38 @@ yaml = ["dep:serde_yml"]
 toml = ["dep:toml"]
 
 [dependencies]
+# Data processing
 datafusion.workspace = true
 deltalake.workspace = true
 
+# Serialization
 serde.workspace = true
-serde_json.workspace = true
-serde_json.optional = true
-serde_yml.workspace = true
-serde_yml.optional = true
-toml.workspace = true
-toml.optional = true
+serde_json = { workspace = true, optional = true }
+serde_yml = { workspace = true, optional = true }
+toml = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
+# Async runtime
 tokio.workspace = true
+
+# Error handling
 thiserror.workspace = true
+
+# Logging
 tracing.workspace = true
+
+# Utilities
 url.workspace = true
 regex.workspace = true
 derive-new.workspace = true
 chrono.workspace = true
 
+# Internal crates
 aqueducts-odbc = { workspace = true, optional = true }
 aqueducts-utils.workspace = true
 
 [dev-dependencies]
+# Testing
 tokio = { workspace = true, features = ["full"] }
-rand = "0.8"
-tracing-test = "0.2"
+rand.workspace = true
+tracing-test.workspace = true

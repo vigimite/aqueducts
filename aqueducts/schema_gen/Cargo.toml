@@ -9,11 +9,16 @@ version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 categories.workspace = true
-license-file.workspace = true
+license.workspace = true
 build = "build.rs"
 publish = false
 
 [build-dependencies]
+# Core aqueducts library with schema generation feature
 aqueducts = { workspace = true, features = ["schema_gen", "odbc"] }
+
+# Schema tools
 schemars.workspace = true
+
+# Serialization
 serde_json.workspace = true

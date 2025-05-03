@@ -36,6 +36,19 @@ pub enum Source {
     Odbc(OdbcSource),
 }
 
+impl Source {
+    pub fn name(&self) -> String {
+        match self {
+            Source::InMemory(in_memory_source) => in_memory_source.name.clone(),
+            Source::Delta(delta_source) => delta_source.name.clone(),
+            Source::File(file_source) => file_source.name.clone(),
+            Source::Directory(dir_source) => dir_source.name.clone(),
+            #[cfg(feature = "odbc")]
+            Source::Odbc(odbc_source) => odbc_source.name.clone(),
+        }
+    }
+}
+
 /// An in memory source already present in the provided session context
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]

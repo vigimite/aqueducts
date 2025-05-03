@@ -98,11 +98,11 @@ mod destination_delta {
 
         // 1st run
         let ctx = Arc::new(SessionContext::new());
-        run_pipeline(ctx, pipeline.clone()).await.unwrap();
+        run_pipeline(ctx, pipeline.clone(), None).await.unwrap();
 
         // 2nd run
         let ctx = Arc::new(SessionContext::new());
-        run_pipeline(ctx, pipeline.clone()).await.unwrap();
+        run_pipeline(ctx, pipeline.clone(), None).await.unwrap();
 
         // assert
         let output_table =
@@ -146,11 +146,11 @@ mod destination_delta {
 
         // 1st run
         let ctx = Arc::new(SessionContext::new());
-        run_pipeline(ctx, pipeline.clone()).await.unwrap();
+        run_pipeline(ctx, pipeline.clone(), None).await.unwrap();
 
         // 2nd run
         let ctx = Arc::new(SessionContext::new());
-        run_pipeline(ctx, pipeline).await.unwrap();
+        run_pipeline(ctx, pipeline, None).await.unwrap();
 
         // assert
         let output_table =
@@ -216,11 +216,11 @@ mod destination_delta {
 
         // 1st run
         let ctx = Arc::new(SessionContext::new());
-        run_pipeline(ctx, pipeline.clone()).await.unwrap();
+        run_pipeline(ctx, pipeline.clone(), None).await.unwrap();
 
         // 2nd run
         let ctx = Arc::new(SessionContext::new());
-        run_pipeline(ctx, pipeline.clone()).await.unwrap();
+        run_pipeline(ctx, pipeline.clone(), None).await.unwrap();
 
         // assert
         let output_table =

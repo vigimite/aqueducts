@@ -1,22 +1,125 @@
 # Aqueducts CLI
 
-Example CLI application utilizing the [Aqueducts](../) framework to run ETL pipelines declared in YAML.
+A command-line interface for executing Aqueducts data pipelines, with support for both local and remote execution.
 
-## Install
+## Features
+
+- Run pipelines defined in YAML, JSON, or TOML formats
+- Execute pipelines locally or remotely via the Aqueducts Executor
+- Check status of remote executors
+- Cancel running pipelines on remote executors
+- Real-time progress tracking and event streaming
+- Cloud storage support (S3, GCS, Azure) via feature flags
+- ODBC database connectivity via feature flags
+
+## Installation
 
 ```bash
-# install with default features (s3, gcs, azure)
+# Install with default features (s3, gcs, azure, yaml)
 cargo install aqueducts-cli
 
-# install with odbc support
+# Install with odbc support
 cargo install aqueducts-cli --features odbc
 
-# install with s3 support only
-cargo install aqueducts-cli --no-default-features --features s3
+# Install with minimal features
+cargo install aqueducts-cli --no-default-features --features yaml
 ```
 
-## Run
+## Usage
+
+### Running Pipelines
+
+Run a pipeline locally:
 
 ```bash
-aqueducts --file ./example.yml --param key1=value1 --param key2=value2  
+# Basic usage (YAML)
+aqueducts run --file ./pipeline.yml
+
+# With parameters
+aqueducts run --file ./pipeline.yml --params key1=value1 --params key2=value2
+
+# Using TOML or JSON (with appropriate feature flags)
+aqueducts run --file ./pipeline.toml
+aqueducts run --file ./pipeline.json
 ```
+
+Run a pipeline on a remote executor:
+
+```bash
+# Execute on remote executor
+aqueducts run --file ./pipeline.yml --executor http://executor-host:8080 --api-key your_api_key
+```
+
+### Managing Remote Executors
+
+Check the status of a remote executor:
+
+```bash
+aqueducts status --executor http://executor-host:8080 --api-key your_api_key
+```
+
+Cancel a running pipeline on a remote executor:
+
+```bash
+# Cancel the currently running pipeline
+aqueducts cancel --executor http://executor-host:8080 --api-key your_api_key
+
+# Cancel a specific execution by ID
+aqueducts cancel --executor http://executor-host:8080 --api-key your_api_key --execution-id abc-123
+```
+
+## Pipeline Definition Examples
+
+YAML pipeline example:
+
+```yaml
+sources:
+  - type: csv
+    name: source_data
+    options:
+      path: "data/input.csv"
+      has_header: true
+
+stages:
+  - - name: transformed_data
+      query: "SELECT * FROM source_data WHERE value > 10"
+
+destination:
+  type: csv
+  options:
+    path: "data/output/"
+    mode: "overwrite"
+```
+
+## Remote Execution
+
+The Aqueducts CLI can connect to a remote [Aqueducts Executor](../aqueducts-executor) to run pipelines close to the data source. This is especially useful for:
+
+1. Executing pipelines within secure networks without exposing data
+2. Running heavy queries on dedicated hardware
+3. Processing data near storage to minimize network transfer
+4. Providing a consistent execution environment
+
+For remote execution:
+
+1. Deploy an Aqueducts Executor in your environment
+2. Configure it with an API key
+3. Run pipelines using the `--executor` and `--api-key` options
+
+The CLI will:
+- Verify connectivity to the executor
+- Send the pipeline definition
+- Stream progress events in real-time
+- Display results and execution status
+
+## Troubleshooting
+
+Common issues:
+
+1. **Authentication failures**: Verify API key is correct
+2. **Connectivity issues**: Check network connectivity and firewall rules
+3. **Pipeline validation errors**: Ensure your pipeline definition is valid
+4. **Executor busy**: Only one pipeline can run at a time on an executor
+5. **Missing features**: Make sure the CLI was compiled with the needed features
+
+For more information, check the [Aqueducts documentation](https://github.com/vigimite/aqueducts).
