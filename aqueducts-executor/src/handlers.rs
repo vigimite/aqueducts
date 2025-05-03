@@ -1,10 +1,13 @@
 use aqueducts::prelude::Aqueduct;
+use aqueducts_utils::executor_events::{
+    CancelRequest, CancelResponse, CurrentExecution, ExecutionEvent, StatusResponse,
+};
 use axum::{
     extract::{Json, State},
     http::StatusCode,
     response::{sse::Event, Sse},
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::mpsc;
@@ -17,7 +20,6 @@ use crate::executor::{
     cancel_current_execution, execute_aqueduct_pipeline, get_execution_status,
     set_execution_status, ExecutionStatus, ExecutorState,
 };
-use crate::progress::ExecutionEvent;
 use crate::AppState;
 
 /// Request for pipeline execution
@@ -25,45 +27,6 @@ use crate::AppState;
 pub struct ExecuteRequest {
     /// Pipeline definition - deserialized as an Aqueduct pipeline
     pub pipeline: Aqueduct,
-}
-
-/// Simple response for pipeline execution status
-#[derive(Debug, Serialize)]
-pub struct ExecuteResponse {
-    pub status: String,
-    pub execution_id: String,
-}
-
-/// Request to cancel a pipeline execution
-#[derive(Debug, Deserialize)]
-pub struct CancelRequest {
-    /// Optional execution ID to cancel (if not provided, will cancel current execution)
-    pub execution_id: Option<String>,
-}
-
-/// Response for cancel request
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CancelResponse {
-    pub status: String,
-    pub message: String,
-    pub cancelled_execution_id: Option<String>,
-}
-
-/// Response for status endpoint
-#[derive(Debug, Serialize, Deserialize)]
-pub struct StatusResponse {
-    pub executor_id: String,
-    pub version: String,
-    pub status: String,
-    pub current_execution: Option<CurrentExecution>,
-}
-
-/// Details about a currently running execution
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CurrentExecution {
-    pub execution_id: String,
-    pub running_time: u64,
-    pub estimated_remaining_time: Option<u64>,
 }
 
 /// Converts our stream of ExecutionEvent to Axum's SSE Event type
@@ -124,8 +87,16 @@ pub async fn execute_pipeline(
     // Pipeline is executed in a separate task. The task handle can be used for cancelation via the API
     let execution_id_ = execution_id.clone();
     let pipeline_ = request.pipeline;
+    // Only pass max_memory_gb if it's not zero (zero is the default when not specified)
+    let max_memory_gb = if _state.max_memory_gb > 0 {
+        Some(_state.max_memory_gb)
+    } else {
+        None
+    };
     let task = tokio::spawn(async move {
-        if let Err(e) = execute_aqueduct_pipeline(pipeline_, execution_id_, &tx).await {
+        if let Err(e) =
+            execute_aqueduct_pipeline(pipeline_, execution_id_, &tx, max_memory_gb).await
+        {
             error!("Pipeline execution failed: {}", e);
         }
 
@@ -161,7 +132,7 @@ pub async fn cancel_pipeline(
     let status = get_execution_status()?;
 
     match (request.execution_id, status.execution_id()) {
-        (Some(requested_id), Some(current_id)) if requested_id != *current_id => {
+        (Some(requested_id), Some(ref current_id)) if requested_id != *current_id => {
             Ok(Json(CancelResponse {
                 status: "not_found".to_string(),
                 message: format!(
@@ -176,11 +147,11 @@ pub async fn cancel_pipeline(
             message: "No pipeline execution is currently running".to_string(),
             cancelled_execution_id: None,
         })),
-        (_, Some(current_id)) => cancel_current_execution(&current_id).await.map(|_| {
+        (_, Some(ref current_id)) => cancel_current_execution(current_id).await.map(|_| {
             Json(CancelResponse {
                 status: "cancelled".to_string(),
                 message: "Pipeline execution cancelled successfully".to_string(),
-                cancelled_execution_id: Some(current_id),
+                cancelled_execution_id: Some(current_id.clone()),
             })
         }),
     }
@@ -241,7 +212,7 @@ mod tests {
         let state = Arc::new(AppState {
             api_key: "test-api-key".to_string(),
             executor_id: "test-executor-id".to_string(),
-            _max_memory_gb: 4,
+            max_memory_gb: 4,
             _server_url: None,
         });
 
@@ -305,7 +276,7 @@ mod tests {
         Arc::new(AppState {
             api_key: "test-api-key".to_string(),
             executor_id: "test-executor-id".to_string(),
-            _max_memory_gb: 4,
+            max_memory_gb: 4,
             _server_url: None,
         })
     }

@@ -53,7 +53,7 @@ facilitates outputting executor logs and progress to the client. An execution wi
 ## Features
 
 - **Remote Execution**: Run data pipelines securely within your own infrastructure close to the data sources
-- **Memory Management**: Configure maximum memory usage to control resource allocation
+- **Memory Management**: Configure maximum memory usage to control resource allocation using DataFusion's memory pool
 - **Security**: API key authentication ensures secure access to the executor
 - **Real-time Feedback**: Server-Sent Events provide live progress and log updates to clients
 - **Cloud Storage Support**: Native integration with S3, GCS, and Azure Blob Storage
@@ -69,7 +69,7 @@ facilitates outputting executor logs and progress to the client. An execution wi
 | `--api-key`     | API key for authentication                          | -              | `AQUEDUCTS_API_KEY`     |
 | `--host`        | Host address to bind to                             | 0.0.0.0        | `AQUEDUCTS_HOST`        |
 | `--port`        | Port to listen on                                   | 8080           | `AQUEDUCTS_PORT`        |
-| `--max-memory`  | Maximum memory usage in GB                          | 4              | `AQUEDUCTS_MAX_MEMORY`  |
+| `--max-memory`  | Maximum memory usage in GB (0 for unlimited)        | 0              | `AQUEDUCTS_MAX_MEMORY`  |
 | `--server-url`  | URL of Aqueducts server for registration (optional) | -              | `AQUEDUCTS_SERVER_URL`  |
 | `--executor-id` | Unique identifier for this executor                 | auto-generated | `AQUEDUCTS_EXECUTOR_ID` |
 | `--log-level`   | Logging level (info, debug, trace)                  | info           | `AQUEDUCTS_LOG_LEVEL`   |
@@ -242,7 +242,7 @@ Example usage:
 ```bash
 docker run -p 8080:8080 \
   -e AQUEDUCTS_API_KEY=your_api_key \
-  -e AQUEDUCTS_MAX_MEMORY=8 \
+  -e AQUEDUCTS_MAX_MEMORY=8 \  # Allocate 8GB for query processing memory pool (0 for unlimited)
   vigimite/aqueducts-executor
 ```
 
@@ -259,6 +259,27 @@ For proper functionality, ensure the following:
    - AWS: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
    - GCS: GOOGLE_APPLICATION_CREDENTIALS
    - Azure: AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY
+
+## Memory Management
+
+The executor implements memory limits using DataFusion's runtime environment to avoid out-of-memory errors during query execution:
+
+- **Memory Management**: Utilizes DataFusion's runtime environment memory limits to control memory usage across query operators
+- **Configuration**: Set via `--max-memory` parameter or `AQUEDUCTS_MAX_MEMORY` environment variable (in GB)
+- **Default**: Unlimited memory usage when set to 0 or not specified
+
+The memory limit controls allocation for:
+- Loading and processing data from sources
+- Intermediate query operations (joins, aggregations, sorting)
+- Spill-to-disk operations when memory limits are reached
+- Final result materialization before writing to destinations
+
+When a query approaches the memory limit:
+1. DataFusion will attempt to spill data to disk for operations that support it
+2. Some operations may fail explicitly rather than cause system-wide out-of-memory errors
+3. Progress events will indicate when memory limits are affecting performance
+
+For memory-intensive workloads, increase the `--max-memory` parameter based on your executor's available system memory.
 
 ## Health Checks
 
@@ -340,6 +361,12 @@ Common issues and solutions:
 1. **Connection timeouts**: Check network connectivity and firewall rules
 2. **Authentication failures**: Verify API key configuration and correct header usage (X-API-Key)
 3. **429 Too Many Requests**: An execution is already in progress; wait and retry after the suggested time
-4. **Memory errors**: Increase max memory allocation or optimize pipeline
+4. **Memory errors**: 
+   - Increase max memory allocation with the `--max-memory` parameter
+   - Optimize your pipeline by adding filtering earlier in the process
+   - Break large queries into smaller stages with intermediate results
+   - When processing large files, consider using more selective column projection
+   - For joins on large tables, ensure proper filtering before the join
 5. **Database connectivity**: Confirm ODBC drivers are properly installed
 6. **Log location**: Logs are written to stdout/stderr and can be redirected as needed
+7. **Slow performance**: Monitor memory usage with debug logs enabled to see if memory limits are causing spill-to-disk operations

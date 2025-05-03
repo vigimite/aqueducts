@@ -3,56 +3,7 @@ use std::sync::atomic::AtomicUsize;
 use tokio::sync::mpsc;
 use tokio::runtime::Handle;
 use aqueducts::ProgressEventType;
-use serde::Serialize;
-
-/// Event for real-time feedback using Server-Sent Events
-#[derive(Debug, Serialize)]
-#[serde(tag = "event_type", rename_all = "snake_case")]
-pub enum ExecutionEvent {
-    /// Pipeline execution has started
-    Started {
-        /// Unique execution ID
-        execution_id: String,
-    },
-    
-    /// Progress update during execution
-    Progress {
-        /// Unique execution ID
-        execution_id: String,
-        /// Human-readable message about the progress
-        message: String,
-        /// Progress percentage (0-100)
-        progress: u8,
-        /// Current stage being processed (if applicable)
-        current_stage: Option<String>,
-    },
-    
-    /// Pipeline execution completed successfully
-    Completed {
-        /// Unique execution ID
-        execution_id: String,
-        /// Human-readable message about completion
-        message: String,
-    },
-    
-    /// Error occurred during execution
-    Error {
-        /// Unique execution ID
-        execution_id: String,
-        /// Human-readable error message
-        message: String,
-        /// Detailed error information
-        details: Option<String>,
-    },
-    
-    /// Execution was cancelled
-    Cancelled {
-        /// Unique execution ID
-        execution_id: String,
-        /// Human-readable message about cancellation
-        message: String,
-    },
-}
+use aqueducts_utils::executor_events::ExecutionEvent;
 
 /// Implementation of ProgressTracker for the executor
 pub struct ExecutorProgressTracker {
@@ -173,6 +124,28 @@ impl aqueducts::ProgressTracker for ExecutorProgressTracker {
             let _ = tx.send(event).await;
         });
     }
+    
+    fn on_stage_output(&self, stage_name: &str, output_type: &str, output: &str) {
+        // Create a stage output event
+        let execution_event = ExecutionEvent::StageOutput {
+            execution_id: self.execution_id.clone(),
+            stage_name: stage_name.to_string(),
+            output_type: output_type.to_string(),
+            data: output.to_string(),
+        };
+        
+        // Send the event via the channel
+        let tx = self.tx.clone();
+        let event = Ok(execution_event);
+        
+        // Use the current tokio runtime to spawn a task for sending the event
+        Handle::current().spawn(async move {
+            let _ = tx.send(event).await;
+        });
+        
+        // Also log a message that output was captured
+        tracing::info!("Captured {} output for stage {}", output_type, stage_name);
+    }
 }
 
 #[cfg(test)]
@@ -231,6 +204,19 @@ mod tests {
         let json = serde_json::to_string(&cancelled_event).unwrap();
         assert!(json.contains("\"event_type\":\"cancelled\""));
         assert!(json.contains("\"message\":\"Test cancelled\""));
+        
+        // Test StageOutput event
+        let stage_output_event = ExecutionEvent::StageOutput {
+            execution_id: "test-execution".to_string(),
+            stage_name: "test-stage".to_string(),
+            output_type: "show".to_string(),
+            data: "Table content".to_string(),
+        };
+        let json = serde_json::to_string(&stage_output_event).unwrap();
+        assert!(json.contains("\"event_type\":\"stage_output\""));
+        assert!(json.contains("\"stage_name\":\"test-stage\""));
+        assert!(json.contains("\"output_type\":\"show\""));
+        assert!(json.contains("\"data\":\"Table content\""));
     }
 
     #[tokio::test]

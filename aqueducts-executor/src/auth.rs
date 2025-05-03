@@ -70,7 +70,7 @@ mod tests {
         let state = Arc::new(AppState {
             api_key: "test-api-key".to_string(),
             executor_id: "test-executor-id".to_string(),
-            _max_memory_gb: 4,
+            max_memory_gb: 4,
             _server_url: None,
         });
         let middleware = from_fn_with_state(state, api_key_auth);
@@ -91,7 +91,7 @@ mod tests {
         let state = Arc::new(AppState {
             api_key: "test-api-key".to_string(),
             executor_id: "test-executor-id".to_string(),
-            _max_memory_gb: 4,
+            max_memory_gb: 4,
             _server_url: None,
         });
 

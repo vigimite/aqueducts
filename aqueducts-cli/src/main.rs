@@ -1,18 +1,14 @@
 use anyhow::{anyhow, Context};
 use aqueducts::prelude::*;
+use aqueducts_utils::executor_events::{
+    CancelRequest, CancelResponse, ErrorResponse, ExecutionEvent, StatusResponse,
+};
 use clap::{Parser, Subcommand};
 use env_logger::Env;
 use log::{debug, error, info, warn};
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-use serde::Deserialize;
 use serde_json::json;
-use std::{
-    collections::HashMap,
-    error::Error,
-    path::PathBuf,
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{collections::HashMap, error::Error, path::PathBuf, sync::Arc, time::Instant};
 use tokio_stream::StreamExt;
 
 /// Aqueducts CLI for executing data pipelines locally or remotely
@@ -154,6 +150,36 @@ fn parse_aqueduct_file(
 }
 
 /// Progress tracker that outputs to stdout via the tracing crate
+fn print_stage_output(stage_name: &str, output_type: &str, data: &str) {
+    // Format output based on output_type with nice icons
+    match output_type {
+        "show" => info!(
+            "\n📋 Table Data: {}\n───────────────────────────────────────\n{}\n",
+            stage_name, data
+        ),
+        "show_limit" => info!(
+            "\n📋 Table Data (Preview): {}\n───────────────────────────────────────\n{}\n",
+            stage_name, data
+        ),
+        "explain" => info!(
+            "\n🔍 Query Plan: {}\n───────────────────────────────────────\n{}\n",
+            stage_name, data
+        ),
+        "explain_analyze" => info!(
+            "\n📊 Query Metrics: {}\n───────────────────────────────────────\n{}\n",
+            stage_name, data
+        ),
+        "schema" => info!(
+            "\n🔢 Schema: {}\n───────────────────────────────────────\n{}\n",
+            stage_name, data
+        ),
+        _ => info!(
+            "\n📄 Output ({}) - {}\n───────────────────────────────────────\n{}\n",
+            output_type, stage_name, data
+        ),
+    }
+}
+
 struct LoggingProgressTracker;
 
 impl ProgressTracker for LoggingProgressTracker {
@@ -198,66 +224,27 @@ impl ProgressTracker for LoggingProgressTracker {
             }
         }
     }
-}
 
-#[derive(Debug, Deserialize)]
-struct ExecutorStatusResponse {
-    status: String,
-    execution_id: Option<String>,
-    start_time: Option<String>,
-    elapsed_time: Option<u64>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ExecutorEvent {
-    event_type: String,
-    #[serde(default)]
-    message: String,
-    progress: Option<u32>,
-    #[allow(dead_code)]
-    execution_id: Option<String>,
-    current_stage: Option<String>,
-    error: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CancelResponse {
-    status: String,
-    message: String,
-    cancelled_execution_id: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ErrorResponse {
-    error: String,
-    #[allow(dead_code)]
-    execution_id: Option<String>,
-    retry_after: Option<u64>,
+    fn on_stage_output(&self, stage_name: &str, output_type: &str, output: &str) {
+        print_stage_output(stage_name, output_type, output);
+    }
 }
 
 /// Create a preconfigured HTTP client with the given API key
-fn create_client(api_key: &str, timeout_secs: Option<u64>) -> Result<reqwest::Client, anyhow::Error> {
+fn create_client(api_key: &str) -> Result<reqwest::Client, anyhow::Error> {
     debug!("Creating HTTP client");
-    
-    // Create headers with API key
+
     let mut headers = HeaderMap::new();
     headers.insert(
         "X-API-Key",
-        HeaderValue::from_str(api_key).context("Invalid API key format")?
+        HeaderValue::from_str(api_key).context("Invalid API key format")?,
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    
-    // Configure the client builder
-    let mut builder = reqwest::Client::builder()
-        .default_headers(headers);
-        
-    // Add timeout if specified
-    if let Some(secs) = timeout_secs {
-        builder = builder.timeout(Duration::from_secs(secs));
-    }
-    
-    // Build the client
-    builder.build().context("Failed to create HTTP client")
+
+    reqwest::Client::builder()
+        .default_headers(headers)
+        .build()
+        .context("Failed to create HTTP client")
 }
 
 async fn run_local(file: PathBuf, params: HashMap<String, String>) -> Result<(), anyhow::Error> {
@@ -319,16 +306,16 @@ async fn run_remote(
                 .await
                 .context("Failed to parse error response")?;
 
+            let retry_after = error.retry_after.unwrap_or(30);
             warn!(
                 "Executor is busy: {}. Retry after {} seconds",
-                error.error,
-                error.retry_after.unwrap_or(30)
+                error.error, retry_after
             );
 
             return Err(anyhow!(
                 "Executor is busy: {}. Retry after {} seconds",
                 error.error,
-                error.retry_after.unwrap_or(30)
+                retry_after
             ));
         } else {
             let error_text = response
@@ -366,46 +353,68 @@ async fn run_remote(
                 continue;
             }
 
-            match serde_json::from_str::<ExecutorEvent>(event_data) {
+            match serde_json::from_str::<ExecutionEvent>(event_data) {
                 Ok(event) => {
-                    // Process event based on type
-                    match event.event_type.as_str() {
-                        "started" => {
-                            debug!("Received started event");
+                    match event {
+                        ExecutionEvent::Started { execution_id } => {
+                            debug!("Received started event for execution ID: {}", execution_id);
                         }
-                        "progress" => {
+                        ExecutionEvent::Progress {
+                            execution_id: _,
+                            message: _,
+                            progress,
+                            current_stage,
+                        } => {
                             // Only update progress if it's changed
-                            if let Some(progress) = event.progress {
-                                if progress > last_progress {
-                                    last_progress = progress;
-                                    if let Some(stage) = &event.current_stage {
-                                        info!("⚙️  Processing: {} ({}%)", stage, progress);
-                                    } else {
-                                        info!("⚙️  Progress: {}%", progress);
-                                    }
+                            if progress as u32 > last_progress {
+                                last_progress = progress as u32;
+                                if let Some(stage) = current_stage {
+                                    info!("⚙️  Processing: {} ({}%)", stage, progress);
+                                } else {
+                                    info!("⚙️  Progress: {}%", progress);
                                 }
                             }
                         }
-                        "completed" => {
+                        ExecutionEvent::Completed {
+                            execution_id: _,
+                            message,
+                        } => {
                             let duration = start_time.elapsed();
                             info!(
-                                "🎉 Pipeline execution completed (total time: {:.2}s)",
-                                duration.as_secs_f64()
+                                "🎉 Pipeline execution completed (total time: {:.2}s): {}",
+                                duration.as_secs_f64(),
+                                message
                             );
                             return Ok(());
                         }
-                        "error" => {
-                            let error_msg =
-                                event.error.unwrap_or_else(|| "Unknown error".to_string());
+                        ExecutionEvent::Error {
+                            execution_id: _,
+                            message,
+                            details,
+                        } => {
+                            let error_msg = if let Some(details) = details {
+                                format!("{}: {}", message, details)
+                            } else {
+                                message
+                            };
+
                             error!("Pipeline execution failed: {}", error_msg);
                             return Err(anyhow!("Pipeline execution failed: {}", error_msg));
                         }
-                        "cancelled" => {
-                            warn!("Pipeline execution was cancelled");
-                            return Err(anyhow!("Pipeline execution was cancelled"));
+                        ExecutionEvent::Cancelled {
+                            execution_id: _,
+                            message,
+                        } => {
+                            warn!("Pipeline execution was cancelled: {}", message);
+                            return Err(anyhow!("Pipeline execution was cancelled: {}", message));
                         }
-                        _ => {
-                            info!("📝 {}: {}", event.event_type, event.message);
+                        ExecutionEvent::StageOutput {
+                            execution_id: _,
+                            stage_name,
+                            output_type,
+                            data,
+                        } => {
+                            print_stage_output(&stage_name, &output_type, &data);
                         }
                     }
                 }
@@ -456,23 +465,21 @@ async fn check_status(client: &reqwest::Client, executor_url: String) -> Result<
     }
 
     let status = response
-        .json::<ExecutorStatusResponse>()
+        .json::<StatusResponse>()
         .await
         .context("Failed to parse status response")?;
 
     info!("Executor status: {}", status.status);
+    info!("Executor ID: {}", status.executor_id);
+    info!("Executor version: {}", status.version);
 
-    if status.status == "running" {
-        if let Some(id) = &status.execution_id {
-            info!("Currently running execution ID: {id}");
-        }
+    if status.status == "busy" && status.current_execution.is_some() {
+        let current = status.current_execution.unwrap();
+        info!("Currently running execution ID: {}", current.execution_id);
+        info!("Running time: {:.2}s", current.running_time as f64);
 
-        if let Some(start) = &status.start_time {
-            info!("Started at: {start}");
-        }
-
-        if let Some(elapsed) = status.elapsed_time {
-            info!("Elapsed time: {:.2}s", elapsed as f64 / 1000.0);
+        if let Some(remaining) = current.estimated_remaining_time {
+            info!("Estimated remaining time: {:.2}s", remaining as f64);
         }
     }
 
@@ -494,11 +501,7 @@ async fn cancel_execution(
         debug!("Targeting current execution (no ID specified)");
     };
 
-    let request_body = if let Some(id) = execution_id {
-        json!({ "execution_id": id })
-    } else {
-        json!({})
-    };
+    let request_body = CancelRequest { execution_id };
 
     let cancel_url = format!("{}/cancel", executor_url.trim_end_matches('/'));
     debug!("Sending cancel request to: {}", cancel_url);
@@ -553,47 +556,23 @@ async fn cancel_execution(
 async fn check_executor(client: &reqwest::Client, url: &str) -> Result<bool, anyhow::Error> {
     debug!("Checking executor availability at: {}", url);
 
-    // Check health endpoint first (doesn't need auth)
-    let health_url = format!("{}/health", url.trim_end_matches('/'));
-    debug!("Checking health endpoint: {}", health_url);
-
-    match client.get(&health_url).send().await {
-        Ok(response) => {
-            if !response.status().is_success() {
-                let status = response.status();
-                error!("Executor health check failed with status code: {}", status);
-                return Err(anyhow!(
-                    "Executor health check failed with status code: {}",
-                    status
-                ));
-            }
-            debug!("Health check successful");
-        }
-        Err(e) => {
-            error!("Failed to connect to executor: {}", e);
-            return Err(anyhow!("Failed to connect to executor: {}", e));
-        }
-    }
-
-    // Now check status endpoint to verify API key works
     let status_url = format!("{}/status", url.trim_end_matches('/'));
     debug!("Checking status endpoint: {}", status_url);
 
     match client.get(&status_url).send().await {
-        Ok(response) => {
-            if response.status().as_u16() == 401 {
-                error!("Authentication failed: Invalid API key");
-                return Err(anyhow!("Authentication failed: Invalid API key"));
-            } else if !response.status().is_success() {
-                let status = response.status();
-                error!("Executor status check failed with status code: {}", status);
-                return Err(anyhow!(
-                    "Executor status check failed with status code: {}",
-                    status
-                ));
-            }
-            debug!("Status check successful");
+        Ok(response) if response.status().as_u16() == 401 => {
+            error!("Authentication failed: Invalid API key");
+            return Err(anyhow!("Authentication failed: Invalid API key"));
         }
+        Ok(response) if !response.status().is_success() => {
+            let status = response.status();
+            error!("Executor status check failed with status code: {}", status);
+            return Err(anyhow!(
+                "Executor status check failed with status code: {}",
+                status
+            ));
+        }
+        Ok(_) => debug!("Status check successful"),
         Err(e) => {
             error!("Failed to get executor status: {}", e);
             return Err(anyhow!("Failed to get executor status: {}", e));
@@ -621,41 +600,39 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Run {
             file,
             params,
-            executor,
+            executor: Some(executor_url),
             api_key,
         } => {
             let params = HashMap::from_iter(params.unwrap_or_default());
 
-            // Execute either locally or remotely
-            if let Some(executor_url) = executor {
-                // Remote execution requires an API key
-                let api_key = api_key.ok_or_else(|| {
-                    error!("API key is required for remote execution");
-                    anyhow!("API key is required for remote execution")
-                })?;
+            let api_key = api_key.ok_or_else(|| {
+                error!("API key is required for remote execution");
+                anyhow!("API key is required for remote execution")
+            })?;
 
-                // Create an HTTP client with a 5-second timeout for initial connection
-                let client = create_client(&api_key, Some(5))?;
+            let client = create_client(&api_key)?;
 
-                // Check if executor is reachable
-                info!("Checking executor availability...");
-                check_executor(&client, &executor_url)
-                    .await
-                    .context("Failed to connect to executor")?;
-                info!("Executor is available and API key is valid");
+            info!("Checking executor availability...");
+            check_executor(&client, &executor_url)
+                .await
+                .context("Failed to connect to executor")?;
 
-                // Execute pipeline remotely
-                run_remote(&client, file, params, executor_url).await?;
-            } else {
-                // Execute pipeline locally
-                run_local(file, params).await?;
-            }
+            info!("Executor is available and API key is valid");
+
+            run_remote(&client, file, params, executor_url).await?;
+        }
+        Commands::Run {
+            file,
+            params,
+            executor: _,
+            api_key: _,
+        } => {
+            let params = HashMap::from_iter(params.unwrap_or_default());
+            run_local(file, params).await?;
         }
         Commands::Status { executor, api_key } => {
-            // Create HTTP client
-            let client = create_client(&api_key, None)?;
-            
-            // Check status
+            let client = create_client(&api_key)?;
+
             check_status(&client, executor).await?;
         }
         Commands::Cancel {
@@ -663,10 +640,8 @@ async fn main() -> Result<(), anyhow::Error> {
             api_key,
             execution_id,
         } => {
-            // Create HTTP client
-            let client = create_client(&api_key, None)?;
-            
-            // Cancel execution
+            let client = create_client(&api_key)?;
+
             cancel_execution(&client, executor, execution_id).await?;
         }
     }

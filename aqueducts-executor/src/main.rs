@@ -14,6 +14,7 @@ use clap::Parser;
 use handlers::{cancel_pipeline, execute_pipeline, get_status, health_check};
 use std::{net::SocketAddr, str::FromStr, sync::Arc};
 use tracing::{info, Level};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use uuid::Uuid;
 
 /// Remote executor for Aqueducts data pipeline framework
@@ -32,8 +33,8 @@ struct Cli {
     #[arg(long, env = "AQUEDUCTS_PORT", default_value = "3031")]
     port: u16,
 
-    /// Maximum memory usage in GB
-    #[arg(long, env = "AQUEDUCTS_MAX_MEMORY", default_value = "4")]
+    /// Maximum memory usage in GB (0 for unlimited)
+    #[arg(long, env = "AQUEDUCTS_MAX_MEMORY", default_value = "0")]
     max_memory: u32,
 
     /// URL of Aqueducts server for registration (optional)
@@ -53,7 +54,7 @@ struct Cli {
 pub struct AppState {
     pub api_key: String,
     pub executor_id: String,
-    pub _max_memory_gb: u32,
+    pub max_memory_gb: u32,
     pub _server_url: Option<String>,
 }
 
@@ -61,13 +62,13 @@ impl AppState {
     pub fn new(
         api_key: String,
         executor_id: String,
-        _max_memory_gb: u32,
+        max_memory_gb: u32,
         _server_url: Option<String>,
     ) -> Self {
         Self {
             api_key,
             executor_id,
-            _max_memory_gb,
+            max_memory_gb,
             _server_url,
         }
     }
@@ -77,10 +78,20 @@ impl AppState {
 async fn main() {
     let cli = Cli::parse();
 
-    tracing_subscriber::fmt()
-        .with_max_level(
-            Level::from_str(cli.log_level.to_lowercase().as_str()).unwrap_or(Level::INFO),
+    // Setup JSON-formatted logging for better integration with log aggregation systems
+    let log_level = Level::from_str(cli.log_level.to_lowercase().as_str()).unwrap_or(Level::INFO);
+
+    tracing_subscriber::registry()
+        .with(
+            fmt::layer()
+                .json()
+                .with_current_span(true)
+                .with_span_list(true)
+                .with_file(true)
+                .with_line_number(true)
+                .with_target(true),
         )
+        .with(EnvFilter::from_default_env().add_directive(log_level.into()))
         .init();
 
     info!("Registering Aqueducts handlers");

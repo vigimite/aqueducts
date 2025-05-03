@@ -77,6 +77,33 @@ pub enum ProgressEventType {
 pub trait ProgressTracker: Send + Sync {
     /// Called when a progress event occurs during pipeline execution
     fn on_progress(&self, event: ProgressEventType);
+
+    /// Called when a stage produces output that would normally be printed to stdout
+    /// This allows implementers to capture the output for other uses (e.g. streaming to a client)
+    ///
+    /// The default implementation prints to stdout like the original behavior
+    fn on_stage_output(&self, stage_name: &str, output_type: &str, output: &str) {
+        match output_type {
+            "show" => println!("\n*** Stage output data: {} ***\n{}\n", stage_name, output),
+            "show_limit" => println!(
+                "\n*** Stage output data (limited): {} ***\n{}\n",
+                stage_name, output
+            ),
+            "explain" => println!("\n*** Stage query plan: {} ***\n{}\n", stage_name, output),
+            "explain_analyze" => println!(
+                "\n*** Stage query plan with metrics: {} ***\n{}\n",
+                stage_name, output
+            ),
+            "schema" => println!(
+                "\n*** Stage output schema: {} ***\n{}\n",
+                stage_name, output
+            ),
+            _ => println!(
+                "\n*** Stage output: {} ({}) ***\n{}\n",
+                stage_name, output_type, output
+            ),
+        }
+    }
 }
 
 /// Definition for an `Aqueduct` data pipeline
@@ -334,15 +361,15 @@ pub async fn run_pipeline(
                 let time = Instant::now();
                 info!("Running stage {} #{pos}:{sub}", name);
 
-                if let Some(tracker) = &tracker {
-                    tracker.on_progress(ProgressEventType::StageStarted {
+                if let Some(tracker_ref) = &tracker {
+                    tracker_ref.on_progress(ProgressEventType::StageStarted {
                         name: name.clone(),
                         position: pos,
                         sub_position: sub,
                     });
                 }
 
-                process_stage(ctx_, stage_).await?;
+                process_stage(ctx_, stage_, tracker.as_ref()).await?;
 
                 let elapsed = time.elapsed();
                 info!(
@@ -437,7 +464,7 @@ fn calculate_ttl<'a>(
                 None
             }
         })
-        .last()
+        .next_back()
         .unwrap_or(stage_pos + 1);
 
     stage_ttls

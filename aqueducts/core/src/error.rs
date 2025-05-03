@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Missing template parameters: {0:?}")]

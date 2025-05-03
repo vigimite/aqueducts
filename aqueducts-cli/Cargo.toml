@@ -28,6 +28,7 @@ datafusion-functions-json.workspace = true
 
 # Core aqueducts library
 aqueducts.workspace = true
+aqueducts-utils.workspace = true
 
 # CLI and configuration
 clap.workspace = true

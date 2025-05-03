@@ -1,15 +1,19 @@
 use aqueducts::prelude::*;
-use datafusion::execution::context::SessionContext;
+use datafusion::execution::{
+    context::SessionContext,
+    runtime_env::RuntimeEnvBuilder,
+};
 use std::{
     convert::Infallible,
     sync::{Arc, Mutex},
     time::Instant,
 };
 use tokio::sync::mpsc;
-use tracing::{error, info};
+use tracing::{error, info, debug};
 
 use crate::error::ExecutorError;
-use crate::progress::{ExecutionEvent, ExecutorProgressTracker};
+use aqueducts_utils::executor_events::ExecutionEvent;
+use crate::progress::ExecutorProgressTracker;
 
 /// Enum to track the state of the executor
 #[derive(Debug, Clone, PartialEq)]
@@ -118,6 +122,7 @@ pub async fn execute_aqueduct_pipeline(
     pipeline: Aqueduct,
     execution_id: String,
     tx: &mpsc::Sender<Result<ExecutionEvent, Infallible>>,
+    max_memory_gb: Option<u32>,
 ) -> Result<(), ExecutorError> {
     let start_time = Instant::now();
     info!("Starting pipeline execution (id: {execution_id})");
@@ -130,7 +135,28 @@ pub async fn execute_aqueduct_pipeline(
         .await;
 
     aqueducts::register_handlers();
-    let mut ctx = SessionContext::new();
+    
+    // Create a SessionContext with or without memory limits
+    let mut ctx = if let Some(memory_gb) = max_memory_gb {
+        // Convert max_memory_gb directly to bytes (GB * 1024^3) as usize
+        let max_memory_bytes = (memory_gb as usize) * 1024 * 1024 * 1024;
+        
+        debug!("Creating runtime environment with memory limit of {memory_gb} GB ({max_memory_bytes} bytes)");
+        
+        // Create a RuntimeEnv with the configured memory limit
+        // Use 0.95 as the memory use percentage (allowing 95% of the limit to be used)
+        let runtime_env = RuntimeEnvBuilder::new()
+            .with_memory_limit(max_memory_bytes, 0.95)
+            .build_arc()
+            .expect("Failed to build runtime environment");
+        
+        // Create a SessionContext with the runtime environment
+        let config = datafusion::execution::config::SessionConfig::new();
+        SessionContext::new_with_config_rt(config, runtime_env)
+    } else {
+        debug!("No memory limit specified, using unlimited memory allocation");
+        SessionContext::new()
+    };
 
     // Register JSON functions - this should not fail in normal circumstances
     datafusion_functions_json::register_all(&mut ctx)
@@ -222,12 +248,12 @@ pub async fn cancel_current_execution(execution_id: &str) -> Result<(), Executor
 
     // If we have a sender, send the cancellation event
     if let Some(sender) = &tx {
-        let _ = sender
-            .send(Ok(ExecutionEvent::Cancelled {
-                execution_id: execution_id.to_string(),
-                message: "Pipeline execution cancelled".to_string(),
-            }))
-            .await;
+        let cancelled_event = ExecutionEvent::Cancelled {
+            execution_id: execution_id.to_string(),
+            message: "Pipeline execution cancelled".to_string(),
+        };
+        
+        let _ = sender.send(Ok(cancelled_event)).await;
     }
 
     // If we have a task handle, abort it
