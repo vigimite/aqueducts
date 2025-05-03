@@ -12,23 +12,17 @@ categories.workspace = true
 license.workspace = true
 
 [dependencies]
-# Data processing
 datafusion.workspace = true
 deltalake.workspace = true
 
-# Serialization
 serde.workspace = true
 
-# Error handling
 thiserror.workspace = true
 
-# Logging
 tracing.workspace = true
 
-# ODBC integration
 arrow-odbc.workspace = true
 
 [dev-dependencies]
-# Testing
 tokio = { workspace = true, features = ["full"] }
 tracing-test.workspace = true

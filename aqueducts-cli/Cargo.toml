@@ -22,32 +22,24 @@ toml = ["aqueducts/toml"]
 yaml = ["aqueducts/yaml"]
 
 [dependencies]
-# Data processing
 datafusion.workspace = true
 datafusion-functions-json.workspace = true
 
-# Core aqueducts library
 aqueducts.workspace = true
 aqueducts-utils.workspace = true
 
-# CLI and configuration
 clap.workspace = true
 
-# Logging
 env_logger.workspace = true
 log.workspace = true
 
-# Async runtime
 tokio = { workspace = true, features = ["full"] }
 tokio-stream.workspace = true
 
-# Error handling
 anyhow.workspace = true
 
-# Network
 reqwest.workspace = true
 
-# Serialization
 serde.workspace = true
 serde_json.workspace = true
 

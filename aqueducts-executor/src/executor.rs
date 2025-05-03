@@ -1,19 +1,16 @@
 use aqueducts::prelude::*;
-use datafusion::execution::{
-    context::SessionContext,
-    runtime_env::RuntimeEnvBuilder,
-};
+use datafusion::execution::{context::SessionContext, runtime_env::RuntimeEnvBuilder};
 use std::{
     convert::Infallible,
     sync::{Arc, Mutex},
     time::Instant,
 };
 use tokio::sync::mpsc;
-use tracing::{error, info, debug};
+use tracing::{debug, error, info};
 
 use crate::error::ExecutorError;
-use aqueducts_utils::executor_events::ExecutionEvent;
 use crate::progress::ExecutorProgressTracker;
+use aqueducts_utils::executor_events::ExecutionEvent;
 
 /// Enum to track the state of the executor
 #[derive(Debug, Clone, PartialEq)]
@@ -78,42 +75,110 @@ impl ExecutionStatusView {
     }
 }
 
-/// Global execution status using a Mutex for thread safety
-static EXECUTION_STATUS: Mutex<ExecutionStatus> = Mutex::new(ExecutionStatus {
-    state: ExecutorState::Idle,
-    task_handle: None,
-    event_sender: None,
-});
-
-/// Get the current execution status, handling lock errors gracefully
-pub fn get_execution_status() -> Result<ExecutionStatusView, ExecutorError> {
-    EXECUTION_STATUS
-        .lock()
-        .map(|status| ExecutionStatusView::from(&*status))
-        .map_err(|e| {
-            let error_msg = format!("Failed to acquire execution status lock: {}", e);
-            error!("{}", error_msg);
-            ExecutorError::ExecutionFailed(error_msg)
-        })
+/// State management for execution status
+///
+/// This structure encapsulates access to the execution status,
+/// making it easier to control in tests and allows for dependency injection
+#[derive(Debug)]
+pub struct ExecutionStateManager {
+    /// Internal mutex for thread-safe access to execution status
+    execution_status: Mutex<ExecutionStatus>,
 }
 
-/// Set a new execution status, handling lock errors gracefully
-pub fn set_execution_status(mut status: ExecutionStatus) -> Result<(), ExecutorError> {
-    match EXECUTION_STATUS.lock() {
-        Ok(mut guard) => {
-            // Clear the task handle when transitioning to Idle
-            if matches!(status.state, ExecutorState::Idle) {
-                status.task_handle = None;
-            }
+impl Default for ExecutionStateManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
-            *guard = status;
-            Ok(())
+impl ExecutionStateManager {
+    /// Create a new instance of the state manager
+    pub fn new() -> Self {
+        Self {
+            execution_status: Mutex::new(ExecutionStatus {
+                state: ExecutorState::Idle,
+                task_handle: None,
+                event_sender: None,
+            }),
         }
-        Err(e) => {
-            let error_msg = format!("Failed to acquire execution status lock: {}", e);
-            error!("{}", error_msg);
-            Err(ExecutorError::ExecutionFailed(error_msg))
+    }
+
+    /// Get the current execution status, handling lock errors gracefully
+    pub fn get_status(&self) -> Result<ExecutionStatusView, ExecutorError> {
+        self.execution_status
+            .lock()
+            .map(|status| ExecutionStatusView::from(&*status))
+            .map_err(|e| {
+                let error_msg = format!("Failed to acquire execution status lock: {}", e);
+                error!("{}", error_msg);
+                ExecutorError::ExecutionFailed(error_msg)
+            })
+    }
+
+    /// Set a new execution status, handling lock errors gracefully
+    pub fn set_status(&self, mut status: ExecutionStatus) -> Result<(), ExecutorError> {
+        match self.execution_status.lock() {
+            Ok(mut guard) => {
+                // Clear the task handle when transitioning to Idle
+                if matches!(status.state, ExecutorState::Idle) {
+                    status.task_handle = None;
+                }
+
+                *guard = status;
+                Ok(())
+            }
+            Err(e) => {
+                let error_msg = format!("Failed to acquire execution status lock: {}", e);
+                error!("{}", error_msg);
+                Err(ExecutorError::ExecutionFailed(error_msg))
+            }
         }
+    }
+
+    /// Resets the state to idle, useful for tests
+    pub fn reset_to_idle(&self) -> Result<(), ExecutorError> {
+        self.set_status(ExecutionStatus {
+            state: ExecutorState::Idle,
+            task_handle: None,
+            event_sender: None,
+        })
+    }
+
+    /// Only for tests: sets up a known running state with the given execution ID
+    #[cfg(test)]
+    pub fn setup_running_state_for_test(&self, execution_id: String) -> Result<(), ExecutorError> {
+        let task_handle = tokio::spawn(async {
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        });
+
+        self.set_status(ExecutionStatus {
+            state: ExecutorState::Running {
+                execution_id,
+                started_at: std::time::Instant::now(),
+            },
+            task_handle: Some(task_handle),
+            event_sender: None,
+        })
+    }
+
+    /// Only for tests: ensures that any state manipulation in the closure happens
+    /// safely and that the state is reset to idle after the test
+    #[cfg(test)]
+    pub async fn with_clean_state<F, Fut, T>(&self, test_fn: F) -> T
+    where
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = T>,
+    {
+        // Ensure we start with a clean slate
+        let _ = self.reset_to_idle();
+
+        // Run the test function
+        let result = test_fn().await;
+
+        // Clean up after the test
+        let _ = self.reset_to_idle();
+
+        result
     }
 }
 
@@ -127,7 +192,6 @@ pub async fn execute_aqueduct_pipeline(
     let start_time = Instant::now();
     info!("Starting pipeline execution (id: {execution_id})");
 
-    // Send "Started" event
     let _ = tx
         .send(Ok(ExecutionEvent::Started {
             execution_id: execution_id.clone(),
@@ -135,22 +199,20 @@ pub async fn execute_aqueduct_pipeline(
         .await;
 
     aqueducts::register_handlers();
-    
+
     // Create a SessionContext with or without memory limits
     let mut ctx = if let Some(memory_gb) = max_memory_gb {
-        // Convert max_memory_gb directly to bytes (GB * 1024^3) as usize
+        // Convert max_memory_gb directly to bytes (GB * 1024^3)
         let max_memory_bytes = (memory_gb as usize) * 1024 * 1024 * 1024;
-        
+
         debug!("Creating runtime environment with memory limit of {memory_gb} GB ({max_memory_bytes} bytes)");
-        
-        // Create a RuntimeEnv with the configured memory limit
+
         // Use 0.95 as the memory use percentage (allowing 95% of the limit to be used)
         let runtime_env = RuntimeEnvBuilder::new()
             .with_memory_limit(max_memory_bytes, 0.95)
             .build_arc()
             .expect("Failed to build runtime environment");
-        
-        // Create a SessionContext with the runtime environment
+
         let config = datafusion::execution::config::SessionConfig::new();
         SessionContext::new_with_config_rt(config, runtime_env)
     } else {
@@ -158,7 +220,6 @@ pub async fn execute_aqueduct_pipeline(
         SessionContext::new()
     };
 
-    // Register JSON functions - this should not fail in normal circumstances
     datafusion_functions_json::register_all(&mut ctx)
         .expect("Failed to register DataFusion JSON functions");
 
@@ -169,7 +230,6 @@ pub async fn execute_aqueduct_pipeline(
         + pipeline.stages.len()
         + if pipeline.destination.is_some() { 1 } else { 0 };
 
-    // Send progress event for pipeline parsing
     let _ = tx
         .send(Ok(ExecutionEvent::Progress {
             execution_id: execution_id.clone(),
@@ -179,17 +239,14 @@ pub async fn execute_aqueduct_pipeline(
         }))
         .await;
 
-    // Create a progress tracker
     let progress_tracker = Arc::new(ExecutorProgressTracker::new(
         tx.clone(),
         execution_id.clone(),
         total_steps,
     ));
 
-    // Execute pipeline with progress tracking
     match aqueducts::run_pipeline(ctx, pipeline, Some(progress_tracker)).await {
         Ok(_) => {
-            // Send "Completed" event
             let _ = tx
                 .send(Ok(ExecutionEvent::Completed {
                     execution_id: execution_id.clone(),
@@ -201,7 +258,6 @@ pub async fn execute_aqueduct_pipeline(
             let error_msg = format!("Pipeline execution failed: {}", err);
             error!("{}", error_msg);
 
-            // Send error event
             let _ = tx
                 .send(Ok(ExecutionEvent::Error {
                     execution_id: execution_id.clone(),
@@ -226,13 +282,14 @@ pub async fn execute_aqueduct_pipeline(
 ///
 /// This function aborts the running task, sends a cancellation event through the SSE stream,
 /// and updates the execution state to idle.
-pub async fn cancel_current_execution(execution_id: &str) -> Result<(), ExecutorError> {
-    // Get the event sender and task handle from the execution status
+pub async fn cancel_current_execution(
+    execution_id: &str,
+    state_manager: &ExecutionStateManager,
+) -> Result<(), ExecutorError> {
     let (tx, task_handle) = {
         let mut status_opt = None;
 
-        if let Ok(mut locked_status) = EXECUTION_STATUS.lock() {
-            // Extract task handle and event sender, then update status to idle
+        if let Ok(mut locked_status) = state_manager.execution_status.lock() {
             let tx = locked_status.event_sender.clone();
             let handle = locked_status.task_handle.take();
 
@@ -252,7 +309,7 @@ pub async fn cancel_current_execution(execution_id: &str) -> Result<(), Executor
             execution_id: execution_id.to_string(),
             message: "Pipeline execution cancelled".to_string(),
         };
-        
+
         let _ = sender.send(Ok(cancelled_event)).await;
     }
 
@@ -265,11 +322,7 @@ pub async fn cancel_current_execution(execution_id: &str) -> Result<(), Executor
 
     // If we couldn't get a lock or there wasn't a task handle,
     // reset the execution status
-    set_execution_status(ExecutionStatus {
-        state: ExecutorState::Idle,
-        task_handle: None,
-        event_sender: None,
-    })?;
+    state_manager.reset_to_idle()?;
 
     info!("Cancelled pipeline execution (id: {execution_id})");
     Ok(())
@@ -280,10 +333,9 @@ mod tests {
     use super::*;
     use rstest::rstest;
     use std::time::Duration;
-    
+
     #[tokio::test]
     async fn test_execution_status_view_from() {
-        // Create execution status with running state
         let execution_id = "test-id".to_string();
         let started_at = Instant::now();
         let status = ExecutionStatus {
@@ -295,14 +347,15 @@ mod tests {
             event_sender: None,
         };
 
-        // Convert to view
         let view = ExecutionStatusView::from(&status);
-        
-        // Verify state conversion
+
         match view.state {
-            ExecutorState::Running { execution_id: ref id, started_at: _ } => {
+            ExecutorState::Running {
+                execution_id: ref id,
+                started_at: _,
+            } => {
                 assert_eq!(id, &execution_id);
-            },
+            }
             _ => panic!("Expected Running state but got {:?}", view.state),
         }
     }
@@ -310,10 +363,10 @@ mod tests {
     #[rstest]
     #[case(ExecutorState::Idle, false)]
     #[case(
-        ExecutorState::Running { 
-            execution_id: "test-id".to_string(), 
-            started_at: Instant::now() 
-        }, 
+        ExecutorState::Running {
+            execution_id: "test-id".to_string(),
+            started_at: Instant::now()
+        },
         true
     )]
     fn test_execution_status_view_is_running(#[case] state: ExecutorState, #[case] expected: bool) {
@@ -324,20 +377,22 @@ mod tests {
     #[rstest]
     #[case(ExecutorState::Idle, None)]
     #[case(
-        ExecutorState::Running { 
-            execution_id: "test-id".to_string(), 
-            started_at: Instant::now() 
-        }, 
+        ExecutorState::Running {
+            execution_id: "test-id".to_string(),
+            started_at: Instant::now()
+        },
         Some("test-id".to_string())
     )]
-    fn test_execution_status_view_execution_id(#[case] state: ExecutorState, #[case] expected: Option<String>) {
+    fn test_execution_status_view_execution_id(
+        #[case] state: ExecutorState,
+        #[case] expected: Option<String>,
+    ) {
         let view = ExecutionStatusView { state };
         assert_eq!(view.execution_id(), expected);
     }
 
     #[tokio::test]
     async fn test_running_time_for_running_status() {
-        // Create a status with a known start time
         let execution_id = "test-id".to_string();
         let started_at = Instant::now();
         let view = ExecutionStatusView {
@@ -346,24 +401,29 @@ mod tests {
                 started_at,
             },
         };
-        
-        // Give it a tiny bit of time to elapse
+
         tokio::time::sleep(Duration::from_millis(10)).await;
-        
-        // Verify we get a non-zero running time
+
         let running_time = view.running_time();
         assert!(running_time.is_some());
     }
 
     #[tokio::test]
     async fn test_running_time_for_idle_status() {
-        let view = ExecutionStatusView { state: ExecutorState::Idle };
+        let view = ExecutionStatusView {
+            state: ExecutorState::Idle,
+        };
         assert_eq!(view.running_time(), None);
     }
 
     #[tokio::test]
     async fn test_set_get_execution_status() {
-        // Create a test status
+        let state_manager = ExecutionStateManager::new();
+
+        state_manager
+            .reset_to_idle()
+            .expect("Failed to reset to idle state");
+
         let execution_id = "test-id".to_string();
         let started_at = Instant::now();
         let status = ExecutionStatus {
@@ -374,43 +434,41 @@ mod tests {
             task_handle: None,
             event_sender: None,
         };
-        
-        // Set the status
-        set_execution_status(status).unwrap();
-        
-        // Get the status and verify
-        let view = get_execution_status().unwrap();
-        assert!(view.is_running());
+
+        state_manager.set_status(status).unwrap();
+
+        let view = state_manager.get_status().unwrap();
+        assert!(view.is_running(), "Expected execution status to be running");
         assert_eq!(view.execution_id(), Some(execution_id));
-        
-        // Reset to idle for other tests
-        set_execution_status(ExecutionStatus {
-            state: ExecutorState::Idle,
-            task_handle: None,
-            event_sender: None,
-        }).unwrap();
+
+        state_manager.reset_to_idle().unwrap();
     }
 
     #[tokio::test]
     async fn test_set_execution_status_to_idle_clears_task_handle() {
-        // Create a test status with task handle
+        let state_manager = ExecutionStateManager::new();
+
+        state_manager
+            .reset_to_idle()
+            .expect("Failed to reset to idle state");
+
         let mut status = ExecutionStatus {
             state: ExecutorState::Idle,
             task_handle: Some(tokio::spawn(async {})),
             event_sender: None,
         };
-        
-        // Set the status - this should clear the task handle
-        set_execution_status(status).unwrap();
-        
-        // Create new status object to avoid borrowing issues
+
+        state_manager.set_status(status).unwrap();
+
         status = ExecutionStatus {
             state: ExecutorState::Idle,
             task_handle: None,
             event_sender: None,
         };
-        
-        // Set again and verify
-        set_execution_status(status).unwrap();
+
+        state_manager.set_status(status).unwrap();
+
+        let view = state_manager.get_status().unwrap();
+        assert!(!view.is_running(), "Status should be idle");
     }
 }

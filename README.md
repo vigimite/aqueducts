@@ -8,14 +8,17 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 
 **Features:**
 
-- Define ETL pipelines in YAML
-- Extract data from csv files, JSONL, parquet files or delta tables
-- Process data using SQL
-- Load data into object stores as csv/parquet or delta tables
-- Support for file and delta table partitioning
-- Support for Upsert/Replace/Append operation on delta tables
-- Support for Local, S3, GCS and Azure Blob storage
-- *EXPERIMENTAL* Support for ODBC Sources and Destinations
+- Define ETL pipelines in YAML, JSON, or TOML format
+- Run pipelines locally or remotely with the CLI
+- Process data using SQL with the power of DataFusion
+- Extract data from CSV files, JSONL, Parquet files, or Delta tables
+- Connect to databases via ODBC for both sources and destinations
+- Load data into object stores as CSV/Parquet or Delta tables
+- Support for file and Delta table partitioning
+- Support for Upsert/Replace/Append operations on Delta tables
+- Support for Local, S3, GCS, and Azure Blob storage
+- Memory management for resource-intensive operations
+- Real-time progress tracking for pipeline execution
 
 This framework builds on the fantastic work done by projects such as:
 
@@ -31,16 +34,57 @@ You can find the docs at <https://vigimite.github.io/aqueducts>
 
 Change log: [CHANGELOG](CHANGELOG.md)
 
+## Components
+
+Aqueducts consists of several components:
+
+- **Core Library**: The main engine for defining and executing data pipelines
+- **CLI**: Command-line interface to run pipelines locally or connect to remote executors
+- **Executor**: Server component for running pipelines remotely, closer to data sources
+- **Utils**: Shared utilities and models used across components
+
+For component-specific details, see the respective README files:
+- [CLI README](aqueducts-cli/README.md)
+- [Executor README](aqueducts-executor/README.md)
+
 ## Quick start
 
-To define and execute an Aqueduct pipeline there are a couple of options
+### Local Execution
 
-- using a yaml configuration file
-- using a json configuration file
-- manually in code
+Install the CLI and run a pipeline locally:
 
-You can check out some examples in the [examples](examples) directory.
-Here is a simple example defining an Aqueduct pipeline using the yaml config format [link](examples/aqueduct_pipeline_simple.yml):
+```bash
+cargo install aqueducts-cli
+aqueducts run --file examples/aqueduct_pipeline_example.yml --param year=2024 --param month=jan
+```
+
+### Remote Execution
+
+1. Start a remote executor:
+
+```bash
+# Install the executor (with default cloud storage support)
+cargo install aqueducts-executor
+
+# For ODBC support (requires unixodbc-dev to be installed)
+cargo install aqueducts-executor --features odbc
+
+# Run the executor with an API key
+aqueducts-executor --api-key your_secret_key --max-memory 4
+```
+
+2. Execute a pipeline remotely:
+
+```bash
+aqueducts run --file examples/aqueduct_pipeline_example.yml \
+  --param year=2024 --param month=jan \
+  --executor http://executor-host:3031 \
+  --api-key your_secret_key
+```
+
+## Example Pipeline
+
+Here's a simple example pipeline in YAML format ([full example](examples/aqueduct_pipeline_simple.yml)):
 
 ```yaml
 sources:
@@ -109,18 +153,11 @@ destination:
   location: ./examples/output_${month}_${year}.parquet
 ```
 
-This repository contains a minimal example implementation of the Aqueducts framework which can be used to test out pipeline definitions like the one above:
-
-```bash
-cargo install aqueducts-cli
-aqueducts --file examples/aqueduct_pipeline_example.yml --param year=2024 --param month=jan
-```
-
 ## Roadmap
 
 - [x] Docs
-- [x] ODBC source
-- [x] ODBC destination
+- [x] ODBC source and destination
 - [x] Parallel processing of stages
-- [ ] Streaming Source (initially kafka + maybe aws kinesis)
-- [ ] Streaming destination (initially kafka)
+- [x] Remote execution
+- [x] Memory management
+- [ ] Web server for pipeline management and orchestration

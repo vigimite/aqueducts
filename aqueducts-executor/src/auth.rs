@@ -70,8 +70,9 @@ mod tests {
         let state = Arc::new(AppState {
             api_key: "test-api-key".to_string(),
             executor_id: "test-executor-id".to_string(),
-            max_memory_gb: 4,
+            max_memory_gb: None,
             _server_url: None,
+            execution_state_manager: Arc::new(crate::executor::ExecutionStateManager::new()),
         });
         let middleware = from_fn_with_state(state, api_key_auth);
         let svc = service_fn(test_service);
@@ -91,8 +92,9 @@ mod tests {
         let state = Arc::new(AppState {
             api_key: "test-api-key".to_string(),
             executor_id: "test-executor-id".to_string(),
-            max_memory_gb: 4,
+            max_memory_gb: None,
             _server_url: None,
+            execution_state_manager: Arc::new(crate::executor::ExecutionStateManager::new()),
         });
 
         let middleware = from_fn_with_state(state, api_key_auth);

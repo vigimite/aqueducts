@@ -14,11 +14,8 @@ build = "build.rs"
 publish = false
 
 [build-dependencies]
-# Core aqueducts library with schema generation feature
 aqueducts = { workspace = true, features = ["schema_gen", "odbc"] }
 
-# Schema tools
 schemars.workspace = true
 
-# Serialization
 serde_json.workspace = true

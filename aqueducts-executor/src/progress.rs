@@ -1,9 +1,9 @@
-use std::convert::Infallible;
-use std::sync::atomic::AtomicUsize;
-use tokio::sync::mpsc;
-use tokio::runtime::Handle;
 use aqueducts::ProgressEventType;
 use aqueducts_utils::executor_events::ExecutionEvent;
+use std::convert::Infallible;
+use std::sync::atomic::AtomicUsize;
+use tokio::runtime::Handle;
+use tokio::sync::mpsc;
 
 /// Implementation of ProgressTracker for the executor
 pub struct ExecutorProgressTracker {
@@ -14,7 +14,6 @@ pub struct ExecutorProgressTracker {
 }
 
 impl ExecutorProgressTracker {
-    /// Create a new progress tracker
     pub fn new(
         tx: mpsc::Sender<Result<ExecutionEvent, Infallible>>,
         execution_id: String,
@@ -27,7 +26,7 @@ impl ExecutorProgressTracker {
             completed_steps: AtomicUsize::new(0),
         }
     }
-    
+
     /// Calculate progress percentage based on completed steps
     fn calculate_progress(&self, current: usize) -> u8 {
         // Start at 10% after parsing, go up to 95% before completion (the last 5% is for cleanup)
@@ -38,10 +37,8 @@ impl ExecutorProgressTracker {
 impl aqueducts::ProgressTracker for ExecutorProgressTracker {
     fn on_progress(&self, event: ProgressEventType) {
         let execution_event = match &event {
-            ProgressEventType::Started => {
-                ExecutionEvent::Started {
-                    execution_id: self.execution_id.clone(),
-                }
+            ProgressEventType::Started => ExecutionEvent::Started {
+                execution_id: self.execution_id.clone(),
             },
             ProgressEventType::SourceRegistered { name } => {
                 let current = self
@@ -49,17 +46,21 @@ impl aqueducts::ProgressTracker for ExecutorProgressTracker {
                     .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
                     + 1;
                 let progress = self.calculate_progress(current);
-                
+
                 ExecutionEvent::Progress {
                     execution_id: self.execution_id.clone(),
                     message: format!("Registered source: {}", name),
                     progress,
                     current_stage: Some(name.clone()),
                 }
-            },
-            ProgressEventType::StageStarted { name, position, sub_position } => {
+            }
+            ProgressEventType::StageStarted {
+                name,
+                position,
+                sub_position,
+            } => {
                 let pos_info = format!("{}_{}", position, sub_position);
-                
+
                 ExecutionEvent::Progress {
                     execution_id: self.execution_id.clone(),
                     message: format!(
@@ -67,20 +68,26 @@ impl aqueducts::ProgressTracker for ExecutorProgressTracker {
                         name, position, sub_position
                     ),
                     progress: self.calculate_progress(
-                        self.completed_steps.load(std::sync::atomic::Ordering::SeqCst)
+                        self.completed_steps
+                            .load(std::sync::atomic::Ordering::SeqCst),
                     ),
                     current_stage: Some(format!("{}:{}", name, pos_info)),
                 }
-            },
-            ProgressEventType::StageCompleted { name, position, sub_position, .. } => {
+            }
+            ProgressEventType::StageCompleted {
+                name,
+                position,
+                sub_position,
+                ..
+            } => {
                 let current = self
                     .completed_steps
                     .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
                     + 1;
                 let progress = self.calculate_progress(current);
-                
+
                 let pos_info = format!("{}_{}", position, sub_position);
-                
+
                 ExecutionEvent::Progress {
                     execution_id: self.execution_id.clone(),
                     message: format!(
@@ -90,60 +97,53 @@ impl aqueducts::ProgressTracker for ExecutorProgressTracker {
                     progress,
                     current_stage: Some(format!("{}:{}", name, pos_info)),
                 }
-            },
+            }
             ProgressEventType::DestinationCompleted => {
                 let current = self
                     .completed_steps
                     .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
                     + 1;
                 let progress = self.calculate_progress(current);
-                
+
                 ExecutionEvent::Progress {
                     execution_id: self.execution_id.clone(),
                     message: "Writing to destination completed".to_string(),
                     progress,
                     current_stage: Some("destination".to_string()),
                 }
-            },
-            ProgressEventType::Completed { .. } => {
-                ExecutionEvent::Progress {
-                    execution_id: self.execution_id.clone(),
-                    message: "Pipeline execution nearly complete".to_string(),
-                    progress: 95,
-                    current_stage: None,
-                }
+            }
+            ProgressEventType::Completed { .. } => ExecutionEvent::Progress {
+                execution_id: self.execution_id.clone(),
+                message: "Pipeline execution nearly complete".to_string(),
+                progress: 95,
+                current_stage: None,
             },
         };
-        
+
         // Send the execution event via the channel
         let tx = self.tx.clone();
         let event = Ok(execution_event);
-        
-        // Use the current tokio runtime to spawn a task for sending the event
+
         Handle::current().spawn(async move {
             let _ = tx.send(event).await;
         });
     }
-    
+
     fn on_stage_output(&self, stage_name: &str, output_type: &str, output: &str) {
-        // Create a stage output event
         let execution_event = ExecutionEvent::StageOutput {
             execution_id: self.execution_id.clone(),
             stage_name: stage_name.to_string(),
             output_type: output_type.to_string(),
             data: output.to_string(),
         };
-        
-        // Send the event via the channel
+
         let tx = self.tx.clone();
         let event = Ok(execution_event);
-        
-        // Use the current tokio runtime to spawn a task for sending the event
+
         Handle::current().spawn(async move {
             let _ = tx.send(event).await;
         });
-        
-        // Also log a message that output was captured
+
         tracing::info!("Captured {} output for stage {}", output_type, stage_name);
     }
 }
@@ -154,18 +154,16 @@ mod tests {
     use aqueducts::ProgressTracker;
     use rstest::rstest;
     use std::time::Duration;
-    
+
     #[tokio::test]
     async fn test_execution_event_serialization() {
-        // Test Started event
         let started_event = ExecutionEvent::Started {
             execution_id: "test-execution".to_string(),
         };
         let json = serde_json::to_string(&started_event).unwrap();
         assert!(json.contains("\"event_type\":\"started\""));
         assert!(json.contains("\"execution_id\":\"test-execution\""));
-        
-        // Test Progress event
+
         let progress_event = ExecutionEvent::Progress {
             execution_id: "test-execution".to_string(),
             message: "Test progress".to_string(),
@@ -176,8 +174,7 @@ mod tests {
         assert!(json.contains("\"event_type\":\"progress\""));
         assert!(json.contains("\"progress\":50"));
         assert!(json.contains("\"current_stage\":\"test-stage\""));
-        
-        // Test Completed event
+
         let completed_event = ExecutionEvent::Completed {
             execution_id: "test-execution".to_string(),
             message: "Test completed".to_string(),
@@ -185,8 +182,7 @@ mod tests {
         let json = serde_json::to_string(&completed_event).unwrap();
         assert!(json.contains("\"event_type\":\"completed\""));
         assert!(json.contains("\"message\":\"Test completed\""));
-        
-        // Test Error event
+
         let error_event = ExecutionEvent::Error {
             execution_id: "test-execution".to_string(),
             message: "Test error".to_string(),
@@ -195,8 +191,7 @@ mod tests {
         let json = serde_json::to_string(&error_event).unwrap();
         assert!(json.contains("\"event_type\":\"error\""));
         assert!(json.contains("\"details\":\"Error details\""));
-        
-        // Test Cancelled event
+
         let cancelled_event = ExecutionEvent::Cancelled {
             execution_id: "test-execution".to_string(),
             message: "Test cancelled".to_string(),
@@ -204,8 +199,7 @@ mod tests {
         let json = serde_json::to_string(&cancelled_event).unwrap();
         assert!(json.contains("\"event_type\":\"cancelled\""));
         assert!(json.contains("\"message\":\"Test cancelled\""));
-        
-        // Test StageOutput event
+
         let stage_output_event = ExecutionEvent::StageOutput {
             execution_id: "test-execution".to_string(),
             stage_name: "test-stage".to_string(),
@@ -221,67 +215,73 @@ mod tests {
 
     #[tokio::test]
     async fn test_progress_calculation() {
-        // Create a progress tracker with 10 total steps
         let (tx, _rx) = mpsc::channel(100);
-        let tracker = ExecutorProgressTracker::new(
-            tx,
-            "test-execution".to_string(),
-            10,
-        );
-        
-        // Test progress calculation for different step counts
-        let progress1 = tracker.calculate_progress(0);  // 0/10 steps
-        let progress2 = tracker.calculate_progress(5);  // 5/10 steps
+        let tracker = ExecutorProgressTracker::new(tx, "test-execution".to_string(), 10);
+
+        let progress1 = tracker.calculate_progress(0); // 0/10 steps
+        let progress2 = tracker.calculate_progress(5); // 5/10 steps
         let progress3 = tracker.calculate_progress(10); // 10/10 steps
-        
-        // Progress should start at 10% (after parsing) and go up to 90% (before completion)
-        assert_eq!(progress1, 10);  // 0% of remaining 80% + 10% base
-        assert_eq!(progress2, 50);  // 50% of remaining 80% + 10% base
-        assert_eq!(progress3, 90);  // 100% of remaining 80% + 10% base
+
+        assert_eq!(progress1, 10); // 0% of remaining 80% + 10% base
+        assert_eq!(progress2, 50); // 50% of remaining 80% + 10% base
+        assert_eq!(progress3, 90); // 100% of remaining 80% + 10% base
     }
 
     #[tokio::test]
     async fn test_progress_tracker_sends_events() {
-        // Create a channel and progress tracker
         let (tx, mut rx) = mpsc::channel::<Result<ExecutionEvent, Infallible>>(100);
         let tracker = ExecutorProgressTracker::new(
             tx,
             "test-execution".to_string(),
             4, // 4 total steps
         );
-        
-        // Send a source registered event
-        tracker.on_progress(ProgressEventType::SourceRegistered { 
-            name: "test-source".to_string() 
+
+        tracker.on_progress(ProgressEventType::SourceRegistered {
+            name: "test-source".to_string(),
         });
-        
-        // Check that we receive the event
-        let event = tokio::time::timeout(Duration::from_millis(100), rx.recv()).await.unwrap().unwrap().unwrap();
+
+        let event = tokio::time::timeout(Duration::from_millis(100), rx.recv())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
         match event {
-            ExecutionEvent::Progress { execution_id, message, progress, current_stage } => {
+            ExecutionEvent::Progress {
+                execution_id,
+                message,
+                progress,
+                current_stage,
+            } => {
                 assert_eq!(execution_id, "test-execution");
                 assert!(message.contains("test-source"));
                 assert_eq!(progress, 30); // 10% + (1/4 * 80%)
                 assert_eq!(current_stage, Some("test-source".to_string()));
-            },
+            }
             _ => panic!("Expected Progress event but got {:?}", event),
         }
-        
-        // Send a stage started event
-        tracker.on_progress(ProgressEventType::StageStarted { 
+
+        tracker.on_progress(ProgressEventType::StageStarted {
             name: "test-stage".to_string(),
             position: 1,
             sub_position: 0,
         });
-        
-        // Check that we receive the event
-        let event = tokio::time::timeout(Duration::from_millis(100), rx.recv()).await.unwrap().unwrap().unwrap();
+
+        let event = tokio::time::timeout(Duration::from_millis(100), rx.recv())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
         match event {
-            ExecutionEvent::Progress { execution_id, message, progress: _, current_stage } => {
+            ExecutionEvent::Progress {
+                execution_id,
+                message,
+                progress: _,
+                current_stage,
+            } => {
                 assert_eq!(execution_id, "test-execution");
                 assert!(message.contains("test-stage"));
                 assert_eq!(current_stage, Some("test-stage:1_0".to_string()));
-            },
+            }
             _ => panic!("Expected Progress event but got {:?}", event),
         }
     }
@@ -293,34 +293,32 @@ mod tests {
         "Progress"
     )]
     #[case(
-        ProgressEventType::StageStarted { 
-            name: "test-stage".to_string(), 
-            position: 0, 
-            sub_position: 0 
-        }, 
+        ProgressEventType::StageStarted {
+            name: "test-stage".to_string(),
+            position: 0,
+            sub_position: 0
+        },
         "Progress"
     )]
     #[case(
-        ProgressEventType::StageCompleted { 
-            name: "test-stage".to_string(), 
-            position: 0, 
+        ProgressEventType::StageCompleted {
+            name: "test-stage".to_string(),
+            position: 0,
             sub_position: 0,
             duration_ms: 10
-        }, 
+        },
         "Progress"
     )]
     #[case(ProgressEventType::DestinationCompleted, "Progress")]
     #[case(
-        ProgressEventType::Completed { duration_ms: 10 }, 
+        ProgressEventType::Completed { duration_ms: 10 },
         "Progress"
     )]
     #[tokio::test]
     async fn test_progress_tracker_event_types(
-        #[case] event_type: ProgressEventType, 
-        #[case] expected_event_type: &str
+        #[case] event_type: ProgressEventType,
+        #[case] expected_event_type: &str,
     ) {
-        // Create a channel and progress tracker
-
         use aqueducts::ProgressTracker;
         let (tx, mut rx) = mpsc::channel::<Result<ExecutionEvent, Infallible>>(100);
         let tracker = ExecutorProgressTracker::new(
@@ -328,18 +326,20 @@ mod tests {
             "test-execution".to_string(),
             4, // 4 total steps
         );
-        
-        // Send the event
+
         tracker.on_progress(event_type);
-        
-        // Check that we receive an event of the expected type
-        let event = tokio::time::timeout(Duration::from_millis(100), rx.recv()).await.unwrap().unwrap().unwrap();
+
+        let event = tokio::time::timeout(Duration::from_millis(100), rx.recv())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
         match event {
-            ExecutionEvent::Started { .. } if expected_event_type == "Started" => {},
-            ExecutionEvent::Progress { .. } if expected_event_type == "Progress" => {},
-            ExecutionEvent::Completed { .. } if expected_event_type == "Completed" => {},
-            ExecutionEvent::Error { .. } if expected_event_type == "Error" => {},
-            ExecutionEvent::Cancelled { .. } if expected_event_type == "Cancelled" => {},
+            ExecutionEvent::Started { .. } if expected_event_type == "Started" => {}
+            ExecutionEvent::Progress { .. } if expected_event_type == "Progress" => {}
+            ExecutionEvent::Completed { .. } if expected_event_type == "Completed" => {}
+            ExecutionEvent::Error { .. } if expected_event_type == "Error" => {}
+            ExecutionEvent::Cancelled { .. } if expected_event_type == "Cancelled" => {}
             _ => panic!("Expected {} event but got {:?}", expected_event_type, event),
         }
     }

@@ -11,42 +11,34 @@ keywords = ["aqueducts", "ETL", "data", "pipeline"]
 categories = ["command-line-utilities"]
 license = "Apache-2.0"
 
+[features]
+default = []
+odbc = ["aqueducts/odbc"]
+
 [dependencies]
-# Core aqueducts library
-aqueducts = { workspace = true, features = ["json"] }
-# Utils
+aqueducts = { workspace = true, features = ["json", "s3", "gcs", "azure"] }
 aqueducts-utils.workspace = true
 
-# Web framework
 axum.workspace = true
-
-# CLI and configuration
 clap.workspace = true
 
-# Data processing
 datafusion.workspace = true
 datafusion-functions-json.workspace = true
 
-# Serialization
 serde.workspace = true
 serde_json.workspace = true
 
-# Error handling
 thiserror.workspace = true
 
-# Async runtime and utilities
 tokio = { workspace = true, features = ["full"] }
 tokio-stream.workspace = true
 
-# Logging
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["json"] }
 
-# Utilities
 uuid.workspace = true
 
 [dev-dependencies]
-# Testing
 rstest.workspace = true
 futures-util.workspace = true
 tower.workspace = true

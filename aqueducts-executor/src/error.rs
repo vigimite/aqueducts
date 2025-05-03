@@ -105,21 +105,17 @@ impl IntoResponse for ExecutorError {
             }
         };
 
-        // Convert the error response to JSON
         let body = serde_json::to_string(&error_response)
             .unwrap_or_else(|_| format!("{{\"error\": \"{}\"}}", self));
 
-        // Build a response with proper headers and JSON body
         let mut response = Response::new(body.into());
         *response.status_mut() = status;
 
-        // Add Content-Type header
         response.headers_mut().insert(
             header::CONTENT_TYPE,
             header::HeaderValue::from_static("application/json"),
         );
 
-        // Add any additional headers
         for (key, value) in headers.iter() {
             response.headers_mut().insert(key, value.clone());
         }
@@ -136,21 +132,21 @@ mod tests {
 
     #[rstest]
     #[case(
-        ExecutorError::AuthenticationFailed, 
-        StatusCode::UNAUTHORIZED, 
+        ExecutorError::AuthenticationFailed,
+        StatusCode::UNAUTHORIZED,
         vec![]
     )]
     #[case(
-        ExecutorError::ExecutionFailed("Test error".to_string()), 
-        StatusCode::INTERNAL_SERVER_ERROR, 
+        ExecutorError::ExecutionFailed("Test error".to_string()),
+        StatusCode::INTERNAL_SERVER_ERROR,
         vec![]
     )]
     #[case(
-        ExecutorError::AlreadyRunning { 
-            execution_id: "test-id".to_string(), 
-            retry_after: 30 
-        }, 
-        StatusCode::TOO_MANY_REQUESTS, 
+        ExecutorError::AlreadyRunning {
+            execution_id: "test-id".to_string(),
+            retry_after: 30
+        },
+        StatusCode::TOO_MANY_REQUESTS,
         vec![
             (header::RETRY_AFTER.to_string(), "30".to_string()),
             ("x-ratelimit-limit".to_string(), "1".to_string()),
@@ -159,18 +155,21 @@ mod tests {
         ]
     )]
     fn test_error_into_response(
-        #[case] error: ExecutorError, 
-        #[case] expected_status: StatusCode, 
-        #[case] expected_headers: Vec<(String, String)>
+        #[case] error: ExecutorError,
+        #[case] expected_status: StatusCode,
+        #[case] expected_headers: Vec<(String, String)>,
     ) {
         let response = error.into_response();
         assert_eq!(response.status(), expected_status);
-        
+
         for (header_name, header_value) in expected_headers {
-            let header = response.headers().get(header_name).expect("Header not found");
+            let header = response
+                .headers()
+                .get(header_name)
+                .expect("Header not found");
             assert_eq!(header.to_str().unwrap(), header_value);
         }
-        
+
         assert_eq!(
             response.headers().get(header::CONTENT_TYPE).unwrap(),
             "application/json"
@@ -183,24 +182,20 @@ mod tests {
             execution_id: "test-id".to_string(),
             retry_after: 30,
         };
-        
+
         let response = error.into_response();
         let body = response.into_body();
-        
+
         // Use a large limit for testing (16MB)
         let body_bytes = body::to_bytes(body, 16 * 1024 * 1024).await.unwrap();
         let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
-        
+
         assert!(body_str.contains("\"execution_id\":\"test-id\""));
         assert!(body_str.contains("\"retry_after\":30"));
     }
 
-    // Convert individual error message tests to a table-driven test
     #[rstest]
-    #[case(
-        ExecutorError::AuthenticationFailed,
-        "Authentication failed"
-    )]
+    #[case(ExecutorError::AuthenticationFailed, "Authentication failed")]
     #[case(
         ExecutorError::ExecutionFailed("Test failure".to_string()),
         "Execution failed: Test failure"

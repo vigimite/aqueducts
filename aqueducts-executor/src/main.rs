@@ -11,6 +11,7 @@ use axum::{
     Router,
 };
 use clap::Parser;
+use executor::ExecutionStateManager;
 use handlers::{cancel_pipeline, execute_pipeline, get_status, health_check};
 use std::{net::SocketAddr, str::FromStr, sync::Arc};
 use tracing::{info, Level};
@@ -33,9 +34,9 @@ struct Cli {
     #[arg(long, env = "AQUEDUCTS_PORT", default_value = "3031")]
     port: u16,
 
-    /// Maximum memory usage in GB (0 for unlimited)
-    #[arg(long, env = "AQUEDUCTS_MAX_MEMORY", default_value = "0")]
-    max_memory: u32,
+    /// Maximum memory usage in GB
+    #[arg(long, env = "AQUEDUCTS_MAX_MEMORY")]
+    max_memory: Option<u32>,
 
     /// URL of Aqueducts server for registration (optional)
     #[arg(long, env = "AQUEDUCTS_SERVER_URL")]
@@ -54,15 +55,16 @@ struct Cli {
 pub struct AppState {
     pub api_key: String,
     pub executor_id: String,
-    pub max_memory_gb: u32,
+    pub max_memory_gb: Option<u32>,
     pub _server_url: Option<String>,
+    pub execution_state_manager: Arc<ExecutionStateManager>,
 }
 
 impl AppState {
     pub fn new(
         api_key: String,
         executor_id: String,
-        max_memory_gb: u32,
+        max_memory_gb: Option<u32>,
         _server_url: Option<String>,
     ) -> Self {
         Self {
@@ -70,6 +72,7 @@ impl AppState {
             executor_id,
             max_memory_gb,
             _server_url,
+            execution_state_manager: Arc::new(ExecutionStateManager::new()),
         }
     }
 }
@@ -78,9 +81,7 @@ impl AppState {
 async fn main() {
     let cli = Cli::parse();
 
-    // Setup JSON-formatted logging for better integration with log aggregation systems
     let log_level = Level::from_str(cli.log_level.to_lowercase().as_str()).unwrap_or(Level::INFO);
-
     tracing_subscriber::registry()
         .with(
             fmt::layer()
@@ -103,7 +104,6 @@ async fn main() {
         info!("Failed to initialize DataFusion JSON functions (will be retried at execution time): {}", e);
     }
 
-    // Generate executor ID if not provided
     let executor_id = cli
         .executor_id
         .unwrap_or_else(|| Uuid::new_v4().to_string());
@@ -120,10 +120,8 @@ async fn main() {
         cli.server_url,
     ));
 
-    // Public routes (no authentication required)
     let public_routes = Router::new().route("/health", get(health_check));
 
-    // Protected routes (require authentication)
     let protected_routes = Router::new()
         .route("/execute", post(execute_pipeline))
         .route("/cancel", post(cancel_pipeline))

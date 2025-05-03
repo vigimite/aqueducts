@@ -231,34 +231,147 @@ Example response:
 Install the application using cargo install:
 
 ```bash
-cargo install aqueducts-executor --features s3,gcs,azure,yaml,odbc
+# Standard installation with all cloud storage features
+cargo install aqueducts-executor
+
+# Installation with ODBC support
+cargo install aqueducts-executor --features odbc
+```
+
+#### ODBC Configuration Requirements
+
+ODBC support requires the UnixODBC library to be installed on your system, along with any database-specific drivers.
+
+##### Ubuntu/Debian
+```bash
+# Install UnixODBC development libraries
+sudo apt-get update
+sudo apt-get install unixodbc-dev
+
+# Add database-specific drivers (examples)
+# For PostgreSQL
+sudo apt-get install odbc-postgresql
+
+# For MySQL
+sudo apt-get install libmyodbc
+```
+
+##### Fedora/RHEL/CentOS
+```bash
+# Install UnixODBC development libraries
+sudo dnf install unixODBC-devel
+
+# Add database-specific drivers (examples)
+# For PostgreSQL
+sudo dnf install postgresql-odbc
+
+# For MySQL
+sudo dnf install mysql-connector-odbc
+```
+
+##### macOS
+Installation on macOS can be more complex due to driver management:
+```bash
+# Install UnixODBC via Homebrew
+brew install unixodbc
+
+# For database drivers, use Homebrew if available or download from the database vendor
+# PostgreSQL example
+brew install psqlodbc
+
+# MySQL example
+brew install mysql-connector-c++
+```
+
+After installing drivers, you'll need to configure your DSN in the `odbcinst.ini` and `odbc.ini` files. Typical locations:
+- Linux: `/etc/odbcinst.ini` and `/etc/odbc.ini`
+- macOS with Homebrew: `$(brew --prefix)/etc/odbcinst.ini` and `$(brew --prefix)/etc/odbc.ini`
+
+For macOS, you may need to set environment variables for unixODBC:
+```bash
+export DYLD_LIBRARY_PATH=$(brew --prefix)/lib:$DYLD_LIBRARY_PATH
 ```
 
 ### Docker deployment
 
-There is a pre-built docker image at `vigimite/aqueducts-executor` that can be used to deploy to anything that supports hosting docker containers.
+There are pre-built Docker images available:
+
+- `vigimite/aqueducts-executor`
 
 Example usage:
 ```bash
-docker run -p 8080:8080 \
+# Standard image
+docker run -p 3031:3031 \
   -e AQUEDUCTS_API_KEY=your_api_key \
   -e AQUEDUCTS_MAX_MEMORY=8 \  # Allocate 8GB for query processing memory pool (0 for unlimited)
   vigimite/aqueducts-executor
+
+# With ODBC support
+docker run -p 3031:3031 \
+  -e AQUEDUCTS_API_KEY=your_api_key \
+  -e AQUEDUCTS_MAX_MEMORY=8 \
+  -v /path/to/odbc.ini:/etc/odbc.ini \
+  -v /path/to/odbcinst.ini:/etc/odbcinst.ini \
+  vigimite/aqueducts-executor:odbc
 ```
 
-### Helm deployment
+For ODBC connections in Docker, you'll need to:
+1. Mount your ODBC configuration files into the container
+2. Possibly mount driver libraries if they're not included in the image
+3. Set appropriate environment variables for connection strings
 
-An official helm chart can be found at `vigimite/aqueducts-helm-charts/aqueducts-executor`
+For complex ODBC setups, consider creating a custom Dockerfile:
+```dockerfile
+FROM vigimite/aqueducts-executor:odbc
+
+# Install additional ODBC drivers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    msodbcsql17 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add your ODBC configuration
+COPY odbc.ini /etc/odbc.ini
+COPY odbcinst.ini /etc/odbcinst.ini
+
+# Set any needed environment variables
+ENV ODBCSYSINI=/etc
+```
 
 ### Environment Setup
 
 For proper functionality, ensure the following:
 
-1. For ODBC connections, appropriate drivers must be installed on the host system
-2. For cloud storage access, proper credentials must be configured:
-   - AWS: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-   - GCS: GOOGLE_APPLICATION_CREDENTIALS
-   - Azure: AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY
+1. **ODBC Configuration** (when using the `--features odbc` option):
+   - Install UnixODBC and appropriate database drivers on the host system
+   - Configure your DSNs in the standard ODBC configuration files
+   - For a quick test to verify your ODBC setup works:
+     ```bash
+     isql -v YOUR_DSN YOUR_USERNAME YOUR_PASSWORD
+     ```
+   - Consider setting these environment variables for troubleshooting:
+     ```bash
+     export ODBCINI=/path/to/odbc.ini
+     export ODBCSYSINI=/directory/containing/odbcinst.ini
+     export ODBCTRACE=YES  # Enables ODBC tracing for debugging
+     ```
+
+2. **Cloud Storage Configuration**:
+   - AWS: 
+     ```
+     AWS_ACCESS_KEY_ID=your_key
+     AWS_SECRET_ACCESS_KEY=your_secret
+     AWS_REGION=us-west-2  # Optional, but recommended
+     ```
+   - GCS: 
+     ```
+     GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+     ```
+   - Azure: 
+     ```
+     AZURE_STORAGE_ACCOUNT=your_account
+     AZURE_STORAGE_KEY=your_key
+     ```
 
 ## Memory Management
 
@@ -367,6 +480,36 @@ Common issues and solutions:
    - Break large queries into smaller stages with intermediate results
    - When processing large files, consider using more selective column projection
    - For joins on large tables, ensure proper filtering before the join
-5. **Database connectivity**: Confirm ODBC drivers are properly installed
-6. **Log location**: Logs are written to stdout/stderr and can be redirected as needed
-7. **Slow performance**: Monitor memory usage with debug logs enabled to see if memory limits are causing spill-to-disk operations
+5. **Log location**: Logs are written to stdout/stderr and can be redirected as needed
+6. **Slow performance**: Monitor memory usage with debug logs enabled to see if memory limits are causing spill-to-disk operations
+
+### ODBC Troubleshooting
+
+If you're having trouble with ODBC connections:
+
+1. **Compilation errors**:
+   - Make sure `unixodbc-dev` (Ubuntu/Debian) or `unixODBC-devel` (RHEL/CentOS/Fedora) is installed
+   - On macOS, install unixODBC with Homebrew: `brew install unixodbc`
+   
+2. **Connection errors**:
+   - Verify your DSN configuration in `odbc.ini` and `odbcinst.ini`
+   - Set the `ODBCSYSINI` environment variable to point to the directory containing these files
+   - Check that database-specific drivers are installed correctly
+
+3. **Finding your ODBC configuration files**:
+   - Run `odbcinst -j` to see the configuration file locations on your system
+   - Common locations: `/etc/odbc.ini`, `/usr/local/etc/odbc.ini`, or `$HOME/.odbc.ini`
+
+4. **macOS specific issues**:
+   - Library path errors: Set `DYLD_LIBRARY_PATH` to include driver locations
+   - System Integrity Protection conflicts: Use Homebrew's unixODBC exclusively
+   - Driver loading issues: Check compatibility with macOS version (Intel vs. ARM)
+
+5. **Testing ODBC connections outside of Aqueducts**:
+   - Use `isql` tool: `isql -v YourDSN YourUsername YourPassword`
+   - This verifies the connection works at the ODBC level
+
+6. **Docker ODBC configuration**:
+   - Ensure driver libraries are included in the container
+   - Mount configuration files: `-v /path/to/odbc.ini:/etc/odbc.ini`
+   - Mount driver directories if needed
