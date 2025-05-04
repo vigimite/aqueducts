@@ -2,14 +2,28 @@
 
 Thank you for your interest in contributing to Aqueducts! This guide will help you set up your development environment and understand how to effectively contribute to the project.
 
+## Community
+
+Join our Discord community to connect with other contributors, get help, and discuss development:
+
+[Join Aqueducts Discord](https://discord.gg/astQZM3wqy)
+
+Discord is the best place to:
+- Ask questions about development
+- Share your ideas for improvements
+- Find issues to work on
+- Get help with your contributions
+
 ## Table of Contents
 
 1. [Development Environment Setup](#development-environment-setup)
 2. [Running the Components](#running-the-components)
 3. [Testing](#testing)
 4. [Code Style](#code-style)
-5. [Pull Request Process](#pull-request-process)
-6. [Special Configurations](#special-configurations)
+5. [Commit Guidelines](#commit-guidelines)
+6. [Changelog Generation](#changelog-generation)
+7. [Pull Request Process](#pull-request-process)
+8. [Special Configurations](#special-configurations)
 
 ## Development Environment Setup
 
@@ -160,6 +174,128 @@ Key style guidelines:
 - Group imports: std library first, external crates second, internal modules last
 - Use `thiserror` for error types, implement `std::error::Error` trait
 - Follow the existing module organization by domain concepts
+
+## Commit Guidelines
+
+We use [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages to ensure consistent commit history and automatic changelog generation.
+
+### Commit Message Format
+
+Each commit message consists of a **header**, a **body**, and a **footer**:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+#### Type
+
+The type must be one of the following:
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (formatting, etc.)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing or correcting existing tests
+- **chore**: Changes to the build process or auxiliary tools
+
+#### Scope
+
+The scope is optional and should be a noun describing a section of the codebase:
+
+- **cli**: Changes related to the CLI interface
+- **executor**: Changes related to the executor component
+- **core**: Changes to core library functionality
+- **odbc**: Changes related to ODBC functionality
+- **s3**: Changes related to S3 storage
+- **delta**: Changes related to Delta Lake functionality
+
+#### Subject
+
+The subject contains a succinct description of the change:
+
+- Use the imperative, present tense: "add" not "added" nor "adds"
+- Don't capitalize the first letter
+- No period (.) at the end
+
+#### Body
+
+The body should include the motivation for the change and contrast this with previous behavior.
+
+#### Footer
+
+The footer should contain any information about **Breaking Changes** and reference GitHub issues that this commit closes.
+
+### Examples
+
+```
+feat(cli): add support for custom configuration files
+
+Add ability to specify a custom location for configuration files using the
+--config flag. This makes it easier to manage multiple configurations for
+different environments.
+
+Closes #123
+```
+
+```
+fix(executor): resolve memory leak during large file processing
+
+Fixed a memory leak that occurred when processing files larger than 1GB by
+implementing better buffer management.
+
+Fixes #456
+```
+
+```
+refactor(core): improve error handling in pipeline execution
+
+Replace custom error enums with thiserror implementations for better
+error messages and context propagation.
+```
+
+## Changelog Generation
+
+We use [git-cliff](https://github.com/orhun/git-cliff) to generate our changelog automatically from commit messages. The configuration is defined in the `cliff.toml` file at the root of the repository.
+
+### Installation
+
+```bash
+# Install git-cliff
+cargo install git-cliff
+```
+
+### Generating the Changelog
+
+```bash
+# Generate the changelog
+git cliff --output CHANGELOG.md
+```
+
+### Conventional Commit Integration
+
+Our `cliff.toml` configuration groups commits based on the conventional commit format:
+
+- Commits with "add" or "support" in the message are grouped under "Added"
+- Commits with "remove" or "delete" in the message are grouped under "Removed"
+- Commits with "fix" or starting with "test" are grouped under "Fixed"
+- All other commits are grouped under "Changed"
+
+Writing commit messages following the [Commit Guidelines](#commit-guidelines) ensures that they will be categorized correctly in the changelog.
+
+### Previewing the Next Release
+
+To preview what the next release changelog will look like:
+
+```bash
+# Preview the unreleased changelog
+git cliff --unreleased --output -
+```
 
 ## Pull Request Process
 
