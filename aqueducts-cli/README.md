@@ -91,27 +91,6 @@ destination:
     mode: "overwrite"
 ```
 
-## Remote Execution
-
-The Aqueducts CLI can connect to a remote [Aqueducts Executor](../aqueducts-executor) to run pipelines close to the data source. This is especially useful for:
-
-1. Executing pipelines within secure networks without exposing data
-2. Running heavy queries on dedicated hardware
-3. Processing data near storage to minimize network transfer
-4. Providing a consistent execution environment
-
-For remote execution:
-
-1. Deploy an Aqueducts Executor in your environment
-2. Configure it with an API key
-3. Run pipelines using the `--executor` and `--api-key` options
-
-The CLI will:
-- Verify connectivity to the executor
-- Send the pipeline definition
-- Stream progress events in real-time
-- Display results and execution status
-
 ## Troubleshooting
 
 Common issues:
@@ -122,4 +101,4 @@ Common issues:
 4. **Executor busy**: Only one pipeline can run at a time on an executor
 5. **Missing features**: Make sure the CLI was compiled with the needed features
 
-For more information, check the [Aqueducts documentation](https://github.com/vigimite/aqueducts).
+For more information on architecture and advanced usage, see the [Aqueducts Architecture Documentation](../ARCHITECTURE.md).

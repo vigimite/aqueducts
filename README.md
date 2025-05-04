@@ -20,41 +20,49 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 - Memory management for resource-intensive operations
 - Real-time progress tracking for pipeline execution
 
-This framework builds on the fantastic work done by projects such as:
-
-- [arrow-rs](https://github.com/apache/arrow-rs)
-- [datafusion](https://github.com/apache/datafusion)
-- [delta-rs](https://github.com/delta-io/delta-rs)
-
-Please show these projects some support :heart:!
-
 ## Documentation
 
-You can find the docs at <https://vigimite.github.io/aqueducts>
+- [Architecture Documentation](ARCHITECTURE.md)
+- [Full Documentation](https://vigimite.github.io/aqueducts)
+- [Change Log](CHANGELOG.md)
+- [Contributing Guide](CONTRIBUTING.md)
 
-Change log: [CHANGELOG](CHANGELOG.md)
+## Installation
 
-## Components
+### CLI
 
-Aqueducts consists of several components:
+Install the CLI to run pipelines locally or connect to remote executors:
 
-- **Core Library**: The main engine for defining and executing data pipelines
-- **CLI**: Command-line interface to run pipelines locally or connect to remote executors
-- **Executor**: Server component for running pipelines remotely, closer to data sources
-- **Utils**: Shared utilities and models used across components
+```bash
+# Install with default features (s3, gcs, azure, yaml)
+cargo install aqueducts-cli
 
-For component-specific details, see the respective README files:
-- [CLI README](aqueducts-cli/README.md)
-- [Executor README](aqueducts-executor/README.md)
+# Install with odbc support
+cargo install aqueducts-cli --features odbc
 
-## Quick start
+# Install with minimal features
+cargo install aqueducts-cli --no-default-features --features yaml
+```
+
+### Executor
+
+Install the executor to run pipelines remotely, closer to data sources:
+
+```bash
+# Install the executor (with default cloud storage support)
+cargo install aqueducts-executor
+
+# For ODBC support (requires unixodbc-dev to be installed)
+cargo install aqueducts-executor --features odbc
+```
+
+## Quick Start
 
 ### Local Execution
 
-Install the CLI and run a pipeline locally:
+Run a pipeline locally:
 
 ```bash
-cargo install aqueducts-cli
 aqueducts run --file examples/aqueduct_pipeline_example.yml --param year=2024 --param month=jan
 ```
 
@@ -63,12 +71,6 @@ aqueducts run --file examples/aqueduct_pipeline_example.yml --param year=2024 --
 1. Start a remote executor:
 
 ```bash
-# Install the executor (with default cloud storage support)
-cargo install aqueducts-executor
-
-# For ODBC support (requires unixodbc-dev to be installed)
-cargo install aqueducts-executor --features odbc
-
 # Run the executor with an API key
 aqueducts-executor --api-key your_secret_key --max-memory 4
 ```
@@ -152,6 +154,31 @@ destination:
     options: {}
   location: ./examples/output_${month}_${year}.parquet
 ```
+
+## Components
+
+Aqueducts consists of several components:
+
+- **Core Library**: The main engine for defining and executing data pipelines
+- **CLI**: Command-line interface to run pipelines locally or connect to remote executors
+- **Executor**: Server component for running pipelines remotely, closer to data sources
+- **Utils**: Shared utilities and models used across components
+
+For component-specific details, see the respective README files:
+- [CLI README](aqueducts-cli/README.md)
+- [Executor README](aqueducts-executor/README.md)
+
+## Contributing
+
+Contributions to Aqueducts are welcome! Whether it's bug reports, feature requests, or code contributions, we appreciate all forms of help.
+
+Please see the [Contributing Guide](CONTRIBUTING.md) for detailed instructions on how to:
+- Set up your development environment
+- Run the project locally
+- Set up Docker Compose for testing
+- Configure ODBC connections
+- Run the executor and CLI side-by-side
+- Submit pull requests
 
 ## Roadmap
 
