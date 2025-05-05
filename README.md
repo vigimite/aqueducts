@@ -174,6 +174,16 @@ For component-specific details, see the respective README files:
 - [CLI README](aqueducts-cli/README.md)
 - [Executor README](aqueducts-executor/README.md)
 
+## Acknowledgements
+
+This project would not be possible without the incredible work done by the open source community, particularly the maintainers and contributors of:
+
+- [Apache Arrow](https://github.com/apache/arrow-rs) - The memory model and data structures that are used by many projects in this space
+- [Apache DataFusion](https://github.com/apache/datafusion) - The SQL execution engine that handles all querying capabilities and more
+- [Delta Lake Rust](https://github.com/delta-io/delta-rs) - Enabling Delta table support for rust projects
+
+Please show these projects some love and support! ❤️
+
 ## Contributing
 
 Contributions to Aqueducts are welcome! Whether it's bug reports, feature requests, or code contributions, we appreciate all forms of help.

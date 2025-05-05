@@ -2,7 +2,7 @@
 
 ## Overview
 
-Aqueducts is a framework to write and execute ETL data pipelines declaratively. It allows you to define data transformation processes in YAML, JSON, or TOML format and execute them either locally or remotely.
+Aqueducts is a framework to write and execute ETL data pipelines declaratively. It allows you to define multi-step data transformation processes in YAML, JSON, or TOML format and execute them either locally or remotely.
 
 ## Components
 
@@ -11,7 +11,7 @@ Aqueducts consists of several components:
 - **Core Library**: The main engine for defining and executing data pipelines
 - **CLI**: Command-line interface to run pipelines locally or connect to remote executors
 - **Executor**: Server component for running pipelines remotely, closer to data sources
-- **Utils**: Shared utilities and models used across components
+- **Server**: _TODO_ A web platform with a UI to create/manage and trigger aqueducts
 
 ## System Architecture
 
@@ -78,9 +78,9 @@ For file-based sources, a schema can be provided optionally.
 
 The source is registered within the `SessionContext` as a table that can be referenced using the source's configured name. A prerequisite here is that the necessary features for the underlying object stores are enabled. This can be provided by an external `SessionContext` passed into the `run_pipeline` function or by registering the correct handlers for deltalake.
 
-#### EXPERIMENTAL ODBC support
+#### ODBC support
 
-As an experimental feature, it is possible to query various databases using ODBC. This is enabled through [arrow-odbc](https://crates.io/crates/arrow-odbc).
+It is possible to query various databases using ODBC. This is enabled through [arrow-odbc](https://crates.io/crates/arrow-odbc).
 Besides enabling the `odbc` feature flag in your `Cargo.toml` there are some other prerequisites for the executing system:
 
 - `unixodbc` on unix based systems
@@ -103,9 +103,9 @@ An Aqueduct destination can be:
   - single file
   - directory
 - Delta table
-- ODBC query (NOT IMPLEMENTED YET)
+- ODBC query
 
-An Aqueduct destination is the target for the execution of the pipeline; the result of the final stage that was executed is used as the input for the destination to write the data to the underlying table/file.
+An Aqueduct destination is the target for the execution of the pipeline. The result of the final stage that was executed is used as the input for the destination to write the data to the underlying table/file.
 
 #### File based destinations
 
@@ -136,11 +136,13 @@ For remote execution:
 
 1. Deploy an Aqueducts Executor in your environment
 2. Configure it with an API key
-3. Run pipelines using the `--executor` and `--api-key` options
+3. Enable networking for the CLI to be able to connect
+4. Run pipelines using the `--executor` and `--api-key` options
 
 The CLI will:
 - Verify connectivity to the executor
-- Send the pipeline definition
+- Parse and render the Aqueducts template
+- Send the pipeline definition to the executor
 - Stream progress events in real-time
 - Display results and execution status
 
@@ -150,7 +152,7 @@ The executor implements memory limits using DataFusion's runtime environment to 
 
 - **Memory Management**: Utilizes DataFusion's runtime environment memory limits to control memory usage across query operators
 - **Configuration**: Set via `--max-memory` parameter or `AQUEDUCTS_MAX_MEMORY` environment variable (in GB)
-- **Default**: Unlimited memory usage when set to 0 or not specified
+- **Default**: Unlimited memory usage when unspecified
 
 The memory limit controls allocation for:
 - Loading and processing data from sources

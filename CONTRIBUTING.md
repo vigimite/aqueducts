@@ -8,12 +8,6 @@ Join our Discord community to connect with other contributors, get help, and dis
 
 [Join Aqueducts Discord](https://discord.gg/astQZM3wqy)
 
-Discord is the best place to:
-- Ask questions about development
-- Share your ideas for improvements
-- Find issues to work on
-- Get help with your contributions
-
 ## Table of Contents
 
 1. [Development Environment Setup](#development-environment-setup)
@@ -30,8 +24,7 @@ Discord is the best place to:
 ### Prerequisites
 
 - [Rust](https://www.rust-lang.org/tools/install) (latest stable version)
-- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) (for containerized development)
-- Git
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
 ### Basic Setup
 
@@ -62,7 +55,6 @@ The project includes a Docker Compose configuration for easily setting up suppor
 
    This will start:
    - PostgreSQL database (for testing ODBC connections)
-   - MinIO (S3-compatible storage for testing cloud storage features)
 
 2. To stop the services:
    ```bash
@@ -108,21 +100,6 @@ To test the complete pipeline execution flow locally (with remote execution), yo
 
 This setup simulates a real-world deployment scenario where the executor runs close to the data sources and the CLI interfaces with it remotely.
 
-### Hot Reloading for Development
-
-For faster development cycles, you can use `cargo-watch` to automatically rebuild and restart components when code changes:
-
-```bash
-# Install cargo-watch
-cargo install cargo-watch
-
-# Watch and rebuild the executor
-cargo watch -x 'run --bin aqueducts-executor -- --port 3031 --api-key development'
-
-# Watch and run tests
-cargo watch -x 'test --workspace'
-```
-
 ## Testing
 
 ### Running Tests
@@ -137,17 +114,8 @@ cargo test -p aqueducts-core
 # Run a specific test
 cargo test test_name
 
-# Run tests with all features enabled
+# Run tests with all features enabled, this needs the PostgreSQL server provided in the docker-compose
 cargo test --workspace --all-features
-```
-
-### Integration Tests
-
-The executor has API tests using [Hurl](https://hurl.dev/):
-
-```bash
-cd aqueducts-executor/tests
-./run_api_tests.sh
 ```
 
 ## Code Style
@@ -185,10 +153,6 @@ Each commit message consists of a **header**, a **body**, and a **footer**:
 
 ```
 <type>(<scope>): <subject>
-
-<body>
-
-<footer>
 ```
 
 #### Type
@@ -223,40 +187,18 @@ The subject contains a succinct description of the change:
 - Don't capitalize the first letter
 - No period (.) at the end
 
-#### Body
-
-The body should include the motivation for the change and contrast this with previous behavior.
-
-#### Footer
-
-The footer should contain any information about **Breaking Changes** and reference GitHub issues that this commit closes.
-
 ### Examples
 
 ```
 feat(cli): add support for custom configuration files
-
-Add ability to specify a custom location for configuration files using the
---config flag. This makes it easier to manage multiple configurations for
-different environments.
-
-Closes #123
 ```
 
 ```
 fix(executor): resolve memory leak during large file processing
-
-Fixed a memory leak that occurred when processing files larger than 1GB by
-implementing better buffer management.
-
-Fixes #456
 ```
 
 ```
 refactor(core): improve error handling in pipeline execution
-
-Replace custom error enums with thiserror implementations for better
-error messages and context propagation.
 ```
 
 ## Changelog Generation
@@ -275,26 +217,6 @@ cargo install git-cliff
 ```bash
 # Generate the changelog
 git cliff --output CHANGELOG.md
-```
-
-### Conventional Commit Integration
-
-Our `cliff.toml` configuration groups commits based on the conventional commit format:
-
-- Commits with "add" or "support" in the message are grouped under "Added"
-- Commits with "remove" or "delete" in the message are grouped under "Removed"
-- Commits with "fix" or starting with "test" are grouped under "Fixed"
-- All other commits are grouped under "Changed"
-
-Writing commit messages following the [Commit Guidelines](#commit-guidelines) ensures that they will be categorized correctly in the changelog.
-
-### Previewing the Next Release
-
-To preview what the next release changelog will look like:
-
-```bash
-# Preview the unreleased changelog
-git cliff --unreleased --output -
 ```
 
 ## Pull Request Process
@@ -326,11 +248,11 @@ For ODBC support, follow these steps:
 
 For more detailed ODBC setup instructions, refer to the [arrow-odbc](https://github.com/pacman82/arrow-odbc) project documentation, which Aqueducts uses for ODBC support.
 
-Example `odbcinst.ini` configuration for PostgreSQL:
+Example `odbcinst.ini` configuration for PostgreSQL (Unicode version):
 ```ini
-[PostgreSQL ANSI]
-Description=PostgreSQL ODBC driver (ANSI version)
-Driver=/usr/lib/x86_64-linux-gnu/odbc/psqlodbca.so
+[PostgreSQL Unicode]
+Description=PostgreSQL ODBC driver (Unicode version)
+Driver=/usr/lib/x86_64-linux-gnu/odbc/psqlodbcw.so
 Setup=/usr/lib/x86_64-linux-gnu/odbc/libodbcpsqlS.so
 Debug=0
 CommLog=1
@@ -340,64 +262,12 @@ UsageCount=1
 Example `odbc.ini` configuration:
 ```ini
 [testdb]
-Driver=PostgreSQL ANSI
+Driver=PostgreSQL Unicode
 Database=postgres
 Servername=localhost
 UserName=postgres
 Password=postgres
 Port=5432
-```
-
-### Cloud Storage Configuration
-
-For testing cloud storage features:
-
-1. S3 (using local MinIO):
-   ```bash
-   export AWS_ACCESS_KEY_ID=minioadmin
-   export AWS_SECRET_ACCESS_KEY=minioadmin
-   export AWS_ENDPOINT=http://localhost:9000
-   export AWS_REGION=us-east-1
-   ```
-
-2. GCS:
-   ```bash
-   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
-   ```
-
-3. Azure:
-   ```bash
-   export AZURE_STORAGE_ACCOUNT=your_account
-   export AZURE_STORAGE_KEY=your_key
-   ```
-
-### Using Docker for Testing Different Environments
-
-You can use Docker to test in different environments:
-
-```bash
-# Build a Docker image for the executor
-docker build -f aqueducts-executor/Dockerfile -t aqueducts-executor:dev .
-
-# Run the executor in Docker
-docker run -p 3031:3031 \
-  -e AQUEDUCTS_API_KEY=development \
-  -e AQUEDUCTS_MAX_MEMORY=2 \
-  aqueducts-executor:dev
-```
-
-For ODBC testing in Docker:
-
-```bash
-# Build with ODBC support
-docker build -f aqueducts-executor/Dockerfile --build-arg FEATURES=odbc -t aqueducts-executor:odbc-dev .
-
-# Run with ODBC configuration
-docker run -p 3031:3031 \
-  -e AQUEDUCTS_API_KEY=development \
-  -v /path/to/odbc.ini:/etc/odbc.ini \
-  -v /path/to/odbcinst.ini:/etc/odbcinst.ini \
-  aqueducts-executor:odbc-dev
 ```
 
 ## Troubleshooting
