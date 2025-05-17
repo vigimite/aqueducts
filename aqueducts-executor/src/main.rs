@@ -1,20 +1,16 @@
-mod auth;
+mod api;
+mod config;
 mod error;
 mod executor;
-mod handlers;
-mod progress;
 
-use auth::api_key_auth;
-use axum::{
-    middleware,
-    routing::{get, post},
-    Router,
-};
+use axum::Router;
 use clap::Parser;
-use executor::ExecutionStateManager;
-use handlers::{cancel_pipeline, execute_pipeline, get_status, health_check};
-use std::{net::SocketAddr, str::FromStr, sync::Arc};
-use tracing::{info, Level};
+use config::Config;
+use executor::ExecutionManager;
+use std::{net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
+use tokio::signal;
+use tokio_util::sync::CancellationToken;
+use tracing::{error, info, Level};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use uuid::Uuid;
 
@@ -34,7 +30,7 @@ struct Cli {
     #[arg(long, env = "AQUEDUCTS_PORT", default_value = "3031")]
     port: u16,
 
-    /// Maximum memory usage in GB
+    /// Maximum memory usage in GB (optional)
     #[arg(long, env = "AQUEDUCTS_MAX_MEMORY")]
     max_memory: Option<u32>,
 
@@ -42,37 +38,27 @@ struct Cli {
     #[arg(long, env = "AQUEDUCTS_SERVER_URL")]
     server_url: Option<String>,
 
-    /// Unique identifier for this executor
+    /// Unique identifier for this executor (optional)
     #[arg(long, env = "AQUEDUCTS_EXECUTOR_ID")]
-    executor_id: Option<String>,
+    executor_id: Option<Uuid>,
 
     /// Logging level (info, debug, trace)
     #[arg(long, env = "AQUEDUCTS_LOG_LEVEL", default_value = "info")]
     log_level: String,
 }
 
-#[derive(Debug, Clone)]
-pub struct AppState {
-    pub api_key: String,
-    pub executor_id: String,
-    pub max_memory_gb: Option<u32>,
-    pub _server_url: Option<String>,
-    pub execution_state_manager: Arc<ExecutionStateManager>,
+type ApiContextRef = Arc<ApiContext>;
+
+pub struct ApiContext {
+    pub config: Config,
+    pub manager: Arc<ExecutionManager>,
 }
 
-impl AppState {
-    pub fn new(
-        api_key: String,
-        executor_id: String,
-        max_memory_gb: Option<u32>,
-        _server_url: Option<String>,
-    ) -> Self {
+impl ApiContext {
+    pub fn new(config: Config) -> Self {
         Self {
-            api_key,
-            executor_id,
-            max_memory_gb,
-            _server_url,
-            execution_state_manager: Arc::new(ExecutionStateManager::new()),
+            config,
+            manager: Arc::new(ExecutionManager::new(100)),
         }
     }
 }
@@ -88,8 +74,6 @@ async fn main() {
                 .json()
                 .with_current_span(true)
                 .with_span_list(true)
-                .with_file(true)
-                .with_line_number(true)
                 .with_target(true),
         )
         .with(EnvFilter::from_default_env().add_directive(log_level.into()))
@@ -98,49 +82,123 @@ async fn main() {
     info!("Registering Aqueducts handlers");
     aqueducts::register_handlers();
 
-    if let Err(e) = datafusion_functions_json::register_all(
-        &mut datafusion::execution::context::SessionContext::new(),
-    ) {
-        info!("Failed to initialize DataFusion JSON functions (will be retried at execution time): {}", e);
-    }
-
-    let executor_id = cli
-        .executor_id
-        .unwrap_or_else(|| Uuid::new_v4().to_string());
+    let executor_id = cli.executor_id.unwrap_or_else(|| Uuid::new_v4());
     info!(
         executor_id = %executor_id,
         version = %env!("CARGO_PKG_VERSION"),
         "Starting Aqueducts Executor"
     );
 
-    let state = Arc::new(AppState::new(
-        cli.api_key,
-        executor_id,
-        cli.max_memory,
-        cli.server_url,
-    ));
+    // Create and validate configuration
+    let config = match Config::new(cli.api_key, executor_id, cli.max_memory) {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("Configuration error: {}", e);
+            std::process::exit(1);
+        }
+    };
 
-    let public_routes = Router::new().route("/health", get(health_check));
+    info!(
+        executor_id = %config.executor_id,
+        max_memory_gb = ?config.max_memory_gb,
+        "Configuration validated successfully"
+    );
 
-    let protected_routes = Router::new()
-        .route("/execute", post(execute_pipeline))
-        .route("/cancel", post(cancel_pipeline))
-        .route("/status", get(get_status))
-        .route_layer(middleware::from_fn_with_state(
-            Arc::clone(&state),
-            api_key_auth,
-        ));
+    let context = Arc::new(ApiContext::new(config));
+
+    // Create shutdown signal handler
+    let shutdown_token = CancellationToken::new();
+    let shutdown_token_ = shutdown_token.clone();
+
+    // Spawn a task to handle shutdown signals
+    tokio::spawn(async move {
+        handle_shutdown_signals(shutdown_token_).await;
+    });
+
+    // Start the execution manager
+    let manager_handle = {
+        let manager = context.manager.clone();
+        tokio::spawn(async move {
+            manager.start().await;
+        })
+    };
 
     let app = Router::new()
-        .merge(public_routes)
-        .merge(protected_routes)
-        .with_state(state);
+        .nest("/api", api::router(Arc::clone(&context)))
+        .with_state(context);
 
-    let addr: SocketAddr = format!("{}:{}", cli.host, cli.port)
-        .parse()
-        .expect("Failed to parse socket address");
+    let addr: SocketAddr = match format!("{}:{}", cli.host, cli.port).parse() {
+        Ok(addr) => addr,
+        Err(e) => {
+            error!("Failed to parse socket address: {}", e);
+            eprintln!("Invalid host or port configuration: {}", e);
+            std::process::exit(1);
+        }
+    };
 
     info!(addr = %addr, "Listening for connections");
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = match tokio::net::TcpListener::bind(addr).await {
+        Ok(listener) => listener,
+        Err(e) => {
+            error!("Failed to bind to address {}: {}", addr, e);
+            eprintln!("Could not start server: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    info!("Server started, press Ctrl+C to stop");
+    let server_handle = axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal_handler(shutdown_token))
+        .await;
+
+    match server_handle {
+        Ok(_) => info!("Server shut down gracefully"),
+        Err(e) => error!(error = %e, "Server error during shutdown"),
+    }
+
+    info!("Forcing shutdown of the execution manager");
+    drop(manager_handle);
+
+    info!("Aqueducts executor shutdown complete");
+}
+
+/// Handler function for shutdown signals
+async fn handle_shutdown_signals(shutdown_token: CancellationToken) {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("Failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("Failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {
+            info!("Received Ctrl+C, starting graceful shutdown");
+        },
+        _ = terminate => {
+            info!("Received SIGTERM, starting graceful shutdown");
+        },
+    }
+
+    // Signal the server to shut down
+    shutdown_token.cancel();
+}
+
+/// Returns a future that resolves when the shutdown signal is received
+async fn shutdown_signal_handler(token: CancellationToken) {
+    token.cancelled().await;
+    info!("Shutdown signal received, starting graceful shutdown");
+
+    // Give in-flight requests some time to complete
+    tokio::time::sleep(Duration::from_secs(1)).await;
 }

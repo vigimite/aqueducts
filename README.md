@@ -20,10 +20,55 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 - Memory management for resource-intensive operations
 - Real-time progress tracking for pipeline execution
 
+## WebSocket Migration Plan
+
+We're planning to migrate the Aqueducts executor from using Server-Sent Events (SSE) to WebSockets for real-time communication. Here's the migration plan:
+
+### Tasks
+
+- [x] 1. Add WebSocket dependencies to Cargo.toml
+  - Add `tokio-tungstenite` for WebSocket support
+  - Add `futures-util` for stream utilities
+
+- [x] 2. Create core WebSocket types and message definitions
+  - Define typed WebSocket message structures 
+  - Implement message serialization/deserialization
+  - Create a message queue using VecDeque
+
+- [x] 3. Implement WebSocket server handler
+  - Create WebSocket connection handler
+  - Implement client authentication via WebSocket
+  - Add connection management with per-client state
+
+- [x] 4. Create execution queue management
+  - Implement job queue using VecDeque
+  - Add position tracking in the queue
+  - Provide queue position updates to clients
+
+- [x] 5. Refactor executor to use WebSockets
+  - Update pipeline execution logic
+  - Implement message dispatch to connected clients
+  - Maintain backward compatibility during migration
+
+- [x] 6. Modify CLI to use WebSocket client
+  - Create WebSocket client implementation
+  - Update remote execution logic for WebSockets
+  - Handle reconnection and error scenarios
+
+- [x] 7. Add tests for WebSocket implementation
+  - Unit tests for message serialization
+  - Integration tests for connection handling
+  - End-to-end tests for pipeline execution
+
+- [x] 8. Update documentation
+  - Document new WebSocket protocol
+  - Update API references
+  - Add migration guide for client implementations
+
 ## Documentation
 
-- [Architecture Documentation](ARCHITECTURE.md)
 - [Full Documentation](https://vigimite.github.io/aqueducts)
+- [Architecture Documentation](ARCHITECTURE.md)
 - [Change Log](CHANGELOG.md)
 - [Contributing Guide](CONTRIBUTING.md)
 
@@ -41,13 +86,13 @@ Install the CLI to run pipelines locally or connect to remote executors:
 
 ```bash
 # Install with default features (s3, gcs, azure, yaml)
-cargo install aqueducts-cli
+cargo install aqueducts-cli --locked
 
 # Install with odbc support
-cargo install aqueducts-cli --features odbc
+cargo install aqueducts-cli --locked --features odbc
 
 # Install with minimal features
-cargo install aqueducts-cli --no-default-features --features yaml
+cargo install aqueducts-cli --locked --no-default-features --features yaml
 ```
 
 ### Executor
@@ -56,10 +101,10 @@ Install the executor to run pipelines remotely, closer to data sources:
 
 ```bash
 # Install the executor (with default cloud storage support)
-cargo install aqueducts-executor
+cargo install aqueducts-executor --locked
 
 # For ODBC support (requires unixodbc-dev to be installed)
-cargo install aqueducts-executor --features odbc
+cargo install aqueducts-executor --locked --features odbc
 ```
 
 ## Quick Start
@@ -168,7 +213,6 @@ Aqueducts consists of several components:
 - **Core Library**: The main engine for defining and executing data pipelines
 - **CLI**: Command-line interface to run pipelines locally or connect to remote executors
 - **Executor**: Server component for running pipelines remotely, closer to data sources
-- **Utils**: Shared utilities and models used across components
 
 For component-specific details, see the respective README files:
 - [CLI README](aqueducts-cli/README.md)
@@ -203,4 +247,6 @@ Please see the [Contributing Guide](CONTRIBUTING.md) for detailed instructions o
 - [x] Parallel processing of stages
 - [x] Remote execution
 - [x] Memory management
+- [ ] Apache Iceberg support
 - [ ] Web server for pipeline management and orchestration
+- [ ] Data catalog implementation for deltalake and apache iceberg

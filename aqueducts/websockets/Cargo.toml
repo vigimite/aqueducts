@@ -1,0 +1,18 @@
+[package]
+name = "aqueducts-websockets"
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[dependencies]
+aqueducts.workspace = true
+
+uuid.workspace = true
+serde.workspace = true

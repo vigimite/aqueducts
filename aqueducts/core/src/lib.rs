@@ -1,111 +1,40 @@
-use datafusion::execution::context::SessionContext;
-use regex::Regex;
-use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
     sync::{Arc, OnceLock},
     time::Instant,
 };
+
+use datafusion::execution::context::SessionContext;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use tokio::task::JoinHandle;
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, instrument, warn};
 
 pub mod destinations;
 pub mod error;
+pub mod progress_tracker;
 pub mod sources;
 pub mod stages;
 
 use destinations::*;
+use progress_tracker::*;
 use sources::*;
 use stages::*;
 
 /// Prelude to import all relevant models and functions
 pub mod prelude {
     pub use super::destinations::*;
+    pub use super::progress_tracker::{ProgressEvent, ProgressTracker};
+    pub use super::run_pipeline;
     pub use super::sources::*;
     pub use super::stages::*;
     pub use super::{Aqueduct, AqueductBuilder};
-
-    pub use super::run_pipeline;
-    pub use super::{ProgressEventType, ProgressTracker};
 }
 
 pub type Result<T> = core::result::Result<T, error::Error>;
 
 static PARAM_REGEX: OnceLock<Regex> = OnceLock::new();
-
-/// Progress event types emitted during pipeline execution
-#[derive(Debug, Clone, PartialEq)]
-pub enum ProgressEventType {
-    /// Pipeline execution started
-    Started,
-    /// A source has been registered
-    SourceRegistered {
-        /// Name of the source if available
-        name: String,
-    },
-    /// A stage has started processing
-    StageStarted {
-        /// Name of the stage
-        name: String,
-        /// Position in the stages array (outer)
-        position: usize,
-        /// Position in the parallel stages array (inner)
-        sub_position: usize,
-    },
-    /// A stage has completed processing
-    StageCompleted {
-        /// Name of the stage
-        name: String,
-        /// Position in the stages array (outer)
-        position: usize,
-        /// Position in the parallel stages array (inner)
-        sub_position: usize,
-        /// Duration of the stage execution
-        duration_ms: u64,
-    },
-    /// Data has been written to the destination
-    DestinationCompleted,
-    /// Pipeline execution completed
-    Completed {
-        /// Total duration of the pipeline execution
-        duration_ms: u64,
-    },
-}
-
-/// A trait for handling progress events during pipeline execution
-pub trait ProgressTracker: Send + Sync {
-    /// Called when a progress event occurs during pipeline execution
-    fn on_progress(&self, event: ProgressEventType);
-
-    /// Called when a stage produces output that would normally be printed to stdout
-    /// This allows implementers to capture the output for other uses (e.g. streaming to a client)
-    ///
-    /// The default implementation prints to stdout like the original behavior
-    fn on_stage_output(&self, stage_name: &str, output_type: &str, output: &str) {
-        match output_type {
-            "show" => println!("\n*** Stage output data: {} ***\n{}\n", stage_name, output),
-            "show_limit" => println!(
-                "\n*** Stage output data (limited): {} ***\n{}\n",
-                stage_name, output
-            ),
-            "explain" => println!("\n*** Stage query plan: {} ***\n{}\n", stage_name, output),
-            "explain_analyze" => println!(
-                "\n*** Stage query plan with metrics: {} ***\n{}\n",
-                stage_name, output
-            ),
-            "schema" => println!(
-                "\n*** Stage output schema: {} ***\n{}\n",
-                stage_name, output
-            ),
-            _ => println!(
-                "\n*** Stage output: {} ({}) ***\n{}\n",
-                stage_name, output_type, output
-            ),
-        }
-    }
-}
-
 /// Definition for an `Aqueduct` data pipeline
 #[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
@@ -298,10 +227,10 @@ pub async fn run_pipeline(
     let mut stage_ttls: HashMap<String, usize> = HashMap::new();
     let start_time = Instant::now();
 
-    info!("Running Aqueduct ...");
+    debug!("Running Aqueduct ...");
 
     if let Some(tracker) = &progress_tracker {
-        tracker.on_progress(ProgressEventType::Started);
+        tracker.on_progress(ProgressEvent::Started);
     }
 
     if let Some(destination) = &aqueduct.destination {
@@ -309,7 +238,7 @@ pub async fn run_pipeline(
 
         register_destination(ctx.clone(), destination).await?;
 
-        info!(
+        debug!(
             "Created destination ... Elapsed time: {:.2?}",
             time.elapsed()
         );
@@ -338,13 +267,13 @@ pub async fn run_pipeline(
         handle.await.expect("failed to join task")?;
 
         let elapsed = time.elapsed();
-        info!(
+        debug!(
             "Registered source {source_name} ... Elapsed time: {:.2?}",
             elapsed
         );
 
         if let Some(tracker) = &progress_tracker {
-            tracker.on_progress(ProgressEventType::SourceRegistered { name: source_name });
+            tracker.on_progress(ProgressEvent::SourceRegistered { name: source_name });
         }
     }
 
@@ -359,10 +288,10 @@ pub async fn run_pipeline(
 
             let handle = tokio::spawn(async move {
                 let time = Instant::now();
-                info!("Running stage {} #{pos}:{sub}", name);
+                debug!("Running stage {} #{pos}:{sub}", name);
 
                 if let Some(tracker_ref) = &tracker {
-                    tracker_ref.on_progress(ProgressEventType::StageStarted {
+                    tracker_ref.on_progress(ProgressEvent::StageStarted {
                         name: name.clone(),
                         position: pos,
                         sub_position: sub,
@@ -372,13 +301,13 @@ pub async fn run_pipeline(
                 process_stage(ctx_, stage_, tracker.as_ref()).await?;
 
                 let elapsed = time.elapsed();
-                info!(
+                debug!(
                     "Finished processing stage {name} #{pos}:{sub} ... Elapsed time: {:.2?}",
                     elapsed
                 );
 
                 if let Some(tracker) = &tracker {
-                    tracker.on_progress(ProgressEventType::StageCompleted {
+                    tracker.on_progress(ProgressEvent::StageCompleted {
                         name: name.clone(),
                         position: pos,
                         sub_position: sub,
@@ -412,28 +341,28 @@ pub async fn run_pipeline(
         ctx.deregister_table(last_stage.name.as_str())?;
 
         let elapsed = time.elapsed();
-        info!(
+        debug!(
             "Finished writing to destination ... Elapsed time: {:.2?}",
             elapsed
         );
 
         // Emit destination completed event
         if let Some(tracker) = &progress_tracker {
-            tracker.on_progress(ProgressEventType::DestinationCompleted);
+            tracker.on_progress(ProgressEvent::DestinationCompleted);
         }
     } else {
         warn!("No destination defined ... skipping write");
     }
 
     let total_duration = start_time.elapsed();
-    info!(
+    debug!(
         "Finished processing pipeline ... Total time: {:.2?}",
         total_duration
     );
 
     // Emit completed event
     if let Some(tracker) = &progress_tracker {
-        tracker.on_progress(ProgressEventType::Completed {
+        tracker.on_progress(ProgressEvent::Completed {
             duration_ms: total_duration.as_millis() as u64,
         });
     }

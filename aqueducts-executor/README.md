@@ -7,7 +7,7 @@ A deployable application used to execute Aqueduct pipeline definitions within yo
 - **Remote Execution**: Run data pipelines securely within your own infrastructure close to the data sources
 - **Memory Management**: Configure maximum memory usage to control resource allocation using DataFusion's memory pool
 - **Security**: API key authentication ensures secure access to the executor
-- **Real-time Feedback**: Server-Sent Events provide live progress and log updates to clients
+- **Real-time Feedback**: WebSockets provide bidirectional communication with live progress and log updates
 - **Cloud Storage Support**: Native integration with S3, GCS, and Azure Blob Storage
 - **Database Connectivity**: ODBC support for connecting to various database systems
 - **Format Flexibility**: Process data in YAML, JSON, and TOML formats
@@ -66,8 +66,8 @@ docker run -p 3031:3031 \
 |-------------|--------|------|----------------------------------------------------|
 | `/health`   | GET    | No   | Basic health check                                 |
 | `/status`   | GET    | Yes  | Get executor status and execution details          |
-| `/execute`  | POST   | Yes  | Execute a pipeline with real-time progress updates |
 | `/cancel`   | POST   | Yes  | Cancel a running pipeline execution                |
+| `/ws`       | GET    | Yes  | WebSocket endpoint for bidirectional communication |
 
 ## ODBC Configuration Requirements
 
@@ -118,8 +118,23 @@ brew install mysql-connector-c++
 ### Using the CLI
 
 ```bash
+# Connect to WebSocket endpoint
+aqueducts run --executor ws://executor-host:8080/ws --api-key your_api_key pipeline.yml
+# OR 
 aqueducts run --executor http://executor-host:8080 --api-key your_api_key pipeline.yml
 ```
+
+### WebSocket Protocol
+
+The WebSocket connection uses a typed message protocol:
+
+1. **Connection**: Client connects to `/ws` endpoint with API key header
+2. **Execution**: Client sends `execute_request` message with pipeline definition
+3. **Updates**: Server sends progress updates, queue position updates, and output data
+4. **Completion**: Server sends completion or error message
+5. **Close**: Either side can close the connection
+
+All messages are JSON objects with a `type` field indicating the message type.
 
 ### Using curl
 

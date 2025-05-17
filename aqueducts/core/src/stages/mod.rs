@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::instrument;
 
+use crate::OutputType;
+
 pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
@@ -56,58 +58,46 @@ pub async fn process_stage(
         .await?
         .cache()
         .await?;
+    let schema = result.schema().clone();
 
     if stage.explain || stage.explain_analyze {
         let output_type = if stage.explain_analyze {
-            "explain_analyze"
+            OutputType::ExplainAnalyze
         } else {
-            "explain"
+            OutputType::Explain
         };
 
         let explain = result.clone().explain(false, stage.explain_analyze)?;
-        let plan = aqueducts_utils::output::dataframe_to_string(&explain).await?;
+        let batches = explain.collect().await?;
+
         if let Some(tracker) = progress_tracker {
-            tracker.on_stage_output(&stage.name, output_type, &plan);
-        } else {
-            explain.show().await?;
+            tracker.on_output(&stage.name, output_type, &schema, &batches);
         }
     }
 
     match stage.show {
         Some(0) => {
-            let batch_str = aqueducts_utils::output::dataframe_to_string(&result).await?;
+            let batches = result.clone().collect().await?;
             if let Some(tracker) = progress_tracker {
-                tracker.on_stage_output(&stage.name, "show", &batch_str);
-            } else {
-                result.clone().show().await?;
+                tracker.on_output(&stage.name, OutputType::Show, &schema, &batches);
             }
         }
         Some(limit) => {
-            let batch_str =
-                aqueducts_utils::output::dataframe_to_string_with_limit(&result, limit).await?;
+            let batches = result.clone().limit(0, Some(limit))?.collect().await?;
             if let Some(tracker) = progress_tracker {
-                tracker.on_stage_output(&stage.name, "show_limit", &batch_str);
-            } else {
-                result.clone().show_limit(limit).await?;
+                tracker.on_output(&stage.name, OutputType::ShowLimit, &schema, &batches);
             }
         }
         _ => (),
     };
 
     if stage.print_schema {
-        let schema_str = format!("{:#?}", result.schema());
         if let Some(tracker) = progress_tracker {
-            tracker.on_stage_output(&stage.name, "schema", &schema_str);
-        } else {
-            println!(
-                "\n*** Stage output schema: {name} ***\n{schema:#?}\n",
-                name = stage.name.as_str(),
-                schema = result.schema()
-            );
+            let schema = result.schema();
+            tracker.on_output(&stage.name, OutputType::PrintSchema, &schema, &[]);
         }
     }
 
-    let schema = result.schema().clone();
     let partitioned = result.collect_partitioned().await?;
     let table = MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned)?;
 

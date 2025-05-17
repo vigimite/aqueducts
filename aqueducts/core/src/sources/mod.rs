@@ -12,7 +12,8 @@ use datafusion::{
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-use tracing::{info, instrument};
+use tracing::debug;
+use tracing::instrument;
 use url::Url;
 
 pub(crate) mod error;
@@ -205,14 +206,14 @@ pub struct JsonSourceOptions {
 pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result<()> {
     match source {
         Source::InMemory(memory_source) => {
-            info!("Registering in-memory source '{}'", memory_source.name);
+            debug!("Registering in-memory source '{}'", memory_source.name);
 
             if !ctx.table_exist(memory_source.name.as_str())? {
                 return Err(error::Error::MissingInMemory(memory_source.name));
             }
         }
         Source::Delta(delta_source) => {
-            info!(
+            debug!(
                 "Registering delta source '{}' at location '{}'",
                 delta_source.name, delta_source.location,
             );
@@ -220,7 +221,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result
             register_delta_source(ctx, delta_source).await?
         }
         Source::File(file_source) => {
-            info!(
+            debug!(
                 "Registering file source '{}' at location '{}'",
                 file_source.name, file_source.location,
             );
@@ -228,7 +229,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result
             register_file_source(ctx, file_source).await?
         }
         Source::Directory(dir_source) => {
-            info!(
+            debug!(
                 "Registering directory source '{}' at location '{}' for type '{:?}'",
                 dir_source.name, dir_source.location, dir_source.file_type
             );
@@ -237,7 +238,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result
         }
         #[cfg(feature = "odbc")]
         Source::Odbc(odbc_source) => {
-            info!(
+            debug!(
                 "Registering ODBC source '{}' using query '{}'",
                 odbc_source.name, odbc_source.query
             );

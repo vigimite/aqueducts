@@ -16,13 +16,13 @@ A command-line interface for executing Aqueducts data pipelines, with support fo
 
 ```bash
 # Install with default features (s3, gcs, azure, yaml)
-cargo install aqueducts-cli
+cargo install aqueducts-cli --locked
 
 # Install with odbc support
-cargo install aqueducts-cli --features odbc
+cargo install aqueducts-cli --locked --features odbc
 
 # Install with minimal features
-cargo install aqueducts-cli --no-default-features --features yaml
+cargo install aqueducts-cli --locked --no-default-features --features yaml
 ```
 
 ## Usage
@@ -74,21 +74,24 @@ YAML pipeline example:
 
 ```yaml
 sources:
-  - type: csv
-    name: source_data
-    options:
-      path: "data/input.csv"
-      has_header: true
+  - type: File
+    name: temp_readings
+    file_type:
+      type: Csv
+      options: {}
+    location: ./examples/temp_readings_${month}_${year}.csv
 
 stages:
   - - name: transformed_data
       query: "SELECT * FROM source_data WHERE value > 10"
 
 destination:
-  type: csv
-  options:
-    path: "data/output/"
-    mode: "overwrite"
+  type: File
+  name: results
+  file_type:
+    type: Parquet
+    options: {}
+  location: ./examples/output_${month}_${year}.parquet
 ```
 
 ## Troubleshooting
