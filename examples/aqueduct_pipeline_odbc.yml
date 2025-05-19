@@ -52,4 +52,6 @@ destination:
   type: Odbc
   name: temp_readings_aggregated
   connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
+  write_mode: 
+    operation: Append
   batch_size: 100

@@ -1,22 +1,96 @@
 # Aqueducts CLI
 
-Example CLI application utilizing the [Aqueducts](../) framework to run ETL pipelines declared in YAML.
+A command-line interface for executing Aqueducts data pipelines, with support for both local and remote execution.
 
-## Install
+## Features
 
-```bash
-# install with default features (s3, gcs, azure)
-cargo install aqueducts-cli
+- Run pipelines defined in YAML, JSON, or TOML formats
+- Execute pipelines locally or remotely via the Aqueducts Executor
+- Check status of remote executors
+- Cancel running pipelines on remote executors
+- Real-time progress tracking and event streaming
+- Cloud storage support (S3, GCS, Azure) via feature flags
+- ODBC database connectivity via feature flags
 
-# install with odbc support
-cargo install aqueducts-cli --features odbc
-
-# install with s3 support only
-cargo install aqueducts-cli --no-default-features --features s3
-```
-
-## Run
+## Installation
 
 ```bash
-aqueducts --file ./example.yml --param key1=value1 --param key2=value2  
+# Install with default features (s3, gcs, azure, yaml)
+cargo install aqueducts-cli --locked
+
+# Install with odbc support
+cargo install aqueducts-cli --locked --features odbc
+
+# Install with minimal features
+cargo install aqueducts-cli --locked --no-default-features --features yaml
 ```
+
+## Usage
+
+### Running Pipelines
+
+Run a pipeline locally:
+
+```bash
+# Basic usage (YAML)
+aqueducts run --file ./pipeline.yml
+
+# With parameters
+aqueducts run --file ./pipeline.yml --params key1=value1 --params key2=value2
+
+# Using TOML or JSON (with appropriate feature flags)
+aqueducts run --file ./pipeline.toml
+aqueducts run --file ./pipeline.json
+```
+
+Run a pipeline on a remote executor:
+
+```bash
+# Execute on remote executor
+aqueducts run --file ./pipeline.yml --executor executor-host:3031 --api-key your_api_key
+```
+
+Cancel a running pipeline on a remote executor:
+
+```bash
+# Cancel a specific execution by ID
+aqueducts cancel --executor executor-host:3031 --api-key your_api_key --execution-id abc-123
+```
+
+## Pipeline Definition Examples
+
+YAML pipeline example:
+
+```yaml
+sources:
+  - type: File
+    name: temp_readings
+    file_type:
+      type: Csv
+      options: {}
+    location: ./examples/temp_readings_${month}_${year}.csv
+
+stages:
+  - - name: transformed_data
+      query: "SELECT * FROM source_data WHERE value > 10"
+
+destination:
+  type: File
+  name: results
+  file_type:
+    type: Parquet
+    options: {}
+  location: ./examples/output_${month}_${year}.parquet
+```
+
+## Troubleshooting
+
+Common issues:
+
+1. **Authentication failures**: Verify API key is correct
+2. **Connectivity issues**: Check network connectivity and firewall rules
+3. **Pipeline validation errors**: Ensure your pipeline definition is valid
+4. **Executor busy**: Only one pipeline can run at a time on an executor
+5. **Missing features**: Make sure the CLI was compiled with the needed features
+
+For more information on architecture and advanced usage, see the [Aqueducts Architecture Documentation](../ARCHITECTURE.md).

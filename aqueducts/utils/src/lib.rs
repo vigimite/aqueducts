@@ -1,3 +1,43 @@
+/// Utilities for capturing formatted output
+pub mod output {
+    use datafusion::arrow::array::RecordBatch;
+    use datafusion::arrow::error::ArrowError;
+    use datafusion::arrow::util::pretty;
+    use datafusion::dataframe::DataFrame;
+    use datafusion::error::DataFusionError;
+
+    /// Convert a DataFrame to a formatted string using the show() method
+    pub async fn dataframe_to_string(df: &DataFrame) -> Result<String, DataFusionError> {
+        let batches = df.clone().collect().await?;
+        Ok(record_batches_to_string(&batches)?)
+    }
+
+    /// Convert a DataFrame to a formatted string with row limit
+    pub async fn dataframe_to_string_with_limit(
+        df: &DataFrame,
+        limit: usize,
+    ) -> Result<String, DataFusionError> {
+        let batches = df.clone().limit(0, Some(limit))?.collect().await?;
+        Ok(record_batches_to_string(&batches)?)
+    }
+
+    /// Convert a DataFrame's explain plan to a formatted string
+    pub async fn dataframe_explain_to_string(
+        df: &DataFrame,
+        verbose: bool,
+        analyze: bool,
+    ) -> Result<String, DataFusionError> {
+        let explain_df = df.clone().explain(verbose, analyze)?;
+        let batches = explain_df.collect().await?;
+        Ok(record_batches_to_string(&batches)?)
+    }
+
+    /// Convert RecordBatches to a formatted string representation
+    fn record_batches_to_string(batches: &[RecordBatch]) -> Result<String, ArrowError> {
+        Ok(pretty::pretty_format_batches(batches)?.to_string())
+    }
+}
+
 /// custom serde
 pub mod serde {
     use serde::{Deserialize, Deserializer};
@@ -72,9 +112,8 @@ pub mod serde {
 
 /// object store handlers
 pub mod store {
-    use deltalake::{
-        datafusion::prelude::SessionContext, storage::StorageOptions, DeltaTableError,
-    };
+    use deltalake::logstore::object_store::RetryConfig;
+    use deltalake::{datafusion::prelude::SessionContext, DeltaTableError};
     use std::{collections::HashMap, sync::Arc};
     use url::Url;
 
@@ -107,9 +146,12 @@ pub mod store {
         }
 
         let scheme = Url::parse(&format!("{}://", location.scheme())).unwrap();
-        if let Some(factory) = deltalake::storage::factories().get(&scheme) {
-            let (store, _prefix) =
-                factory.parse_url_opts(location, &StorageOptions(storage_options.clone()))?;
+        if let Some(factory) = deltalake::logstore::object_store_factories().get(&scheme) {
+            let (store, _prefix) = factory.parse_url_opts(
+                location,
+                &storage_options.clone(),
+                &RetryConfig::default(),
+            )?;
             let _ = ctx
                 .runtime_env()
                 .register_object_store(location, Arc::new(store));

@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::instrument;
 
+use crate::OutputType;
+
 pub(crate) mod error;
 pub(crate) type Result<T> = core::result::Result<T, error::Error>;
 
@@ -40,8 +42,12 @@ pub struct Stage {
 /// The result of the operation will be registered within the `SessionContext` as an
 /// in-memory table using the stages name as the table name
 /// Does not allow for ddl/dml queries or SQL statements (e.g. SET VARIABLE, CREATE TABLE, etc.)
-#[instrument(skip(ctx, stage), err)]
-pub async fn process_stage(ctx: Arc<SessionContext>, stage: Stage) -> Result<()> {
+#[instrument(skip_all, err)]
+pub async fn process_stage(
+    ctx: Arc<SessionContext>,
+    stage: Stage,
+    progress_tracker: Option<&Arc<dyn crate::ProgressTracker>>,
+) -> Result<()> {
     let options = SQLOptions::new()
         .with_allow_ddl(false)
         .with_allow_dml(false)
@@ -52,43 +58,46 @@ pub async fn process_stage(ctx: Arc<SessionContext>, stage: Stage) -> Result<()>
         .await?
         .cache()
         .await?;
+    let schema = result.schema().clone();
 
     if stage.explain || stage.explain_analyze {
-        println!("\n*** Stage query plan: {} ***", stage.name.as_str());
-        result
-            .clone()
-            .explain(false, stage.explain_analyze)?
-            .show()
-            .await?;
-        println!();
+        let output_type = if stage.explain_analyze {
+            OutputType::ExplainAnalyze
+        } else {
+            OutputType::Explain
+        };
+
+        let explain = result.clone().explain(false, stage.explain_analyze)?;
+        let batches = explain.collect().await?;
+
+        if let Some(tracker) = progress_tracker {
+            tracker.on_output(&stage.name, output_type, &schema, &batches);
+        }
     }
 
     match stage.show {
         Some(0) => {
-            println!("\n*** Stage output data: {} ***", stage.name.as_str());
-            result.clone().show().await?;
-            println!();
+            let batches = result.clone().collect().await?;
+            if let Some(tracker) = progress_tracker {
+                tracker.on_output(&stage.name, OutputType::Show, &schema, &batches);
+            }
         }
         Some(limit) => {
-            println!(
-                "\n*** Stage output data (limit {limit}): {} ***",
-                stage.name.as_str()
-            );
-            result.clone().show_limit(limit).await?;
-            println!();
+            let batches = result.clone().limit(0, Some(limit))?.collect().await?;
+            if let Some(tracker) = progress_tracker {
+                tracker.on_output(&stage.name, OutputType::ShowLimit, &schema, &batches);
+            }
         }
         _ => (),
     };
 
     if stage.print_schema {
-        println!(
-            "\n*** Stage output schema: {name} ***\n{schema:#?}\n",
-            name = stage.name.as_str(),
-            schema = result.schema()
-        );
+        if let Some(tracker) = progress_tracker {
+            let schema = result.schema();
+            tracker.on_output(&stage.name, OutputType::PrintSchema, schema, &[]);
+        }
     }
 
-    let schema = result.schema().clone();
     let partitioned = result.collect_partitioned().await?;
     let table = MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned)?;
 

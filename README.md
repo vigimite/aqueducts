@@ -2,45 +2,97 @@
 
 [![Build status](https://github.com/vigimite/aqueducts/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/vigimite/aqueducts/actions/workflows/CI.yml) [![Crates.io](https://img.shields.io/crates/v/aqueducts)](https://crates.io/crates/aqueducts) [![Documentation](https://docs.rs/aqueducts/badge.svg)](https://docs.rs/aqueducts)
 
-<img src="logo.png" width="100">
+<img src="https://github.com/vigimite/aqueducts/raw/main/logo.png" width="100">
 
 Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 
 **Features:**
 
-- Define ETL pipelines in YAML
-- Extract data from csv files, JSONL, parquet files or delta tables
-- Process data using SQL
-- Load data into object stores as csv/parquet or delta tables
-- Support for file and delta table partitioning
-- Support for Upsert/Replace/Append operation on delta tables
-- Support for Local, S3, GCS and Azure Blob storage
-- *EXPERIMENTAL* Support for ODBC Sources and Destinations
-
-This framework builds on the fantastic work done by projects such as:
-
-- [arrow-rs](https://github.com/apache/arrow-rs)
-- [datafusion](https://github.com/apache/datafusion)
-- [delta-rs](https://github.com/delta-io/delta-rs)
-
-Please show these projects some support :heart:!
+- Define ETL pipelines in YAML, JSON, or TOML format
+- Run pipelines locally or remotely with the CLI
+- Process data using SQL with the power of DataFusion
+- Extract data from CSV files, JSONL, Parquet files, or Delta tables
+- Connect to databases via ODBC for both sources and destinations
+- Load data into object stores as CSV/Parquet or Delta tables
+- Support for file and Delta table partitioning
+- Support for Upsert/Replace/Append operations on Delta tables
+- Support for Local, S3, GCS, and Azure Blob storage
+- Memory management for resource-intensive operations
+- Real-time progress tracking for pipeline execution
 
 ## Documentation
 
-You can find the docs at <https://vigimite.github.io/aqueducts>
+- [Full Documentation](https://vigimite.github.io/aqueducts)
+- [Architecture Documentation](ARCHITECTURE.md)
+- [Change Log](CHANGELOG.md)
+- [Contributing Guide](CONTRIBUTING.md)
 
-Change log: [CHANGELOG](CHANGELOG.md)
+## Community
 
-## Quick start
+Join our Discord community to get help, share your work, and connect with other Aqueducts users:
 
-To define and execute an Aqueduct pipeline there are a couple of options
+[![Discord](https://img.shields.io/discord/1234567890?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/astQZM3wqy)
 
-- using a yaml configuration file
-- using a json configuration file
-- manually in code
+## Installation
 
-You can check out some examples in the [examples](examples) directory.
-Here is a simple example defining an Aqueduct pipeline using the yaml config format [link](examples/aqueduct_pipeline_simple.yml):
+### CLI
+
+Install the CLI to run pipelines locally or connect to a remote executor:
+
+```bash
+# Install with default features (s3, gcs, azure, yaml)
+cargo install aqueducts-cli --locked
+
+# Install with odbc support
+cargo install aqueducts-cli --locked --features odbc
+
+# Install with minimal features
+cargo install aqueducts-cli --locked --no-default-features --features yaml
+```
+
+### Executor
+
+Install the executor to run pipelines remotely, closer to data sources:
+
+```bash
+# Install the executor (with default cloud storage support)
+cargo install aqueducts-executor --locked
+
+# For ODBC support (requires unixodbc-dev to be installed)
+cargo install aqueducts-executor --locked --features odbc
+```
+
+## Quick Start
+
+### Local Execution
+
+Run a pipeline locally:
+
+```bash
+aqueducts run --file examples/aqueduct_pipeline_example.yml --param year=2024 --param month=jan
+```
+
+### Remote Execution
+
+1. Start a remote executor:
+
+```bash
+# Run the executor with an API key
+aqueducts-executor --api-key your_secret_key --max-memory 4
+```
+
+2. Execute a pipeline remotely:
+
+```bash
+aqueducts run --file examples/aqueduct_pipeline_example.yml \
+  --param year=2024 --param month=jan \
+  --executor http://executor-host:3031 \
+  --api-key your_secret_key
+```
+
+## Example Pipeline
+
+Here's a simple example pipeline in YAML format ([full example](examples/aqueduct_pipeline_simple.yml)):
 
 ```yaml
 sources:
@@ -109,18 +161,47 @@ destination:
   location: ./examples/output_${month}_${year}.parquet
 ```
 
-This repository contains a minimal example implementation of the Aqueducts framework which can be used to test out pipeline definitions like the one above:
+## Components
 
-```bash
-cargo install aqueducts-cli
-aqueducts --file examples/aqueduct_pipeline_example.yml --param year=2024 --param month=jan
-```
+Aqueducts consists of several components:
+
+- **Core Library**: The main engine for defining and executing data pipelines
+- **CLI**: Command-line interface to run pipelines locally or connect to remote executors
+- **Executor**: Server component for running pipelines remotely, closer to data sources
+
+For component-specific details, see the respective README files:
+- [CLI README](aqueducts-cli/README.md)
+- [Executor README](aqueducts-executor/README.md)
+
+## Acknowledgements
+
+This project would not be possible without the incredible work done by the open source community, particularly the maintainers and contributors of:
+
+- [Apache Arrow](https://github.com/apache/arrow-rs) - The memory model and data structures that are used by many projects in this space
+- [Apache DataFusion](https://github.com/apache/datafusion) - The SQL execution engine that handles all querying capabilities and more
+- [Delta Lake Rust](https://github.com/delta-io/delta-rs) - Enabling Delta table support for rust projects
+
+Please show these projects some love and support! ❤️
+
+## Contributing
+
+Contributions to Aqueducts are welcome! Whether it's bug reports, feature requests, or code contributions, we appreciate all forms of help.
+
+Please see the [Contributing Guide](CONTRIBUTING.md) for detailed instructions on how to:
+- Set up your development environment
+- Run the project locally
+- Set up Docker Compose for testing
+- Configure ODBC connections
+- Run the executor and CLI side-by-side
+- Submit pull requests
 
 ## Roadmap
 
 - [x] Docs
-- [x] ODBC source
-- [x] ODBC destination
+- [x] ODBC source and destination
 - [x] Parallel processing of stages
-- [ ] Streaming Source (initially kafka + maybe aws kinesis)
-- [ ] Streaming destination (initially kafka)
+- [x] Remote execution
+- [x] Memory management
+- [ ] Web server for pipeline management and orchestration
+- [ ] Apache Iceberg support
+- [ ] Data catalog implementation for deltalake and apache iceberg

@@ -1,38 +1,40 @@
-use datafusion::execution::context::SessionContext;
-use regex::Regex;
-use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
     sync::{Arc, OnceLock},
     time::Instant,
 };
+
+use datafusion::execution::context::SessionContext;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use tokio::task::JoinHandle;
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, instrument, warn};
 
 pub mod destinations;
 pub mod error;
+pub mod progress_tracker;
 pub mod sources;
 pub mod stages;
 
 use destinations::*;
+use progress_tracker::*;
 use sources::*;
 use stages::*;
 
 /// Prelude to import all relevant models and functions
 pub mod prelude {
     pub use super::destinations::*;
+    pub use super::progress_tracker::{ProgressEvent, ProgressTracker};
+    pub use super::run_pipeline;
     pub use super::sources::*;
     pub use super::stages::*;
     pub use super::{Aqueduct, AqueductBuilder};
-
-    pub use super::run_pipeline;
 }
 
 pub type Result<T> = core::result::Result<T, error::Error>;
 
 static PARAM_REGEX: OnceLock<Regex> = OnceLock::new();
-
 /// Definition for an `Aqueduct` data pipeline
 #[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
@@ -213,24 +215,30 @@ pub fn register_handlers() {
     aqueducts_utils::store::register_handlers();
 }
 
-/// Execute an `Aqueduct` pipeline, using a provided datafusion `SessionContext`
+/// Execute an `Aqueduct` pipeline with optional progress tracking
+/// The progress tracker receives events during execution to monitor status
 /// Returns the provided context once the pipeline completes
-#[instrument(skip(ctx, aqueduct), err)]
+#[instrument(skip_all, err)]
 pub async fn run_pipeline(
     ctx: Arc<SessionContext>,
     aqueduct: Aqueduct,
+    progress_tracker: Option<Arc<dyn ProgressTracker>>,
 ) -> Result<Arc<SessionContext>> {
     let mut stage_ttls: HashMap<String, usize> = HashMap::new();
     let start_time = Instant::now();
 
-    info!("Running Aqueduct ...");
+    debug!("Running Aqueduct ...");
+
+    if let Some(tracker) = &progress_tracker {
+        tracker.on_progress(ProgressEvent::Started);
+    }
 
     if let Some(destination) = &aqueduct.destination {
         let time = Instant::now();
 
         register_destination(ctx.clone(), destination).await?;
 
-        info!(
+        debug!(
             "Created destination ... Elapsed time: {:.2?}",
             time.elapsed()
         );
@@ -239,11 +247,11 @@ pub async fn run_pipeline(
     let handles = aqueduct
         .sources
         .iter()
-        .enumerate()
-        .map(|(pos, source)| {
+        .map(|source| {
             let time = Instant::now();
             let source_ = source.clone();
             let ctx_ = ctx.clone();
+            let source_name = source.name();
 
             let handle = tokio::spawn(async move {
                 register_source(ctx_, source_).await?;
@@ -251,17 +259,21 @@ pub async fn run_pipeline(
                 Ok(())
             });
 
-            (pos, time, handle)
+            (source_name, time, handle)
         })
-        .collect::<Vec<(usize, Instant, JoinHandle<Result<()>>)>>();
+        .collect::<Vec<(String, Instant, JoinHandle<Result<()>>)>>();
 
-    for (pos, time, handle) in handles {
+    for (source_name, time, handle) in handles {
         handle.await.expect("failed to join task")?;
 
-        info!(
-            "Registered source #{pos} ... Elapsed time: {:.2?}",
+        debug!(
+            "Registered source {source_name} ... Elapsed time: {:.2?}",
             time.elapsed()
         );
+
+        if let Some(tracker) = &progress_tracker {
+            tracker.on_progress(ProgressEvent::SourceRegistered { name: source_name });
+        }
     }
 
     for (pos, parallel) in aqueduct.stages.iter().enumerate() {
@@ -271,17 +283,37 @@ pub async fn run_pipeline(
             let stage_ = stage.clone();
             let ctx_ = ctx.clone();
             let name = stage.name.clone();
+            let tracker = progress_tracker.clone();
 
             let handle = tokio::spawn(async move {
                 let time = Instant::now();
-                info!("Running stage {} #{pos}:{sub}", name);
+                debug!("Running stage {} #{pos}:{sub}", name);
 
-                process_stage(ctx_, stage_).await?;
+                if let Some(tracker_ref) = &tracker {
+                    tracker_ref.on_progress(ProgressEvent::StageStarted {
+                        name: name.clone(),
+                        position: pos,
+                        sub_position: sub,
+                    });
+                }
 
-                info!(
+                process_stage(ctx_, stage_, tracker.as_ref()).await?;
+
+                let elapsed = time.elapsed();
+                debug!(
                     "Finished processing stage {name} #{pos}:{sub} ... Elapsed time: {:.2?}",
-                    time.elapsed()
+                    elapsed
                 );
+
+                if let Some(tracker) = &tracker {
+                    tracker.on_progress(ProgressEvent::StageCompleted {
+                        name: name.clone(),
+                        position: pos,
+                        sub_position: sub,
+                        duration_ms: elapsed.as_millis() as u64,
+                    });
+                }
+
                 Ok(())
             });
 
@@ -307,18 +339,32 @@ pub async fn run_pipeline(
 
         ctx.deregister_table(last_stage.name.as_str())?;
 
-        info!(
+        let elapsed = time.elapsed();
+        debug!(
             "Finished writing to destination ... Elapsed time: {:.2?}",
-            time.elapsed()
+            elapsed
         );
+
+        // Emit destination completed event
+        if let Some(tracker) = &progress_tracker {
+            tracker.on_progress(ProgressEvent::DestinationCompleted);
+        }
     } else {
         warn!("No destination defined ... skipping write");
     }
 
-    info!(
+    let total_duration = start_time.elapsed();
+    debug!(
         "Finished processing pipeline ... Total time: {:.2?}",
-        start_time.elapsed()
+        total_duration
     );
+
+    // Emit completed event
+    if let Some(tracker) = &progress_tracker {
+        tracker.on_progress(ProgressEvent::Completed {
+            duration_ms: total_duration.as_millis() as u64,
+        });
+    }
 
     Ok(ctx)
 }

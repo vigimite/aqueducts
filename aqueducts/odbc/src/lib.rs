@@ -190,7 +190,7 @@ pub async fn custom(
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "odbc_tests"))]
 mod tests {
     use datafusion::arrow::array::*;
     use datafusion::{assert_batches_eq, prelude::*};

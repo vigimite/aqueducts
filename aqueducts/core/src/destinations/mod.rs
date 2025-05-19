@@ -2,7 +2,7 @@ use aqueducts_utils::store::register_object_store;
 use datafusion::{dataframe::DataFrame, datasource::MemTable, execution::context::SessionContext};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{info, instrument};
+use tracing::{debug, instrument};
 
 pub mod delta;
 pub mod file;
@@ -45,7 +45,7 @@ pub async fn register_destination(
     match destination {
         Destination::InMemory(_) => Ok(()),
         Destination::Delta(table_def) => {
-            info!(
+            debug!(
                 "Creating delta table  (if it doesn't exist yet) '{}' at location '{}'",
                 table_def.name, table_def.location
             );
@@ -78,7 +78,7 @@ pub async fn write_to_destination(
 ) -> Result<()> {
     match destination {
         Destination::InMemory(mem_def) => {
-            info!("Writing data to in-memory table '{}'", mem_def.name);
+            debug!("Writing data to in-memory table '{}'", mem_def.name);
 
             let schema = data.schema().clone();
             let partitioned = data.collect_partitioned().await?;
@@ -89,7 +89,7 @@ pub async fn write_to_destination(
             Ok(())
         }
         Destination::Delta(table_def) => {
-            info!(
+            debug!(
                 "Writing data to delta table '{}' at location '{}'",
                 table_def.name, table_def.location
             );
@@ -98,7 +98,7 @@ pub async fn write_to_destination(
             Ok(())
         }
         Destination::File(file_def) => {
-            info!("Writing data to file at location '{}'", file_def.location);
+            debug!("Writing data to file at location '{}'", file_def.location);
             file::write(file_def, data).await?;
 
             Ok(())

@@ -1,0 +1,51 @@
+[package]
+name = "aqueducts-executor"
+authors = ["<vigimite@protonmail.com>"]
+edition = "2021"
+description = "Remote executor for the Aqueducts data pipeline framework"
+homepage = "https://github.com/vigimite/aqueducts"
+repository = "https://github.com/vigimite/aqueducts"
+readme = "README.md"
+version = "0.9.0"
+keywords = ["aqueducts", "ETL", "data", "pipeline"]
+categories = ["command-line-utilities"]
+license = "Apache-2.0"
+
+[features]
+default = []
+odbc = ["aqueducts/odbc"]
+
+[dependencies]
+aqueducts = { workspace = true, features = ["json", "s3", "gcs", "azure"] }
+aqueducts-utils.workspace = true
+aqueducts-websockets.workspace = true
+
+axum.workspace = true
+clap.workspace = true
+
+datafusion.workspace = true
+datafusion-functions-json.workspace = true
+
+serde.workspace = true
+serde_json.workspace = true
+
+tokio = { workspace = true, features = ["full"] }
+tokio-stream.workspace = true
+tokio-util.workspace = true
+futures.workspace = true
+futures-util.workspace = true
+
+thiserror.workspace = true
+
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["json"] }
+
+uuid.workspace = true
+itertools = "0.14.0"
+tower-http = { version = "0.6.4", features = ["trace"] }
+
+[dev-dependencies]
+rstest.workspace = true
+futures.workspace = true
+tower.workspace = true
+http-body-util.workspace = true
