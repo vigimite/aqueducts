@@ -26,7 +26,7 @@ mod auth;
 pub fn router(context: ApiContextRef) -> Router<ApiContextRef> {
     let public_routes = Router::new().route("/api/health", get(health_check));
 
-    let protected_routes = Router::new().route("/connect", any(ws_handler)).layer(
+    let protected_routes = Router::new().route("/ws/connect", any(ws_handler)).layer(
         axum::middleware::from_fn_with_state(context, auth::require_api_key),
     );
 
