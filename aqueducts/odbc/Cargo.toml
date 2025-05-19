@@ -11,6 +11,10 @@ keywords.workspace = true
 categories.workspace = true
 license.workspace = true
 
+[features]
+default = []
+odbc_tests = []
+
 [dependencies]
 datafusion.workspace = true
 

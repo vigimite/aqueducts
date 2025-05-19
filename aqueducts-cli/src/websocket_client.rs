@@ -1,6 +1,5 @@
 use anyhow::anyhow;
-use aqueducts::prelude::ProgressEvent;
-use aqueducts_websockets::{ClientMessage, ExecutorMessage, StageOutputMessage};
+use aqueducts_websockets::{ClientMessage, ExecutorMessage};
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
@@ -101,7 +100,7 @@ impl WebSocketClient {
                         error!("Error receiving message: {}", e);
                         break;
                     }
-                    _ => {} // Ignore other message types
+                    _ => {}
                 }
             }
             debug!("Incoming message handler finished");
@@ -112,14 +111,12 @@ impl WebSocketClient {
     }
 
     /// Submit a pipeline for execution
-    pub async fn execute_pipeline(&self, pipeline: aqueducts::Aqueduct) -> anyhow::Result<Uuid> {
+    pub async fn execute_pipeline(&self, pipeline: aqueducts::Aqueduct) -> anyhow::Result<()> {
         // Send execution request
         self.send_message(ClientMessage::ExecutionRequest { pipeline })
             .await?;
 
-        // The response will be handled by the caller through the receiver channel
-        // The actual execution ID will come back in an ExecutionResponse message
-        Ok(Uuid::nil()) // Placeholder, actual ID will be returned by caller
+        Ok(())
     }
 
     /// Cancel an execution
@@ -137,119 +134,6 @@ impl WebSocketClient {
                 Ok(())
             }
             None => Err(anyhow!("Connection Closed")),
-        }
-    }
-}
-
-/// Helper functions for processing incoming messages
-pub mod handlers {
-    use super::*;
-
-    pub fn print_progress_update(event: &ProgressEvent) {
-        match event {
-            ProgressEvent::Started => {
-                info!("🚀 Pipeline execution started");
-            }
-            ProgressEvent::SourceRegistered { name } => {
-                info!("📚 Registered source: {name}");
-            }
-            ProgressEvent::StageStarted {
-                name,
-                position,
-                sub_position,
-            } => {
-                info!(
-                    "⚙️  Processing stage: {name} (position: {position}, sub-position: {sub_position})",
-                );
-            }
-            ProgressEvent::StageCompleted {
-                name,
-                position: _,
-                sub_position: _,
-                duration_ms,
-            } => {
-                info!(
-                    "✅ Completed stage: {} (took: {:.2}s)",
-                    name,
-                    *duration_ms as f64 / 1000.0
-                );
-            }
-            ProgressEvent::DestinationCompleted => {
-                info!("📦 Data successfully written to destination");
-            }
-            ProgressEvent::Completed { duration_ms } => {
-                info!(
-                    "🎉 Pipeline execution completed (total time: {:.2}s)",
-                    *duration_ms as f64 / 1000.0
-                );
-            }
-        }
-    }
-
-    /// Buffer for accumulating stage output chunks
-    #[derive(Debug, Default)]
-    pub struct StageOutputBuffer {
-        current_stage: Option<String>,
-        chunks: Vec<(usize, String)>,
-        header: Option<String>,
-        footer: Option<String>,
-    }
-
-    impl StageOutputBuffer {
-        /// Create a new buffer
-        pub fn new() -> Self {
-            Self::default()
-        }
-
-        /// Process a stage output message
-        pub fn process_message(&mut self, stage_name: String, payload: StageOutputMessage) -> bool {
-            if self
-                .current_stage
-                .as_ref()
-                .is_some_and(|s| *s != stage_name)
-            {
-                self.current_stage = Some(stage_name.clone());
-                self.chunks.clear();
-                self.header = None;
-                self.footer = None;
-            }
-
-            match payload {
-                StageOutputMessage::OutputStart { output_header } => {
-                    self.header = Some(output_header);
-                }
-                StageOutputMessage::OutputChunk { sequence, body } => {
-                    self.chunks.push((sequence, body));
-                }
-                StageOutputMessage::OutputEnd { output_footer } => {
-                    self.footer = Some(output_footer);
-                    return true; // Signal that we're ready to print
-                }
-            }
-
-            false
-        }
-
-        /// Print the accumulated output
-        pub fn print_output(&mut self) {
-            if let (Some(header), Some(footer)) = (&self.header, &self.footer) {
-                self.chunks.sort_by_key(|(seq, _)| *seq);
-
-                let joined = self
-                    .chunks
-                    .iter()
-                    .map(|(_, c)| c.as_str())
-                    .collect::<Vec<&str>>()
-                    .join("\n");
-
-                info!("{header}{joined}{footer}\n");
-
-                self.chunks.clear();
-                self.header = None;
-                self.footer = None;
-            } else {
-                error!("Failed to build stage output. Skipping...")
-            }
         }
     }
 }

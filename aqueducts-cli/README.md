@@ -47,25 +47,14 @@ Run a pipeline on a remote executor:
 
 ```bash
 # Execute on remote executor
-aqueducts run --file ./pipeline.yml --executor http://executor-host:8080 --api-key your_api_key
-```
-
-### Managing Remote Executors
-
-Check the status of a remote executor:
-
-```bash
-aqueducts status --executor http://executor-host:8080 --api-key your_api_key
+aqueducts run --file ./pipeline.yml --executor executor-host:3031 --api-key your_api_key
 ```
 
 Cancel a running pipeline on a remote executor:
 
 ```bash
-# Cancel the currently running pipeline
-aqueducts cancel --executor http://executor-host:8080 --api-key your_api_key
-
 # Cancel a specific execution by ID
-aqueducts cancel --executor http://executor-host:8080 --api-key your_api_key --execution-id abc-123
+aqueducts cancel --executor executor-host:3031 --api-key your_api_key --execution-id abc-123
 ```
 
 ## Pipeline Definition Examples

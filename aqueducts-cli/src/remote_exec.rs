@@ -2,14 +2,14 @@ use std::sync::Arc;
 use std::{collections::HashMap, path::PathBuf, sync::atomic::AtomicBool};
 
 use anyhow::{anyhow, Context};
-use aqueducts_websockets::ExecutorMessage;
+use aqueducts::prelude::ProgressEvent;
+use aqueducts_websockets::{ExecutorMessage, StageOutputMessage};
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tokio::sync::mpsc;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::websocket_client::handlers::{print_progress_update, StageOutputBuffer};
 use crate::{parse_aqueduct_file, websocket_client::WebSocketClient};
 
 /// Execute a pipeline on a remote executor
@@ -18,7 +18,7 @@ pub async fn run_remote(
     params: HashMap<String, String>,
     executor_url: String,
     api_key: String,
-) -> Result<(), anyhow::Error> {
+) -> anyhow::Result<()> {
     info!("Parsing pipeline from file: {}", file.display());
     let aqueduct = parse_aqueduct_file(&file, params)?;
 
@@ -129,7 +129,7 @@ pub async fn cancel_remote_execution(
     executor_url: String,
     api_key: String,
     execution_id: Uuid,
-) -> Result<(), anyhow::Error> {
+) -> anyhow::Result<()> {
     info!(
         "Connecting to remote executor to cancel execution {}...",
         execution_id
@@ -170,4 +170,112 @@ pub async fn cancel_remote_execution(
     Err(anyhow!(
         "Lost connection to executor before receiving cancellation confirmation"
     ))
+}
+
+pub fn print_progress_update(event: &ProgressEvent) {
+    match event {
+        ProgressEvent::Started => {
+            info!("🚀 Pipeline execution started");
+        }
+        ProgressEvent::SourceRegistered { name } => {
+            info!("📚 Registered source: {name}");
+        }
+        ProgressEvent::StageStarted {
+            name,
+            position,
+            sub_position,
+        } => {
+            info!(
+                "⚙️  Processing stage: {name} (position: {position}, sub-position: {sub_position})",
+            );
+        }
+        ProgressEvent::StageCompleted {
+            name,
+            position: _,
+            sub_position: _,
+            duration_ms,
+        } => {
+            info!(
+                "✅ Completed stage: {} (took: {:.2}s)",
+                name,
+                *duration_ms as f64 / 1000.0
+            );
+        }
+        ProgressEvent::DestinationCompleted => {
+            info!("📦 Data successfully written to destination");
+        }
+        ProgressEvent::Completed { duration_ms } => {
+            info!(
+                "🎉 Pipeline execution completed (total time: {:.2}s)",
+                *duration_ms as f64 / 1000.0
+            );
+        }
+    }
+}
+
+/// Buffer for accumulating stage output chunks
+#[derive(Debug, Default)]
+pub struct StageOutputBuffer {
+    current_stage: Option<String>,
+    chunks: Vec<(usize, String)>,
+    header: Option<String>,
+    footer: Option<String>,
+}
+
+impl StageOutputBuffer {
+    /// Create a new buffer
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Process a stage output message
+    pub fn process_message(&mut self, stage_name: String, payload: StageOutputMessage) -> bool {
+        if self
+            .current_stage
+            .as_ref()
+            .is_some_and(|s| *s != stage_name)
+        {
+            self.current_stage = Some(stage_name.clone());
+            self.chunks.clear();
+            self.header = None;
+            self.footer = None;
+        }
+
+        match payload {
+            StageOutputMessage::OutputStart { output_header } => {
+                self.header = Some(output_header);
+            }
+            StageOutputMessage::OutputChunk { sequence, body } => {
+                self.chunks.push((sequence, body));
+            }
+            StageOutputMessage::OutputEnd { output_footer } => {
+                self.footer = Some(output_footer);
+                return true; // Signal that we're ready to print
+            }
+        }
+
+        false
+    }
+
+    /// Print the accumulated output
+    pub fn print_output(&mut self) {
+        if let (Some(header), Some(footer)) = (&self.header, &self.footer) {
+            self.chunks.sort_by_key(|(seq, _)| *seq);
+
+            let joined = self
+                .chunks
+                .iter()
+                .map(|(_, c)| c.as_str())
+                .collect::<Vec<&str>>()
+                .join("\n");
+
+            info!("{header}{joined}{footer}\n");
+
+            self.chunks.clear();
+            self.header = None;
+            self.footer = None;
+        } else {
+            error!("Failed to build stage output. Skipping...")
+        }
+    }
 }
