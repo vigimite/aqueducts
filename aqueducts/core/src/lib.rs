@@ -266,10 +266,9 @@ pub async fn run_pipeline(
     for (source_name, time, handle) in handles {
         handle.await.expect("failed to join task")?;
 
-        let elapsed = time.elapsed();
         debug!(
             "Registered source {source_name} ... Elapsed time: {:.2?}",
-            elapsed
+            time.elapsed()
         );
 
         if let Some(tracker) = &progress_tracker {
@@ -278,7 +277,7 @@ pub async fn run_pipeline(
     }
 
     for (pos, parallel) in aqueduct.stages.iter().enumerate() {
-        let mut handles: Vec<(String, usize, JoinHandle<Result<()>>)> = Vec::new();
+        let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
 
         for (sub, stage) in parallel.iter().enumerate() {
             let stage_ = stage.clone();
@@ -319,10 +318,10 @@ pub async fn run_pipeline(
             });
 
             calculate_ttl(&mut stage_ttls, stage.name.as_str(), pos, &aqueduct.stages)?;
-            handles.push((stage.name.clone(), sub, handle));
+            handles.push(handle);
         }
 
-        for (_, _, handle) in handles {
+        for handle in handles {
             handle.await.expect("failed to join task")?;
         }
 
@@ -393,7 +392,7 @@ fn calculate_ttl<'a>(
                 None
             }
         })
-        .next_back()
+        .last()
         .unwrap_or(stage_pos + 1);
 
     stage_ttls
