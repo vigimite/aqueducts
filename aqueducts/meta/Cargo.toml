@@ -1,0 +1,60 @@
+[package]
+name = "aqueducts"
+version.workspace = true
+edition.workspace = true
+description = "Aqueducts - A framework to build ETL data pipelines declaratively"
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = ["core", "storage", "yaml"]
+
+# Core functionality
+core = ["aqueducts-core"]
+
+# Storage backends
+storage = ["aqueducts-storage"]
+s3 = ["aqueducts-core/s3", "aqueducts-storage/s3", "storage"]
+gcs = ["aqueducts-core/gcs", "aqueducts-storage/gcs", "storage"]
+azure = ["aqueducts-core/azure", "aqueducts-storage/azure", "storage"]
+
+# Data formats
+formats = ["aqueducts-formats"]
+yaml = ["aqueducts-core/yaml", "formats"]
+json = ["aqueducts-core/json", "formats"]
+toml = ["aqueducts-core/toml", "formats"]
+parquet = ["aqueducts-formats/parquet", "formats"]
+csv = ["aqueducts-formats/csv", "formats"]
+json_format = ["aqueducts-formats/json", "formats"]
+avro = ["aqueducts-formats/avro", "formats"]
+
+# Specific integrations
+delta = ["aqueducts-delta", "storage"]
+odbc = ["aqueducts-core/odbc", "aqueducts-odbc"]
+protocol = ["aqueducts-protocol"]
+
+# Full feature set
+full = [
+    "core", "storage", "s3", "gcs", "azure",
+    "formats", "yaml", "json", "toml", "parquet", "csv", "json_format", "avro",
+    "delta", "odbc", "protocol"
+]
+
+[dependencies]
+# Re-exported crates
+aqueducts-core = { workspace = true, optional = true }
+aqueducts-delta = { workspace = true, optional = true }
+aqueducts-formats = { workspace = true, optional = true }
+aqueducts-odbc = { workspace = true, optional = true }
+aqueducts-protocol = { workspace = true, optional = true }
+aqueducts-storage = { workspace = true, optional = true }
+
+# Additional dependencies
+thiserror = { workspace = true }
+datafusion = { workspace = true }
+tokio = { workspace = true, features = ["rt"] }

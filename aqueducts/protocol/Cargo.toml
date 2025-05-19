@@ -1,0 +1,18 @@
+[package]
+name = "aqueducts-protocol"
+authors.workspace = true
+edition.workspace = true
+description = "Communication protocol for Aqueducts client-server interactions"
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[dependencies]
+aqueducts-core.workspace = true
+
+uuid.workspace = true
+serde.workspace = true

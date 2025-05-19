@@ -1,10 +1,13 @@
 [workspace]
 members = [
   "aqueducts/core",
+  "aqueducts/delta",
+  "aqueducts/formats",
+  "aqueducts/meta",
   "aqueducts/odbc",
-  "aqueducts/utils",
+  "aqueducts/protocol",
+  "aqueducts/storage",
   "aqueducts/schema_gen",
-  "aqueducts/websockets",
   "aqueducts-cli",
   "aqueducts-executor"
 ]
@@ -27,10 +30,13 @@ github = { repository = "vigimite/aqueducts", workflow = "build.yml" }
 
 [workspace.dependencies]
 # Internal crates
-aqueducts = { path = "aqueducts/core", version = "0.9.0" }
+aqueducts = { path = "aqueducts/meta", version = "0.9.0" }
+aqueducts-core = { path = "aqueducts/core", version = "0.9.0" }
+aqueducts-delta = { path = "aqueducts/delta", version = "0.9.0" }
+aqueducts-formats = { path = "aqueducts/formats", version = "0.9.0" }
 aqueducts-odbc = { path = "aqueducts/odbc", version = "0.9.0" }
-aqueducts-utils = { path = "aqueducts/utils", version = "0.9.0" }
-aqueducts-websockets = { path = "aqueducts/websockets", version = "0.9.0" }
+aqueducts-protocol = { path = "aqueducts/protocol", version = "0.9.0" }
+aqueducts-storage = { path = "aqueducts/storage", version = "0.9.0" }
 
 # Data processing libraries
 datafusion = "47"
@@ -58,6 +64,10 @@ tower = { version = "0.4.13", features = ["util"] }
 http-body-util = "0.1.3"
 tokio-tungstenite = "0.22.0"
 
+# Storage
+object_store = { version = "0.10.0", features = ["aws", "http"] }
+aws-sdk-s3 = "1.25.0"
+
 # Logging and tracing
 tracing = "0.1"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
@@ -77,6 +87,8 @@ url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.16.0", features = ["v4", "serde"] }
 rand = "0.8"
+async-trait = "0.1"
 
 # Testing
 rstest = "0.25"
+tempfile = "3.10.1"

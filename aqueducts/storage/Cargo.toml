@@ -1,0 +1,35 @@
+[package]
+name = "aqueducts-storage"
+authors.workspace = true
+edition.workspace = true
+description = "Storage backends and utilities for Aqueducts"
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[features]
+default = []
+s3 = ["aws-sdk-s3"]
+gcs = ["object_store/gcp"]
+azure = ["object_store/azure"]
+
+[dependencies]
+datafusion.workspace = true
+deltalake = { workspace = true, features = ["s3", "gcs", "azure"] }
+serde.workspace = true
+url.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+object_store = { workspace = true, features = ["aws"] }
+
+# AWS dependencies (optional)
+aws-sdk-s3 = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+tracing-test.workspace = true

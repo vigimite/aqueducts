@@ -143,6 +143,37 @@ pub async fn write_arrow_batches(
     Ok(())
 }
 
+/// Write a DataFrame to an ODBC table
+/// ```rust,ignore
+/// use datafusion::prelude::*;
+///
+/// let ctx = SessionContext::new();
+/// let df = ctx.sql("SELECT * FROM my_source").await.unwrap();
+///
+/// write_to_table(
+///    "Driver={PostgreSQL};Server=localhost;UID=user;PWD=password",
+///    "destination_table",
+///    df
+/// ).await.unwrap();
+/// ```
+pub async fn write_to_table(
+    connection_string: &str,
+    destination_name: &str,
+    df: datafusion::dataframe::DataFrame,
+) -> Result<()> {
+    let schema = df.schema().as_arrow().clone();
+    let batches = df.collect().await?;
+
+    write_arrow_batches(
+        connection_string,
+        destination_name,
+        batches,
+        Arc::new(schema),
+        1000, // default batch size
+    )
+    .await
+}
+
 /// Performs an insert with a prepared statement provided.
 /// Optionally, it can execute preliminary statements (such as `delete from ...`).
 /// All statemets are executed within the same transaction and it gets rolled back

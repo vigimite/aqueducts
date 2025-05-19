@@ -26,8 +26,6 @@ datafusion.workspace = true
 datafusion-functions-json.workspace = true
 
 aqueducts.workspace = true
-aqueducts-utils.workspace = true
-aqueducts-websockets.workspace = true
 
 clap.workspace = true
 

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 /// Build script to generate the YAML schema for documentation purposes
 fn main() {
-    let schema = schemars::schema_for!(aqueducts::Aqueduct);
+    let schema = schemars::schema_for!(aqueducts_core::Aqueduct);
 
     let schema_json = serde_json::to_string_pretty(&schema).expect("Failed to serialize schema");
 

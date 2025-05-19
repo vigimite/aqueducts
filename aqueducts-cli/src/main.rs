@@ -6,6 +6,9 @@ use tracing::{debug, info};
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 use uuid::Uuid;
 
+// Use std::result::Result instead of aqueducts::Result
+type Result<T, E = anyhow::Error> = std::result::Result<T, E>;
+
 mod local_exec;
 mod remote_exec;
 mod websocket_client;
@@ -57,7 +60,9 @@ enum Commands {
     },
 }
 
-fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
+fn parse_key_val<T, U>(
+    s: &str,
+) -> std::result::Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
 where
     T: std::str::FromStr,
     T::Err: Error + Send + Sync + 'static,

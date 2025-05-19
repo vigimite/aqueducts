@@ -1,3 +1,46 @@
+//! # Aqueducts Executor
+//!
+//! The Aqueducts Executor is a standalone service that runs Aqueduct data pipelines remotely.
+//! It provides a WebSocket API for clients to submit pipeline execution requests, monitor
+//! execution progress, and receive results.
+//!
+//! ## Key Features
+//!
+//! - **Remote Pipeline Execution**: Runs Aqueduct data pipelines on a separate server
+//! - **Execution Queue Management**: Handles multiple pipeline execution requests with queue management
+//! - **Real-time Progress Tracking**: Provides detailed execution progress updates to clients
+//! - **Resource Management**: Configurable memory limits for pipeline execution
+//! - **Cancellation Support**: Allows graceful cancellation of running or queued pipelines
+//! - **Authentication**: API key-based authentication for secure access
+//!
+//! ## Architecture
+//!
+//! The executor consists of the following main components:
+//!
+//! - **API Server**: WebSocket-based API for client communication (in the `api` module)
+//! - **Execution Engine**: Core pipeline execution functionality (in the `executor` module)
+//! - **Configuration**: Server and execution configuration (in the `config` module)
+//!
+//! ## Crate Organization
+//!
+//! - **api/**: HTTP and WebSocket API for client communication
+//!   - **auth.rs**: API key authentication middleware
+//!   - **mod.rs**: API routes and WebSocket message handling
+//! - **executor/**: Pipeline execution engine
+//!   - **manager.rs**: Manages concurrent execution with queuing
+//!   - **queue.rs**: Queue implementation for pending executions
+//!   - **progress_tracker.rs**: Tracks and reports pipeline execution progress
+//! - **config.rs**: Configuration management
+//! - **error.rs**: Error types and handling
+//! - **main.rs**: Application entry point and server setup
+//!
+//! ## Integration with Other Crates
+//!
+//! - **aqueducts-core**: Core pipeline execution functionality
+//! - **aqueducts-protocol**: Message types for client-server communication
+//!
+//! See the module-level documentation for more details on each component.
+
 use std::{net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
 
 use axum::Router;

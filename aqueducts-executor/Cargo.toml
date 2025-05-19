@@ -16,9 +16,7 @@ default = []
 odbc = ["aqueducts/odbc"]
 
 [dependencies]
-aqueducts = { workspace = true, features = ["json", "s3", "gcs", "azure"] }
-aqueducts-utils.workspace = true
-aqueducts-websockets.workspace = true
+aqueducts = { workspace = true, features = ["json", "s3", "gcs", "azure", "protocol"] }
 
 axum.workspace = true
 clap.workspace = true

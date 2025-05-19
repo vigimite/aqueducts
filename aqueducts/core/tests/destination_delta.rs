@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod destination_delta {
-    use aqueducts::prelude::*;
+
+    use aqueducts_core::{run_pipeline, Aqueduct};
     use datafusion::{
         assert_batches_eq,
         execution::context::SessionContext,

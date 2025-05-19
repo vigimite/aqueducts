@@ -14,7 +14,7 @@ build = "build.rs"
 publish = false
 
 [build-dependencies]
-aqueducts = { workspace = true, features = ["schema_gen", "odbc"] }
+aqueducts-core = { workspace = true, features = ["schema_gen", "odbc"] }
 
 schemars.workspace = true
 

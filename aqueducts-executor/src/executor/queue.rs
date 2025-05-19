@@ -4,13 +4,33 @@ use tokio::sync::broadcast;
 
 use super::{Execution, QueueUpdate};
 
-/// Queue of pending jobs + broadcaster for queue updates
+/// Manages a FIFO queue of pending pipeline executions with position updates.
+///
+/// `ExecutionQueue` maintains:
+///
+/// 1. A double-ended queue of pending `Execution` instances
+/// 2. A broadcast channel to notify clients of queue position changes
+///
+/// When executions are added or removed, the queue automatically broadcasts
+/// position updates to all clients monitoring queue positions. This allows
+/// clients to display accurate queue position information in real-time.
+///
+/// The queue operates in a first-in-first-out (FIFO) manner, processing
+/// executions in the order they were submitted.
 pub struct ExecutionQueue {
+    /// Internal double-ended queue holding pending executions
     queue: VecDeque<Execution>,
+    /// Broadcast channel for sending queue position updates to clients
     broadcaster: broadcast::Sender<QueueUpdate>,
 }
 
 impl ExecutionQueue {
+    /// Creates a new execution queue with the specified broadcast capacity.
+    ///
+    /// # Arguments
+    /// * `capacity` - Maximum number of `QueueUpdate` messages that can be buffered
+    ///   in the broadcast channel. This should be sized appropriately for the
+    ///   expected number of concurrent client connections.
     pub fn new(capacity: usize) -> Self {
         let (tx, _rx) = broadcast::channel(capacity);
         Self {
@@ -19,6 +39,19 @@ impl ExecutionQueue {
         }
     }
 
+    /// Adds a new execution to the end of the queue and returns a receiver for position updates.
+    ///
+    /// This method:
+    /// 1. Creates a new receiver subscription to the position update channel
+    /// 2. Adds the execution to the back of the queue (FIFO ordering)
+    /// 3. Broadcasts updated queue positions to all listeners
+    /// 4. Returns the receiver for the client to track its position
+    ///
+    /// # Arguments
+    /// * `job` - The execution to add to the queue
+    ///
+    /// # Returns
+    /// A broadcast receiver that the client can use to monitor queue position changes
     pub fn enqueue(&mut self, job: Execution) -> broadcast::Receiver<QueueUpdate> {
         let rx = self.broadcaster.subscribe();
         self.queue.push_back(job);
@@ -26,6 +59,13 @@ impl ExecutionQueue {
         rx
     }
 
+    /// Removes and returns the next execution from the front of the queue.
+    ///
+    /// If an execution is removed, this method broadcasts updated queue positions
+    /// to all listeners so they have accurate position information.
+    ///
+    /// # Returns
+    /// Some(Execution) if the queue was not empty, or None if the queue was empty
     pub fn dequeue(&mut self) -> Option<Execution> {
         let job = self.queue.pop_front();
         if job.is_some() {
@@ -34,6 +74,15 @@ impl ExecutionQueue {
         job
     }
 
+    /// Broadcasts current queue positions to all subscribed clients.
+    ///
+    /// This method iterates through all executions in the queue and sends
+    /// a QueueUpdate message for each one, containing:
+    /// - The execution ID
+    /// - Its current position in the queue (0 = next to be executed)
+    ///
+    /// The broadcast errors are ignored since they only occur when there are
+    /// no active receivers or when the receivers' lagged too far behind.
     fn broadcast_positions(&self) {
         for (idx, execution) in self.queue.iter().enumerate() {
             let _ = self.broadcaster.send(QueueUpdate {

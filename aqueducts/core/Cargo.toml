@@ -1,8 +1,8 @@
 [package]
-name = "aqueducts"
+name = "aqueducts-core"
 authors.workspace = true
 edition.workspace = true
-description.workspace = true
+description = "Core data pipeline definition and execution engine for Aqueducts"
 repository.workspace = true
 readme.workspace = true
 version.workspace = true
@@ -12,15 +12,24 @@ categories.workspace = true
 license.workspace = true
 
 [features]
-default = ["yaml"]
-s3 = ["aqueducts-utils/s3"]
-gcs = ["aqueducts-utils/gcs"]
-azure = ["aqueducts-utils/azure"]
+default = ["yaml", "formats"]
+s3 = ["aqueducts-storage/s3"]
+gcs = ["aqueducts-storage/gcs"]
+azure = ["aqueducts-storage/azure"]
 odbc = ["aqueducts-odbc"]
-schema_gen = ["schemars"]
+schema_gen = ["schemars", "aqueducts-delta/schema_gen", "aqueducts-formats/schema_gen"]
 json = ["dep:serde_json"]
 yaml = ["dep:serde_yml"]
 toml = ["dep:toml"]
+# Format handling
+formats = ["aqueducts-formats"]
+storage = [] # Empty feature to fix cfg warning
+parquet = ["formats", "aqueducts-formats/parquet"]
+csv = ["formats", "aqueducts-formats/csv"]
+json_format = ["formats", "aqueducts-formats/json"]
+avro = ["formats", "aqueducts-formats/avro"]
+# Enable all features (cloud storage, formats, odbc)
+full = ["s3", "gcs", "azure", "odbc", "json", "yaml", "toml", "schema_gen", "parquet", "csv", "json_format", "avro"]
 
 [dependencies]
 datafusion.workspace = true
@@ -42,9 +51,12 @@ url.workspace = true
 regex.workspace = true
 derive-new.workspace = true
 chrono.workspace = true
+async-trait.workspace = true
 
+aqueducts-delta = { workspace = true }
+aqueducts-formats = { workspace = true, optional = true }
 aqueducts-odbc = { workspace = true, optional = true }
-aqueducts-utils.workspace = true
+aqueducts-storage = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use aqueducts_websockets::{ClientMessage, ExecutorMessage};
+use aqueducts::protocol::{ClientMessage, ExecutorMessage};
 use axum::{
     extract::{
         ws::{Message, WebSocket},

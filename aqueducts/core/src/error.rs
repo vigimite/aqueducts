@@ -8,13 +8,16 @@ pub enum Error {
     #[error("Missing template parameters: {0:?}")]
     MissingParams(HashSet<String>),
 
-    // -- Modules
+    #[error("{0}")]
+    Other(String),
+
+    // -- New Module Structure
     #[error("Failed to register source: {0}")]
-    SourceError(#[from] super::sources::error::Error),
+    ModelSourceError(#[from] crate::model::sources::error::Error),
     #[error("Failed to process stage: {0}")]
-    StageError(#[from] super::stages::error::Error),
+    ModelStageError(#[from] crate::model::stages::error::Error),
     #[error("Failed to write data to destination: {0}")]
-    DestinationError(#[from] super::destinations::error::Error),
+    ModelDestinationError(#[from] crate::model::destinations::error::Error),
 
     // -- External
     #[error("Failed to read definition file: {0}")]

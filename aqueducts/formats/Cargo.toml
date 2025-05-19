@@ -1,0 +1,31 @@
+[package]
+name = "aqueducts-formats"
+version = "0.9.0"
+edition = "2021"
+description = "File format handling for Aqueducts"
+license.workspace = true
+authors.workspace = true
+
+[features]
+default = ["parquet", "csv", "json"]
+parquet = []
+csv = []
+json = []
+avro = ["datafusion/avro"]
+schema_gen = ["schemars"]
+
+[dependencies]
+aqueducts-storage = { path = "../storage" }
+datafusion = { workspace = true }
+url = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+schemars = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+rstest = { workspace = true }

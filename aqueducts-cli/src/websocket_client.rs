@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use aqueducts_websockets::{ClientMessage, ExecutorMessage};
+use aqueducts::protocol::{ClientMessage, ExecutorMessage};
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};

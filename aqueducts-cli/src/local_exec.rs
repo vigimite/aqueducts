@@ -1,15 +1,12 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use anyhow::Context;
-use aqueducts::{progress_tracker::LoggingProgressTracker, run_pipeline};
+use aqueducts::{pipeline::progress_tracker::LoggingProgressTracker, pipeline::run_pipeline};
 use tracing::{debug, info};
 
 use crate::parse_aqueduct_file;
 
-pub async fn run_local(
-    file: PathBuf,
-    params: HashMap<String, String>,
-) -> Result<(), anyhow::Error> {
+pub async fn run_local(file: PathBuf, params: HashMap<String, String>) -> crate::Result<()> {
     info!("Running pipeline locally from file: {}", file.display());
 
     aqueducts::register_handlers();

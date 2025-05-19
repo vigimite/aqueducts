@@ -3,7 +3,7 @@ use std::{collections::HashMap, path::PathBuf, sync::atomic::AtomicBool};
 
 use anyhow::{anyhow, Context};
 use aqueducts::prelude::ProgressEvent;
-use aqueducts_websockets::{ExecutorMessage, StageOutputMessage};
+use aqueducts::protocol::{ExecutorMessage, StageOutputMessage};
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tokio::sync::mpsc;

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use aqueducts_websockets::ExecutorMessage;
+use aqueducts::protocol::ExecutorMessage;
 use futures::future::BoxFuture;
 use tokio::sync::{broadcast, mpsc, Mutex, Semaphore};
 use tokio_util::sync::CancellationToken;
@@ -9,15 +9,123 @@ use uuid::Uuid;
 
 use super::{queue::ExecutionQueue, Execution, QueueUpdate};
 
-/// Manages single-concurrency execution + queue
+/// Manages the execution lifecycle of Aqueduct pipelines with queuing and cancellation support.
+///
+/// The `ExecutionManager` is responsible for:
+///
+/// 1. **Concurrent Execution Management**:
+///    - Enforces single-concurrency for pipeline execution (one at a time)
+///    - Queues additional execution requests while a pipeline is running
+///    - Manages the priority ordering of pending executions
+///
+/// 2. **Pipeline Execution Lifecycle**:
+///    - Submits new pipeline executions with unique IDs
+///    - Tracks execution progress and queue position
+///    - Processes executions in order from the queue
+///    - Supports clean cancellation of running or queued pipelines
+///
+/// 3. **Resource Management**:
+///    - Uses semaphore to control execution concurrency
+///    - Ensures proper cleanup of resources after execution
+///    - Provides monitoring of execution queue status
+///
+/// The manager exposes a non-blocking API for queue management and works with
+/// the executor's progress tracking system to provide feedback to clients.
+///
+/// # Examples
+///
+/// ## Creating and starting an execution manager
+///
+/// This is an illustrative example (not meant to be run as a doctest):
+///
+///     // Example: Creating and starting an execution manager
+///     use std::sync::Arc;
+///
+///     async fn start_execution_manager() {
+///         // Create a new execution manager with a queue broadcast capacity of 100
+///         let manager = Arc::new(ExecutionManager::new(100));
+///         
+///         // Clone the Arc for the background task
+///         let manager_clone = manager.clone();
+///         
+///         // Spawn the manager in a background task
+///         tokio::spawn(async move {
+///             manager_clone.start().await;
+///         });
+///         
+///         // Now the manager is ready to accept execution requests
+///     }
+///
+/// ## Submitting a pipeline for execution
+///
+/// This is an illustrative example (not meant to be run as a doctest):
+///
+///     // Example: Submitting a pipeline for execution
+///     use aqueducts::Aqueduct;
+///
+///     async fn submit_pipeline(
+///         manager: &ExecutionManager,
+///         pipeline: Aqueduct,
+///         max_memory_gb: Option<usize>
+///     ) {
+///         // Submit the pipeline for execution
+///         let (execution_id, mut queue_rx, mut progress_rx) = manager
+///             .submit(move |id, client_tx| {
+///                 Box::pin(async move {
+///                     execute_pipeline(id, client_tx, pipeline, max_memory_gb).await
+///                 })
+///             })
+///             .await;
+///         
+///         println!("Pipeline submitted with ID: {}", execution_id);
+///         
+///         // Listen for queue position updates
+///         tokio::spawn(async move {
+///             while let Ok(update) = queue_rx.recv().await {
+///                 println!("Position in queue: {}", update.position);
+///             }
+///         });
+///         
+///         // Listen for progress updates
+///         tokio::spawn(async move {
+///             while let Some(msg) = progress_rx.recv().await {
+///                 // Process execution messages here
+///                 println!("Received execution message");
+///             }
+///         });
+///     }
+///
+/// ## Cancelling an execution
+///
+/// This is an illustrative example (not meant to be run as a doctest):
+///
+///     // Example: Cancelling an execution
+///     use uuid::Uuid;
+///
+///     async fn cancel_execution(manager: &ExecutionManager, execution_id: Uuid) {
+///         // Cancel a running or queued pipeline execution
+///         manager.cancel(execution_id).await;
+///         println!("Cancellation request sent for execution: {}", execution_id);
+///     }
 pub struct ExecutionManager {
+    /// Queue of pending executions, protected by a mutex for concurrent access
     queue: Arc<Mutex<ExecutionQueue>>,
+    /// Semaphore limiting concurrent executions (permits = 1 for single concurrency)
     semaphore: Arc<Semaphore>,
+    /// Maps execution IDs to cancellation tokens for graceful shutdown
     cancellation_tokens: Arc<Mutex<HashMap<Uuid, CancellationToken>>>,
 }
 
 impl ExecutionManager {
-    /// Create a new manager with broadcast capacity
+    /// Creates a new execution manager with the specified queue capacity.
+    ///
+    /// This initializes the execution queue, semaphore (set to 1 for single concurrency),
+    /// and the cancellation token map.
+    ///
+    /// # Arguments
+    /// * `queue_capacity` - Maximum number of broadcast messages that can be buffered
+    ///   for the queue update channel. This should be sized appropriately based on
+    ///   expected concurrent client connections.
     pub fn new(queue_capacity: usize) -> Self {
         Self {
             queue: Arc::new(Mutex::new(ExecutionQueue::new(queue_capacity))),
@@ -26,7 +134,24 @@ impl ExecutionManager {
         }
     }
 
-    /// Submit an execution, returning queue updates and progress streams
+    /// Submits a new execution to be run and returns tracking handles.
+    ///
+    /// This method:
+    /// 1. Generates a new UUID for the execution
+    /// 2. Creates a communication channel for progress updates
+    /// 3. Sets up a cancellation token for the execution
+    /// 4. Enqueues the execution in the execution queue
+    /// 5. Returns handles for tracking the execution
+    ///
+    /// # Arguments
+    /// * `f` - A function that takes an execution ID and progress channel and returns
+    ///   a boxed future that will execute the pipeline.
+    ///
+    /// # Returns
+    /// A tuple containing:
+    /// * The generated execution ID (UUID)
+    /// * A receiver for queue position updates
+    /// * A receiver for execution progress and result messages
     pub async fn submit<F>(
         &self,
         f: F,
@@ -58,7 +183,17 @@ impl ExecutionManager {
         (id, queue_rx, client_rx)
     }
 
-    /// Cancel a pending or running job
+    /// Cancels a running or queued execution by its ID.
+    ///
+    /// This method signals cancellation by triggering the cancellation token
+    /// associated with the given execution ID. The token is consumed (removed)
+    /// during this process.
+    ///
+    /// If the execution is currently running, it will be interrupted gracefully.
+    /// If it's in the queue, it will be canceled when it's dequeued.
+    ///
+    /// # Arguments
+    /// * `job_id` - The UUID of the execution to cancel
     pub async fn cancel(&self, job_id: Uuid) {
         debug!(execution_id = %job_id, "Attempting to cancel execution");
         if let Some(token) = self.cancellation_tokens.lock().await.remove(&job_id) {
@@ -69,7 +204,15 @@ impl ExecutionManager {
         }
     }
 
-    /// Background loop: one job at a time, with cancellation
+    /// Starts the execution manager's background processing loop.
+    ///
+    /// This method runs an infinite loop that:
+    /// 1. Acquires a semaphore permit (enforcing single concurrency)
+    /// 2. Dequeues the next execution from the queue
+    /// 3. Spawns a task to run the execution with cancellation support
+    /// 4. Manages resource cleanup after execution completes
+    ///
+    /// This method should be spawned in its own task as it runs indefinitely.
     pub async fn start(&self) {
         info!("Starting execution manager background loop");
         loop {
