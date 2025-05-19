@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use aqueducts_websockets::Outgoing;
+use aqueducts_websockets::ExecutorMessage;
 use futures::future::BoxFuture;
 use tokio::sync::{broadcast, mpsc, Mutex, Semaphore};
 use tokio_util::sync::CancellationToken;
@@ -12,8 +12,8 @@ use super::{queue::ExecutionQueue, Execution, QueueUpdate};
 /// Manages single-concurrency execution + queue
 pub struct ExecutionManager {
     queue: Arc<Mutex<ExecutionQueue>>,
-    tokens: Arc<Mutex<HashMap<Uuid, CancellationToken>>>,
     semaphore: Arc<Semaphore>,
+    cancellation_tokens: Arc<Mutex<HashMap<Uuid, CancellationToken>>>,
 }
 
 impl ExecutionManager {
@@ -22,7 +22,7 @@ impl ExecutionManager {
         Self {
             queue: Arc::new(Mutex::new(ExecutionQueue::new(queue_capacity))),
             semaphore: Arc::new(Semaphore::new(1)),
-            tokens: Arc::new(Mutex::new(HashMap::new())),
+            cancellation_tokens: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -33,39 +33,35 @@ impl ExecutionManager {
     ) -> (
         Uuid,
         broadcast::Receiver<QueueUpdate>,
-        mpsc::Receiver<Outgoing>,
+        mpsc::Receiver<ExecutorMessage>,
     )
     where
-        F: FnOnce(Uuid, mpsc::Sender<Outgoing>) -> BoxFuture<'static, ()> + Send + 'static,
+        F: FnOnce(Uuid, mpsc::Sender<ExecutorMessage>) -> BoxFuture<'static, ()> + Send + 'static,
     {
-        // bounded channel for back-pressure
-        let (progress_tx, progress_rx) = mpsc::channel::<Outgoing>(16);
         let id = Uuid::new_v4();
+        let (client_tx, client_rx) = mpsc::channel::<ExecutorMessage>(16);
 
-        // create cancellation token
         let cancel_token = CancellationToken::new();
 
-        // store token
         {
-            let mut map = self.tokens.lock().await;
+            let mut map = self.cancellation_tokens.lock().await;
             map.insert(id, cancel_token);
         }
 
-        // build job handler with tracing context
-        let handler = f(id, progress_tx.clone());
+        let handler = f(id, client_tx.clone());
         let job = Execution { id, handler };
 
         debug!(execution_id = %id, "Submitting new execution to queue");
         let mut q = self.queue.lock().await;
         let queue_rx = q.enqueue(job);
         info!(execution_id = %id, "Execution submitted to queue");
-        (id, queue_rx, progress_rx)
+        (id, queue_rx, client_rx)
     }
 
     /// Cancel a pending or running job
     pub async fn cancel(&self, job_id: Uuid) {
         debug!(execution_id = %job_id, "Attempting to cancel execution");
-        if let Some(token) = self.tokens.lock().await.remove(&job_id) {
+        if let Some(token) = self.cancellation_tokens.lock().await.remove(&job_id) {
             token.cancel();
             info!(execution_id = %job_id, "Execution cancelled");
         } else {
@@ -77,8 +73,7 @@ impl ExecutionManager {
     pub async fn start(&self) {
         info!("Starting execution manager background loop");
         loop {
-            // acquire lock on internal semaphore
-            // debug!("Acquiring execution semaphore");
+            debug!("Acquiring execution semaphore");
             let permit = match self.semaphore.clone().acquire_owned().await {
                 Ok(permit) => permit,
                 Err(e) => {
@@ -96,18 +91,20 @@ impl ExecutionManager {
             };
 
             if let Some(execution) = next {
-                let tokens = self.tokens.clone();
+                let tokens = self.cancellation_tokens.clone();
                 let execution_id = execution.id;
 
                 debug!(execution_id = %execution_id, "Dequeued execution for processing");
 
-                // get cancellation token (must exist)
                 let cancellation_token = {
                     let tokens = tokens.lock().await;
-                    tokens
-                        .get(&execution_id)
-                        .cloned()
-                        .expect("missing cancellation token")
+
+                    tokens.get(&execution_id).cloned().unwrap_or_else(|| {
+                        // Return a cancelled token if execution was previously cancelled by the client
+                        let token = CancellationToken::new();
+                        token.cancel();
+                        token
+                    })
                 };
 
                 // spawn job with cancellation and tracing context
@@ -116,16 +113,13 @@ impl ExecutionManager {
                     async move {
                         tokio::select! {
                             _ = cancellation_token.cancelled() => {
-                                //TODO send a Progress::Output("cancelled".into()) here
                                 warn!("Execution cancelled");
                             }
                             _ = execution.handler => {
-                                //TODO send a Progress::Output("completed".into()) here
                                 info!("Execution completed successfully")
                             }
                         }
 
-                        // cleanup: drop permit and remove token
                         debug!("Cleaning up execution resources");
                         drop(permit);
                         tokens.lock().await.remove(&execution_id);
@@ -134,8 +128,7 @@ impl ExecutionManager {
                     .instrument(tracing::info_span!("execution", execution_id = %execution_id)),
                 );
             } else {
-                // no jobs waiting
-                // debug!("No jobs in queue, waiting");
+                debug!("No jobs in queue, waiting");
                 drop(permit);
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
             }
@@ -210,19 +203,20 @@ mod tests {
         tokio::spawn(async move { mgr.start().await });
 
         let expected_execution_id = Uuid::new_v4();
-        let id_ = expected_execution_id.clone();
+        let id_ = expected_execution_id;
         let (_id, _q, mut progress_rx) = manager
             .submit(move |_id, tx| {
                 Box::pin(async move {
                     let _ = tx
-                        .send(Outgoing::ExecutionResponse { execution_id: id_ })
+                        .send(ExecutorMessage::ExecutionResponse { execution_id: id_ })
                         .await;
                 })
             })
             .await;
 
         // receive progress output
-        if let Some(Outgoing::ExecutionResponse { execution_id }) = progress_rx.recv().await {
+        if let Some(ExecutorMessage::ExecutionResponse { execution_id }) = progress_rx.recv().await
+        {
             assert_eq!(expected_execution_id, execution_id);
         } else {
             panic!("Expected progress output");
@@ -243,7 +237,7 @@ mod tests {
 
         // grab the token
         let token = {
-            let tokens = manager.tokens.clone();
+            let tokens = manager.cancellation_tokens.clone();
             let map = tokens.lock().await;
             map.get(&job_id)
                 .cloned()
@@ -261,7 +255,7 @@ mod tests {
 
         // And it should be removed from the manager's map
         let still_exists = {
-            let map = manager.tokens.lock().await;
+            let map = manager.cancellation_tokens.lock().await;
             map.contains_key(&job_id)
         };
         assert!(!still_exists, "Token was not removed from internal map");

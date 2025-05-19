@@ -1,18 +1,19 @@
-mod api;
-mod config;
-mod error;
-mod executor;
+use std::{net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
 
 use axum::Router;
 use clap::Parser;
 use config::Config;
 use executor::ExecutionManager;
-use std::{net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
 use tokio::signal;
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info, Level};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use uuid::Uuid;
+
+mod api;
+mod config;
+mod error;
+mod executor;
 
 /// Remote executor for Aqueducts data pipeline framework
 #[derive(Debug, Parser)]
@@ -32,7 +33,7 @@ struct Cli {
 
     /// Maximum memory usage in GB (optional)
     #[arg(long, env = "AQUEDUCTS_MAX_MEMORY")]
-    max_memory: Option<u32>,
+    max_memory: Option<usize>,
 
     /// URL of Aqueducts server for registration (optional)
     #[arg(long, env = "AQUEDUCTS_SERVER_URL")]
@@ -82,18 +83,17 @@ async fn main() {
     info!("Registering Aqueducts handlers");
     aqueducts::register_handlers();
 
-    let executor_id = cli.executor_id.unwrap_or_else(|| Uuid::new_v4());
+    let executor_id = cli.executor_id.unwrap_or_else(Uuid::new_v4);
     info!(
         executor_id = %executor_id,
         version = %env!("CARGO_PKG_VERSION"),
         "Starting Aqueducts Executor"
     );
 
-    // Create and validate configuration
-    let config = match Config::new(cli.api_key, executor_id, cli.max_memory) {
+    let config = match Config::try_new(cli.api_key, executor_id, cli.max_memory) {
         Ok(config) => config,
         Err(e) => {
-            eprintln!("Configuration error: {}", e);
+            error!("Configuration error: {}", e);
             std::process::exit(1);
         }
     };
@@ -124,14 +124,13 @@ async fn main() {
     };
 
     let app = Router::new()
-        .nest("/api", api::router(Arc::clone(&context)))
+        .merge(api::router(Arc::clone(&context)))
         .with_state(context);
 
     let addr: SocketAddr = match format!("{}:{}", cli.host, cli.port).parse() {
         Ok(addr) => addr,
         Err(e) => {
             error!("Failed to parse socket address: {}", e);
-            eprintln!("Invalid host or port configuration: {}", e);
             std::process::exit(1);
         }
     };
@@ -141,7 +140,6 @@ async fn main() {
         Ok(listener) => listener,
         Err(e) => {
             error!("Failed to bind to address {}: {}", addr, e);
-            eprintln!("Could not start server: {}", e);
             std::process::exit(1);
         }
     };

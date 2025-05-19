@@ -16,15 +16,15 @@ pub enum ConfigError {
 pub struct Config {
     pub api_key: String,
     pub executor_id: Uuid,
-    pub max_memory_gb: Option<u32>,
+    pub max_memory_gb: Option<usize>,
 }
 
 impl Config {
     /// Create a new config with validation
-    pub fn new(
+    pub fn try_new(
         api_key: String,
         executor_id: Uuid,
-        max_memory_gb: Option<u32>,
+        max_memory_gb: Option<usize>,
     ) -> Result<Self, ConfigError> {
         if api_key.trim().is_empty() {
             return Err(ConfigError::EmptyApiKey);

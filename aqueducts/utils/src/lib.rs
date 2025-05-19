@@ -112,9 +112,8 @@ pub mod serde {
 
 /// object store handlers
 pub mod store {
-    use deltalake::{
-        datafusion::prelude::SessionContext, storage::StorageOptions, DeltaTableError,
-    };
+    use deltalake::logstore::object_store::RetryConfig;
+    use deltalake::{datafusion::prelude::SessionContext, DeltaTableError};
     use std::{collections::HashMap, sync::Arc};
     use url::Url;
 
@@ -147,9 +146,12 @@ pub mod store {
         }
 
         let scheme = Url::parse(&format!("{}://", location.scheme())).unwrap();
-        if let Some(factory) = deltalake::storage::factories().get(&scheme) {
-            let (store, _prefix) =
-                factory.parse_url_opts(location, &StorageOptions(storage_options.clone()))?;
+        if let Some(factory) = deltalake::logstore::object_store_factories().get(&scheme) {
+            let (store, _prefix) = factory.parse_url_opts(
+                location,
+                &storage_options.clone(),
+                &RetryConfig::default(),
+            )?;
             let _ = ctx
                 .runtime_env()
                 .register_object_store(location, Arc::new(store));

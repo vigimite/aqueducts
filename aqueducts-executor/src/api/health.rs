@@ -17,5 +17,5 @@ async fn health_check() -> Json<HealthCheckResponse> {
         status: "OK".to_string(),
     };
 
-    response.into()
+    Json(response)
 }

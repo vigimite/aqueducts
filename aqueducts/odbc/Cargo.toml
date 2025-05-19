@@ -13,7 +13,6 @@ license.workspace = true
 
 [dependencies]
 datafusion.workspace = true
-deltalake.workspace = true
 
 serde.workspace = true
 

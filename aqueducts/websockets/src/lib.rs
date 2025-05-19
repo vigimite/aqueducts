@@ -22,10 +22,10 @@ pub enum StageOutputMessage {
     },
 }
 
-/// Incoming websocket message
+/// Client websocket message
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum Incoming {
+pub enum ClientMessage {
     /// Execution requested by client
     ExecutionRequest {
         /// The aqueducts pipeline to be executed
@@ -38,10 +38,10 @@ pub enum Incoming {
     },
 }
 
-/// Outgoing websocket message
+/// Executor websocket message
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum Outgoing {
+pub enum ExecutorMessage {
     /// Execution successfully queued
     ExecutionResponse {
         /// Execution id that identifies the queued execution

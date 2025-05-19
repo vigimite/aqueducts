@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::{collections::HashMap, path::PathBuf, sync::atomic::AtomicBool};
 
 use anyhow::{anyhow, Context};
-use aqueducts_websockets::Outgoing;
+use aqueducts_websockets::ExecutorMessage;
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tokio::sync::mpsc;
@@ -19,14 +19,12 @@ pub async fn run_remote(
     executor_url: String,
     api_key: String,
 ) -> Result<(), anyhow::Error> {
-    // Parse the pipeline file
     info!("Parsing pipeline from file: {}", file.display());
     let aqueduct = parse_aqueduct_file(&file, params)?;
 
-    // Create the WebSocket client with API key
-    let client = WebSocketClient::new(ensure_ws_url(executor_url), api_key);
+    let client = WebSocketClient::try_new(executor_url, api_key)
+        .context("failed to build websocket client")?;
 
-    // Connect to the executor
     info!("Connecting to remote executor...");
     let mut receiver = client
         .connect()
@@ -38,55 +36,53 @@ pub async fn run_remote(
     let cancelled_clone = cancelled.clone();
 
     tokio::spawn(async move {
-        if let Ok(()) = ctrl_c().await {
+        if ctrl_c().await.is_ok() {
             info!("Received Ctrl+C, cancelling execution...");
             cancelled_clone.store(true, std::sync::atomic::Ordering::SeqCst);
         }
     });
 
-    // Execute the pipeline
     info!("Submitting pipeline for remote execution...");
     client
         .execute_pipeline(aqueduct)
         .await
         .context("Failed to submit pipeline for execution")?;
 
-    // Process response messages
     let mut execution_id = None;
     let mut stage_buffer = StageOutputBuffer::new();
 
     let (cancel_tx, mut cancel_rx) = mpsc::channel::<Uuid>(1);
 
-    // Main message processing loop
     loop {
         select! {
             // Handle incoming messages from the executor
             message = receiver.recv() => {
                 match message {
-                    Some(Outgoing::ExecutionResponse { execution_id: id }) => {
+                    Some(ExecutorMessage::ExecutionResponse { execution_id: id }) => {
                         info!("Pipeline execution started on remote executor (ID: {})", id);
                         execution_id = Some(id);
                     }
-                    Some(Outgoing::QueuePosition { execution_id: _, position }) => {
+                    Some(ExecutorMessage::QueuePosition { execution_id: _, position }) => {
                         info!("Pipeline is queued for execution (position: {})", position);
                     }
-                    Some(Outgoing::ProgressUpdate { execution_id: _, progress, event }) => {
-                        print_progress_update(&event, progress);
+                    Some(ExecutorMessage::ProgressUpdate { execution_id: _, progress: _, event }) => {
+                        print_progress_update(&event);
                     }
-                    Some(Outgoing::StageOutput { execution_id: _, stage_name, payload }) => {
-                        if stage_buffer.process_message(stage_name, payload) {
+                    Some(ExecutorMessage::StageOutput { execution_id: _, stage_name, payload }) => {
+                        let output_ready = stage_buffer.process_message(stage_name, payload);
+                        if output_ready {
                             stage_buffer.print_output();
                         }
                     }
-                    Some(Outgoing::ExecutionSucceeded { execution_id: _ }) => {
+                    Some(ExecutorMessage::ExecutionSucceeded { execution_id: _ }) => {
                         info!("Pipeline execution completed successfully");
                         break;
                     }
-                    Some(Outgoing::ExecutionError { execution_id: _, message }) => {
+                    Some(ExecutorMessage::ExecutionError { execution_id: _, message }) => {
                         error!("Pipeline execution failed: {}", message);
                         return Err(anyhow!("Pipeline execution failed: {}", message));
                     }
-                    Some(Outgoing::CancelResponse { execution_id: id }) => {
+                    Some(ExecutorMessage::CancelResponse { execution_id: id }) => {
                         info!("Execution cancelled (ID: {})", id);
                         break;
                     }
@@ -128,25 +124,6 @@ pub async fn run_remote(
     Ok(())
 }
 
-/// Ensure the executor URL has a proper WebSocket scheme
-fn ensure_ws_url(url: String) -> String {
-    let url = if !url.contains("://") {
-        format!("ws://{}", url)
-    } else {
-        url
-    };
-
-    if url.starts_with("ws://") || url.starts_with("wss://") {
-        url
-    } else if url.starts_with("http://") {
-        url.replace("http://", "ws://")
-    } else if url.starts_with("https://") {
-        url.replace("https://", "wss://")
-    } else {
-        url
-    }
-}
-
 /// Cancel a specific execution on a remote executor
 pub async fn cancel_remote_execution(
     executor_url: String,
@@ -158,31 +135,27 @@ pub async fn cancel_remote_execution(
         execution_id
     );
 
-    // Create the WebSocket client
-    let client = WebSocketClient::new(ensure_ws_url(executor_url), api_key);
+    let client = WebSocketClient::try_new(executor_url, api_key)?;
 
-    // Connect to the executor
     let mut receiver = client
         .connect()
         .await
         .context("Failed to connect to executor")?;
 
-    // Send cancellation request
     client
         .cancel_execution(execution_id)
         .await
         .context("Failed to send cancellation request")?;
 
-    // Wait for cancellation response
     while let Some(message) = receiver.recv().await {
         match message {
-            Outgoing::CancelResponse { execution_id: id } => {
+            ExecutorMessage::CancelResponse { execution_id: id } => {
                 if id == execution_id {
                     info!("Execution cancelled successfully");
                     return Ok(());
                 }
             }
-            Outgoing::ExecutionError {
+            ExecutorMessage::ExecutionError {
                 execution_id: id,
                 message,
             } => {
@@ -190,7 +163,7 @@ pub async fn cancel_remote_execution(
                     return Err(anyhow!("Failed to cancel execution: {}", message));
                 }
             }
-            _ => {} // Ignore other message types
+            _ => {}
         }
     }
 

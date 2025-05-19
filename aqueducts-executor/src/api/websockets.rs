@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use aqueducts_websockets::{Incoming, Outgoing};
+use aqueducts_websockets::{ClientMessage, ExecutorMessage};
 use axum::{
     extract::{
         ws::{Message, WebSocket},
@@ -42,7 +42,7 @@ async fn ws_handler(
 async fn handle_socket(
     socket: WebSocket,
     manager: Arc<ExecutionManager>,
-    max_memory_gb: Option<u32>,
+    max_memory_gb: Option<usize>,
 ) {
     let (sender, mut receiver) = socket.split();
     let sender = Arc::new(Mutex::new(sender));
@@ -53,18 +53,19 @@ async fn handle_socket(
         if let Message::Text(text) = msg {
             debug!(msg_len = text.len(), "Received message");
 
-            match serde_json::from_str::<Incoming>(&text) {
-                Ok(Incoming::ExecutionRequest { pipeline }) => {
+            match serde_json::from_str::<ClientMessage>(&text) {
+                Ok(ClientMessage::ExecutionRequest { pipeline }) => {
                     info!(
                         source_count = pipeline.sources.len(),
                         stage_count = pipeline.stages.len(),
                         "Received execution request"
                     );
 
+                    // Queue execution
                     let (execution_id, mut queue_rx, mut progress_rx) = manager
-                        .submit(move |execution_id, progress_tx| {
+                        .submit(move |execution_id, client_tx| {
                             Box::pin(async move {
-                                execute_pipeline(execution_id, progress_tx, pipeline, max_memory_gb)
+                                execute_pipeline(execution_id, client_tx, pipeline, max_memory_gb)
                                     .await
                             })
                         })
@@ -83,11 +84,12 @@ async fn handle_socket(
                             while let Ok(update) = queue_rx.recv().await {
                                 if update.execution_id == execution_id {
                                     debug!(position = update.position, "Queue position update");
-                                    let msg = serde_json::to_string(&Outgoing::QueuePosition {
-                                        execution_id: update.execution_id,
-                                        position: update.position,
-                                    })
-                                    .unwrap();
+                                    let msg =
+                                        serde_json::to_string(&ExecutorMessage::QueuePosition {
+                                            execution_id: update.execution_id,
+                                            position: update.position,
+                                        })
+                                        .unwrap();
                                     if let Err(e) =
                                         send_q.lock().await.send(Message::text(msg)).await
                                     {
@@ -130,7 +132,7 @@ async fn handle_socket(
                         ),
                     );
                 }
-                Ok(Incoming::CancelRequest { execution_id }) => {
+                Ok(ClientMessage::CancelRequest { execution_id }) => {
                     info!(
                         execution_id = %execution_id,
                         "Received cancellation request"

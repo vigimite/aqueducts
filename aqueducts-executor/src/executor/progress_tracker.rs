@@ -1,6 +1,6 @@
 use aqueducts::prelude::{ProgressEvent, ProgressTracker};
 use aqueducts::progress_tracker::OutputType;
-use aqueducts_websockets::{Outgoing, StageOutputMessage};
+use aqueducts_websockets::{ExecutorMessage, StageOutputMessage};
 use itertools::Itertools;
 use std::sync::atomic::AtomicUsize;
 use tokio::runtime::Handle;
@@ -12,21 +12,25 @@ const MAX_MESSAGE_CHARS: usize = 32_000;
 
 /// Implementation of ProgressTracker for the executor
 pub struct ExecutorProgressTracker {
-    progress_tx: mpsc::Sender<Outgoing>,
+    client_tx: mpsc::Sender<ExecutorMessage>,
     execution_id: Uuid,
     total_steps: usize,
     completed_steps: AtomicUsize,
 }
 
 impl ExecutorProgressTracker {
-    pub fn new(tx: mpsc::Sender<Outgoing>, execution_id: Uuid, total_steps: usize) -> Self {
+    pub fn new(
+        client_tx: mpsc::Sender<ExecutorMessage>,
+        execution_id: Uuid,
+        total_steps: usize,
+    ) -> Self {
         info!(
             execution_id = %execution_id,
             total_steps = total_steps,
             "Creating executor progress tracker"
         );
         Self {
-            progress_tx: tx,
+            client_tx,
             execution_id,
             total_steps,
             completed_steps: AtomicUsize::new(0),
@@ -35,7 +39,7 @@ impl ExecutorProgressTracker {
 
     /// Calculate progress percentage based on completed steps
     fn calculate_progress(&self, current: usize) -> u8 {
-        let progress = 10 + ((current as f32) / (self.total_steps as f32) * 100.0) as u8;
+        let progress = ((current as f32) / (self.total_steps as f32) * 100.0) as u8;
         debug!(
             execution_id = %self.execution_id,
             current_step = current,
@@ -47,8 +51,8 @@ impl ExecutorProgressTracker {
     }
 
     /// Helper to send a message asynchronously
-    fn send_message(&self, message: Outgoing) {
-        let tx = self.progress_tx.clone();
+    fn send_message(&self, message: ExecutorMessage) {
+        let tx = self.client_tx.clone();
         let execution_id = self.execution_id;
 
         Handle::current().spawn(async move {
@@ -72,7 +76,7 @@ impl ProgressTracker for ExecutorProgressTracker {
             + 1;
         let progress = self.calculate_progress(current);
 
-        let message = Outgoing::ProgressUpdate {
+        let message = ExecutorMessage::ProgressUpdate {
             execution_id: self.execution_id,
             progress,
             event,
@@ -111,14 +115,12 @@ impl ProgressTracker for ExecutorProgressTracker {
             ),
         };
 
-        // Send output start message
-        self.send_message(Outgoing::StageOutput {
+        self.send_message(ExecutorMessage::StageOutput {
             execution_id: self.execution_id,
             stage_name: stage_name.to_string(),
             payload: StageOutputMessage::OutputStart { output_header },
         });
 
-        // Format and split output
         let output = match datafusion::arrow::util::pretty::pretty_format_batches(batches) {
             Ok(output) => output,
             Err(e) => {
@@ -136,7 +138,6 @@ impl ProgressTracker for ExecutorProgressTracker {
             "Chunking stage output"
         );
 
-        // Send each chunk
         for (sequence, chunk) in chunks.into_iter().enumerate() {
             debug!(
                 sequence = sequence,
@@ -144,7 +145,7 @@ impl ProgressTracker for ExecutorProgressTracker {
                 "Sending output chunk"
             );
 
-            self.send_message(Outgoing::StageOutput {
+            self.send_message(ExecutorMessage::StageOutput {
                 execution_id: self.execution_id,
                 stage_name: stage_name.to_string(),
                 payload: StageOutputMessage::OutputChunk {
@@ -154,12 +155,11 @@ impl ProgressTracker for ExecutorProgressTracker {
             });
         }
 
-        // Send output end message
-        self.send_message(Outgoing::StageOutput {
+        self.send_message(ExecutorMessage::StageOutput {
             execution_id: self.execution_id,
             stage_name: stage_name.to_string(),
             payload: StageOutputMessage::OutputEnd {
-                output_footer: "".to_string(),
+                output_footer: String::from(""),
             },
         });
 
@@ -169,7 +169,7 @@ impl ProgressTracker for ExecutorProgressTracker {
 
 fn chunk_by_chars(s: &str, max_chars: usize) -> Vec<String> {
     s.chars()
-        .chunks(max_chars) // now available!
+        .chunks(max_chars)
         .into_iter()
         .map(|chunk| chunk.collect())
         .collect()

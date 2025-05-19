@@ -33,10 +33,10 @@ aqueducts-utils = { path = "aqueducts/utils", version = "0.9.0" }
 aqueducts-websockets = { path = "aqueducts/websockets", version = "0.9.0" }
 
 # Data processing libraries
-datafusion = "46"
-datafusion-functions-json = "0.46"
-deltalake = { version = "0.25.0", features = ["datafusion"] }
-arrow-odbc = "15.1.1"
+datafusion = "47"
+datafusion-functions-json = "0.47"
+deltalake = { version = "0.26.2", features = ["datafusion"] }
+arrow-odbc = "16.0.2"
 
 # Serialization/deserialization
 serde = { version = "1", features = ["derive"] }
@@ -62,15 +62,13 @@ tokio-tungstenite = "0.22.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-test = "0.2"
-log = "0.4.21"
-env_logger = "0.11.6"
 
 # Error handling
 thiserror = "2"
-anyhow = "1.0.95"
+anyhow = "1.0.98"
 
 # CLI utilities
-clap = { version = "4.5.37", features = ["derive", "env"] }
+clap = { version = "4.5.38", features = ["derive", "env"] }
 
 # General utilities
 regex = "1"

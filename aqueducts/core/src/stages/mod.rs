@@ -94,7 +94,7 @@ pub async fn process_stage(
     if stage.print_schema {
         if let Some(tracker) = progress_tracker {
             let schema = result.schema();
-            tracker.on_output(&stage.name, OutputType::PrintSchema, &schema, &[]);
+            tracker.on_output(&stage.name, OutputType::PrintSchema, schema, &[]);
         }
     }
 

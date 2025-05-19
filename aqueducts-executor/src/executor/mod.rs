@@ -1,11 +1,7 @@
-mod manager;
-mod progress_tracker;
-mod queue;
-
 use std::sync::Arc;
 
 use aqueducts::Aqueduct;
-use aqueducts_websockets::Outgoing;
+use aqueducts_websockets::ExecutorMessage;
 use datafusion::{execution::runtime_env::RuntimeEnvBuilder, prelude::SessionContext};
 use futures::future::BoxFuture;
 use tokio::sync::mpsc;
@@ -14,6 +10,10 @@ use uuid::Uuid;
 
 pub use manager::ExecutionManager;
 pub use progress_tracker::ExecutorProgressTracker;
+
+mod manager;
+mod progress_tracker;
+mod queue;
 
 /// Broadcast when queue positions change
 #[derive(Debug, Clone)]
@@ -28,18 +28,19 @@ pub struct Execution {
     pub handler: BoxFuture<'static, ()>,
 }
 
-#[instrument(skip(progress_tx, pipeline), fields(source_count = pipeline.sources.len(), stage_count = pipeline.stages.len()))]
+/// Execute an aqueduct pipeline communicating progress back to clients via websocket
+#[instrument(skip(client_tx, pipeline), fields(source_count = pipeline.sources.len(), stage_count = pipeline.stages.len()))]
 pub async fn execute_pipeline(
     execution_id: Uuid,
-    progress_tx: mpsc::Sender<Outgoing>,
+    client_tx: mpsc::Sender<ExecutorMessage>,
     pipeline: Aqueduct,
-    max_memory_gb: Option<u32>,
+    max_memory_gb: Option<usize>,
 ) {
     info!(execution_id = %execution_id, "Starting pipeline execution setup");
 
-    let mut ctx = if let Some(memory_gb) = max_memory_gb.clone() {
+    let mut ctx = if let Some(memory_gb) = max_memory_gb {
         // Convert max_memory_gb directly to bytes (GB * 1024^3)
-        let max_memory_bytes = (memory_gb as usize) * 1024 * 1024 * 1024;
+        let max_memory_bytes = memory_gb * 1024 * 1024 * 1024;
 
         info!(
             execution_id = %execution_id,
@@ -56,8 +57,8 @@ pub async fn execute_pipeline(
             Ok(env) => env,
             Err(e) => {
                 error!(execution_id = %execution_id, error = %e, "Failed to build runtime environment");
-                let _ = progress_tx
-                    .send(Outgoing::ExecutionError {
+                let _ = client_tx
+                    .send(ExecutorMessage::ExecutionError {
                         execution_id,
                         message: format!("Failed to build runtime environment: {}", e),
                     })
@@ -75,15 +76,18 @@ pub async fn execute_pipeline(
 
     datafusion_functions_json::register_all(&mut ctx).expect("Failed to register JSON functions");
 
-    let total_steps = pipeline.sources.len()
-        + pipeline
-            .stages
-            .iter()
-            .map(|s| s.len() + 1)
-            .reduce(|acc, e| acc + e)
-            .unwrap_or(0)
-            * 2 // 2 progress events per stage (started, completed)
-        + pipeline.destination.is_some() as usize;
+    let num_sources = pipeline.sources.len();
+    let num_stages = pipeline
+        .stages
+        .iter()
+        .map(|s| s.len())
+        .reduce(|acc, e| acc + e)
+        .unwrap_or(0);
+    let num_destinations = pipeline.destination.is_some() as usize;
+
+    let total_steps = num_sources
+        + num_stages * 2 // 2 progress events per stage (started, completed)
+        + num_destinations;
 
     info!(
         execution_id = %execution_id,
@@ -92,7 +96,7 @@ pub async fn execute_pipeline(
     );
 
     let progress_tracker = Arc::new(ExecutorProgressTracker::new(
-        progress_tx.clone(),
+        client_tx.clone(),
         execution_id,
         total_steps,
     ));
@@ -103,8 +107,8 @@ pub async fn execute_pipeline(
     match result {
         Ok(_) => {
             info!(execution_id = %execution_id, "Pipeline executed successfully");
-            if let Err(e) = progress_tx
-                .send(Outgoing::ExecutionSucceeded { execution_id })
+            if let Err(e) = client_tx
+                .send(ExecutorMessage::ExecutionSucceeded { execution_id })
                 .await
             {
                 error!(
@@ -116,8 +120,8 @@ pub async fn execute_pipeline(
         }
         Err(error) => {
             error!(execution_id = %execution_id, error = %error, "Pipeline execution failed");
-            if let Err(e) = progress_tx
-                .send(Outgoing::ExecutionError {
+            if let Err(e) = client_tx
+                .send(ExecutorMessage::ExecutionError {
                     execution_id,
                     message: error.to_string(),
                 })

@@ -3,7 +3,6 @@ use aqueducts::prelude::*;
 use clap::{Parser, Subcommand};
 use std::{collections::HashMap, error::Error, path::PathBuf};
 use tracing::{debug, info};
-use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 use uuid::Uuid;
 
@@ -33,6 +32,7 @@ enum Commands {
         params: Option<Vec<(String, String)>>,
 
         /// Execute the pipeline on a remote executor instead of locally
+        /// example: 192.168.1.102:3031
         #[arg(long)]
         executor: Option<String>,
 
@@ -47,6 +47,7 @@ enum Commands {
         execution_id: String,
 
         /// Remote executor URL
+        /// example: 192.168.1.102:3031
         #[arg(long)]
         executor: String,
 
@@ -138,12 +139,9 @@ fn parse_aqueduct_file(
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let indicatif_layer = IndicatifLayer::new();
-
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::fmt::layer()
-                .with_writer(indicatif_layer.get_stdout_writer())
                 .with_ansi(true)
                 .with_level(false)
                 .with_target(false)
@@ -151,7 +149,6 @@ async fn main() -> anyhow::Result<()> {
                 .with_filter(filter::filter_fn(|meta| !meta.is_span())),
         )
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
-        .with(indicatif_layer)
         .init();
 
     let args = Args::parse();
