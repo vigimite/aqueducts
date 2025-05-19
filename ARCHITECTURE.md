@@ -8,7 +8,7 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively. 
 
 Aqueducts consists of several components:
 
-- **Core Library**: The main engine for defining and executing data pipelines
+- **Core Libraries**: The main libs for defining and executing data pipelines
 - **CLI**: Command-line interface to run pipelines locally or connect to remote executors
 - **Executor**: Server component for running pipelines remotely, closer to data sources
 - **Server**: _TODO_ A web platform with a UI to create/manage and trigger aqueducts
@@ -38,13 +38,13 @@ flowchart LR
   end
 
   %% Client ↔ Server
-  WebClient <-- HTTPS/SSE --> WebServer
+  WebClient <-- WebSockets --> WebServer
 
   %% Client ↔ Executor (direct CLI)
-  CliClient <-- HTTPS/SSE --> Executor
+  CliClient <-- WebSockets --> Executor
 
   %% Server ↔ Executor
-  WebServer <-- HTTPS/SSE --> Executor
+  WebServer <-- WebSockets --> Executor
 
   %% Data Processing
   Executor -- Queries/Writes --> Data
@@ -72,7 +72,7 @@ An Aqueduct source can be:
   - single file
   - directory
 - Delta table
-- ODBC query (EXPERIMENTAL)
+- ODBC query
 
 For file-based sources, a schema can be provided optionally.
 
