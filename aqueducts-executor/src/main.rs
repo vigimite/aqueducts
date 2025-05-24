@@ -80,9 +80,6 @@ async fn main() {
         .with(EnvFilter::from_default_env().add_directive(log_level.into()))
         .init();
 
-    info!("Registering Aqueducts handlers");
-    aqueducts::register_handlers();
-
     let executor_id = cli.executor_id.unwrap_or_else(Uuid::new_v4);
     info!(
         executor_id = %executor_id,

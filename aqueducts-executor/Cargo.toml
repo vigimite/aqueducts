@@ -16,9 +16,7 @@ default = []
 odbc = ["aqueducts/odbc"]
 
 [dependencies]
-aqueducts = { workspace = true, features = ["json", "s3", "gcs", "azure"] }
-aqueducts-utils.workspace = true
-aqueducts-websockets.workspace = true
+aqueducts = { workspace = true, features = ["protocol", "json", "s3", "gcs", "azure"] }
 
 axum.workspace = true
 clap.workspace = true
@@ -45,7 +43,6 @@ itertools = "0.14.0"
 tower-http = { version = "0.6.4", features = ["trace"] }
 
 [dev-dependencies]
-rstest.workspace = true
 futures.workspace = true
 tower.workspace = true
 http-body-util.workspace = true

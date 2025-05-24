@@ -1,0 +1,56 @@
+[package]
+name = "aqueducts-delta"
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[dependencies]
+# Delta Lake dependencies
+deltalake.workspace = true
+
+# Core Aqueducts dependencies
+aqueducts-schemas.workspace = true
+
+# Async and serialization
+serde.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+
+# DataFusion integration
+datafusion.workspace = true
+
+# Error handling
+thiserror.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Utilities
+url.workspace = true
+bon.workspace = true
+chrono.workspace = true
+
+# Optional schema generation
+schemars = { workspace = true, optional = true }
+
+[features]
+default = []
+s3 = ["deltalake/s3"]
+gcs = ["deltalake/gcs"]
+azure = ["deltalake/azure"]
+schema_gen = ["schemars"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+tempfile = "3"
+rand.workspace = true
+tracing-test.workspace = true
+serde_json.workspace = true
+url.workspace = true

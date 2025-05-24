@@ -8,17 +8,17 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 
 **Features:**
 
-- Define ETL pipelines in YAML, JSON, or TOML format
-- Run pipelines locally or remotely with the CLI
-- Process data using SQL with the power of DataFusion
-- Extract data from CSV files, JSONL, Parquet files, or Delta tables
-- Connect to databases via ODBC for both sources and destinations
-- Load data into object stores as CSV/Parquet or Delta tables
-- Support for file and Delta table partitioning
-- Support for Upsert/Replace/Append operations on Delta tables
-- Support for Local, S3, GCS, and Azure Blob storage
-- Memory management for resource-intensive operations
-- Real-time progress tracking for pipeline execution
+- **Multi-format Configuration**: Define ETL pipelines in YAML, JSON, or TOML with v2 schema support
+- **Flexible Deployment**: Run pipelines locally, remotely, or embedded in your applications
+- **Powerful SQL Processing**: Process data using SQL with the power of Apache DataFusion
+- **Rich Data Sources**: Extract from CSV, JSONL, Parquet files, Delta tables, and ODBC databases
+- **Versatile Destinations**: Load data into local files, object stores, or Delta tables
+- **Cloud Storage**: Built-in support for Local, S3, GCS, and Azure Blob storage
+- **Advanced Operations**: Upsert/Replace/Append operations with partition support
+- **Template System**: Parameter substitution with `${variable}` syntax
+- **Progress Tracking**: Real-time progress monitoring with customizable trackers
+- **Memory Management**: Resource-intensive operation controls
+- **Unified Error Handling**: Semantic error types across all components
 
 ## Documentation
 
@@ -34,6 +34,22 @@ Join our Discord community to get help, share your work, and connect with other 
 [![Discord](https://img.shields.io/discord/1234567890?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/astQZM3wqy)
 
 ## Installation
+
+### Library
+
+Add Aqueducts to your Rust project:
+
+```toml
+[dependencies]
+# Default setup with file processing and cloud storage
+aqueducts = "0.9"
+
+# Minimal setup for local file processing only
+aqueducts = { version = "0.9", default-features = false, features = ["yaml"] }
+
+# Full-featured setup with all storage providers and databases
+aqueducts = { version = "0.9", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
+```
 
 ### CLI
 
@@ -95,21 +111,22 @@ aqueducts run --file examples/aqueduct_pipeline_example.yml \
 Here's a simple example pipeline in YAML format ([full example](examples/aqueduct_pipeline_simple.yml)):
 
 ```yaml
+version: "v2"
 sources:
   # Register a local file source containing temperature readings for various cities
-  - type: File
+  - type: file
     name: temp_readings
-    file_type:
-      type: Csv
+    format:
+      type: csv
       options: {}
     # use built-in templating functionality
     location: ./examples/temp_readings_${month}_${year}.csv
 
   #Register a local file source containing a mapping between location_ids and location names
-  - type: File
+  - type: file
     name: locations
-    file_type:
-      type: Csv
+    format:
+      type: csv
       options: {}
     location: ./examples/location_dict.csv
 
@@ -153,19 +170,51 @@ stages:
 
 # Write the pipeline result to a parquet file (can be omitted if you don't want an output)
 destination:
-  type: File
+  type: file
   name: results
-  file_type:
-    type: Parquet
+  format:
+    type: parquet
     options: {}
   location: ./examples/output_${month}_${year}.parquet
+```
+
+## Library Usage
+
+Use Aqueducts as a library in your Rust applications:
+
+```rust
+use aqueducts::prelude::*;
+use datafusion::prelude::SessionContext;
+use std::{collections::HashMap, sync::Arc};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Load pipeline configuration with parameters
+    let mut params = HashMap::new();
+    params.insert("year".to_string(), "2024".to_string());
+    params.insert("month".to_string(), "jan".to_string());
+    
+    let pipeline = Aqueduct::from_file("pipeline.yml", params)?;
+    
+    // Create DataFusion execution context
+    let ctx = Arc::new(SessionContext::new());
+    
+    // Execute pipeline with progress tracking
+    let tracker = Arc::new(LoggingProgressTracker);
+    let _result = run_pipeline(ctx, pipeline, Some(tracker)).await?;
+    
+    Ok(())
+}
 ```
 
 ## Components
 
 Aqueducts consists of several components:
 
-- **Core Library**: The main engine for defining and executing data pipelines
+- **Meta Library** (`aqueducts`): Unified interface providing all functionality through feature flags
+- **Core Library** (`aqueducts-core`): The main engine for defining and executing data pipelines
+- **Schema Library** (`aqueducts-schemas`): Configuration types and validation
+- **Provider Libraries**: Delta Lake (`aqueducts-delta`) and ODBC (`aqueducts-odbc`) integrations
 - **CLI**: Command-line interface to run pipelines locally or connect to remote executors
 - **Executor**: Server component for running pipelines remotely, closer to data sources
 

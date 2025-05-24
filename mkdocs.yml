@@ -11,6 +11,7 @@ hooks:
 nav:
   - Home: index.md
   - Usage: usage.md
+  - Storage Configuration: storage.md
   - Schema Reference: schema_reference.md
   - Architecture: architecture.md
   - Aqueducts CLI: cli.md

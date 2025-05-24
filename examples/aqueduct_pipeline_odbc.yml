@@ -1,10 +1,11 @@
+version: "v2"
 sources:
-  - type: Odbc
+  - type: odbc
     name: jan_data
     connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
     query: SELECT * FROM temp_readings WHERE timestamp BETWEEN '2024-01-01' AND '2024-01-31'
 
-  - type: Odbc
+  - type: odbc
     name: feb_data
     connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
     query: SELECT * FROM temp_readings WHERE timestamp BETWEEN '2024-02-01' AND '2024-02-29'
@@ -49,9 +50,8 @@ stages:
         SELECT * FROM jan_aggregated UNION ALL SELECT * FROM feb_aggregated
 
 destination:
-  type: Odbc
+  type: odbc
   name: temp_readings_aggregated
   connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
-  write_mode: 
-    operation: Append
+  query: INSERT INTO temp_readings_aggregated (date, location_id, min_temp_c, min_humidity, max_temp_c, max_humidity, avg_temp_c, avg_humidity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
   batch_size: 100

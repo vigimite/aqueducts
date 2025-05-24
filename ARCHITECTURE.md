@@ -2,16 +2,26 @@
 
 ## Overview
 
-Aqueducts is a framework to write and execute ETL data pipelines declaratively. It allows you to define multi-step data transformation processes in YAML, JSON, or TOML format and execute them either locally or remotely.
+Aqueducts is a framework to write and execute ETL data pipelines declaratively. It allows you to define multi-step data transformation processes in YAML, JSON, or TOML format with v2 schema support and execute them either locally, remotely, or embedded in your applications.
 
 ## Components
 
-Aqueducts consists of several components:
+Aqueducts follows a modular architecture with clear separation of concerns:
 
-- **Core Libraries**: The main libs for defining and executing data pipelines
-- **CLI**: Command-line interface to run pipelines locally or connect to remote executors
-- **Executor**: Server component for running pipelines remotely, closer to data sources
-- **Server**: _TODO_ A web platform with a UI to create/manage and trigger aqueducts
+### Library Crates
+
+- **Meta Crate** (`aqueducts`): Unified interface providing all functionality through feature flags
+- **Core Library** (`aqueducts-core`): Pipeline execution engine with unified error handling
+- **Schema Library** (`aqueducts-schemas`): Configuration types, validation, and v2 format support
+- **Provider Libraries**: 
+  - `aqueducts-delta`: Delta Lake integration
+  - `aqueducts-odbc`: ODBC database connectivity
+
+### Applications
+
+- **CLI** (`aqueducts-cli`): Command-line interface for local and remote execution
+- **Executor** (`aqueducts-executor`): Server component for remote pipeline execution
+- **Server**: _TODO_ A web platform with UI for pipeline management
 
 ## System Architecture
 
@@ -58,25 +68,76 @@ Connecting to the executor is done via HTTPS. When connecting to the executor, a
 
 ## Pipeline Architecture
 
-An aqueduct is a pipeline definition and consists of 3 main parts:
+An aqueduct is a pipeline definition consisting of 3 main parts with v2 schema support:
 
 - **Source**: The source data for this pipeline
-- **Stage**: Transformations applied within this pipeline
+- **Stage**: Transformations applied within this pipeline  
 - **Destination**: Output of the pipeline result
+
+### Configuration Format
+
+Aqueducts supports v2 configuration format with:
+
+```yaml
+version: "v2"
+sources:
+  - type: file  # lowercase types
+    name: my_data
+    format:    # 'format' instead of 'file_type'
+      type: csv
+      options:
+        has_header: true
+
+stages:
+  - - name: transform
+      query: "SELECT * FROM my_data"
+
+destination:
+  type: delta
+  name: output
+  location: "s3://bucket/output/"
+  storage_config: {}  # 'storage_config' instead of 'storage_options'
+  partition_columns: ["date"]  # 'partition_columns' instead of 'partition_cols'
+  write_mode:
+    operation: append  # lowercase operations
+```
 
 ### Source
 
 An Aqueduct source can be:
 
-- CSV or Parquet file(s)
-  - single file
-  - directory
-- Delta table
-- ODBC query
+- **File sources** (`type: file`):
+  - CSV, JSON, JSONL, Parquet files
+  - Single file or directory
+  - Local filesystem or cloud storage (S3, GCS, Azure)
+- **Delta table** (`type: delta`):
+  - Delta Lake tables with time travel support
+  - Cloud storage integration
+- **ODBC sources** (`type: odbc`):
+  - SQL Server, PostgreSQL, MySQL, etc.
+  - Custom connection strings and queries
 
-For file-based sources, a schema can be provided optionally.
+For file-based sources, schema can be provided optionally with detailed type information:
 
-The source is registered within the `SessionContext` as a table that can be referenced using the source's configured name. A prerequisite here is that the necessary features for the underlying object stores are enabled. This can be provided by an external `SessionContext` passed into the `run_pipeline` function or by registering the correct handlers for deltalake.
+```yaml
+sources:
+  - type: file
+    name: sales_data
+    format:
+      type: csv
+      options:
+        has_header: true
+        schema:
+          - name: order_id
+            data_type: int64
+            nullable: false
+            description: "Unique order identifier"
+    location: "s3://data/sales.csv"
+    storage_config:
+      AWS_REGION: "us-west-2"
+```
+
+The source is registered within the `SessionContext` as a table that can be referenced using the source's configured name. Features for underlying object stores are automatically enabled through the meta crate's feature flags.
 
 #### ODBC support
 
@@ -113,15 +174,28 @@ File-based destinations have support for HDFS style partitioning (`output/locati
 
 #### Delta Table destination
 
-For a DeltaTable there is some additional logic that is utilized to maintain the table integrity.
+For a Delta table destination, additional logic maintains table integrity with ACID guarantees.
 
-The destination will first cast and validate the schema of the input data and then use one of 3 configurable modes to write the data:
+The destination will first cast and validate the schema of the input data and then use one of 3 configurable modes:
 
-- **Append**: Appends the data to the destination
-- **Upsert**: Merges the data to the destination, using the provided configuration for this mode to identify cohort columns that are used to determine which data should be updated
-  - provided merge columns are used to check equality e.g. `vec!["date", "country"]` -> update data where `old.date = new.date AND old.country = new.country`
-- **Replace**: Replaces the data using a configurable predicate to determine which data should be replaced by the operation
-  - provided replacement conditions are used to check equality e.g. `ReplacementCondition { column: "date", value: "1970-01-01" }` -> replace data where `old.date = '1970-01-01'`
+- **append**: Appends the data to the destination
+- **upsert**: Merges the data using specified merge keys:
+  ```yaml
+  write_mode:
+    operation: upsert
+    params: ["date", "country"]
+  ```
+  Updates data where `old.date = new.date AND old.country = new.country`
+  
+- **replace**: Replaces data matching specified conditions:
+  ```yaml
+  write_mode:
+    operation: replace
+    params:
+      - column: "date" 
+        value: "2024-01-01"
+  ```
+  Replaces data where `old.date = '2024-01-01'`
 
 ## Remote Execution
 
@@ -165,10 +239,43 @@ When a query approaches the memory limit:
 2. Some operations may fail explicitly rather than cause system-wide out-of-memory errors
 3. Progress events will indicate when memory limits are affecting performance
 
+## Error Handling Architecture
+
+Aqueducts implements a unified error handling system across all components:
+
+### Semantic Error Types
+
+All operations return semantic errors through the unified `AqueductsError` type:
+
+- **Config**: Configuration validation errors
+- **DataProcessing**: Query execution and data transformation errors  
+- **SchemaValidation**: Schema mismatch and validation errors
+- **Storage**: File system and object store errors
+- **Source/Destination**: Provider-specific errors with context
+- **Template**: Parameter substitution and parsing errors
+
+### Error Conversion
+
+External errors are automatically converted to semantic categories:
+
+```rust
+// DataFusion errors → DataProcessing
+// Arrow errors → DataProcessing  
+// Object store errors → Storage
+// Delta errors → destination-specific errors
+// ODBC errors → source/destination-specific (with credential protection)
+```
+
+### Security
+
+ODBC errors never expose connection strings or credentials in error messages to prevent password leakage.
+
 ## Technology Stack
 
 This framework builds on the fantastic work done by projects such as:
 
-- [arrow-rs](https://github.com/apache/arrow-rs)
-- [datafusion](https://github.com/apache/datafusion)
-- [delta-rs](https://github.com/delta-io/delta-rs)
+- [arrow-rs](https://github.com/apache/arrow-rs): Memory model and data structures
+- [datafusion](https://github.com/apache/datafusion): SQL execution engine
+- [delta-rs](https://github.com/delta-io/delta-rs): Delta Lake support
+- [object_store](https://github.com/apache/arrow-rs/tree/master/object_store): Cloud storage abstraction
+- [arrow-odbc](https://github.com/pacman82/arrow-odbc): ODBC connectivity

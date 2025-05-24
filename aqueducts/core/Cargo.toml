@@ -1,5 +1,5 @@
 [package]
-name = "aqueducts"
+name = "aqueducts-core"
 authors.workspace = true
 edition.workspace = true
 description.workspace = true
@@ -13,18 +13,25 @@ license.workspace = true
 
 [features]
 default = ["yaml"]
-s3 = ["aqueducts-utils/s3"]
-gcs = ["aqueducts-utils/gcs"]
-azure = ["aqueducts-utils/azure"]
-odbc = ["aqueducts-odbc"]
+s3 = ["object_store/aws", "aqueducts-delta?/s3"]
+gcs = ["object_store/gcp", "aqueducts-delta?/gcs"]  
+azure = ["object_store/azure", "aqueducts-delta?/azure"]
+odbc = ["dep:aqueducts-odbc"]
+delta = ["dep:aqueducts-delta"]
 schema_gen = ["schemars"]
 json = ["dep:serde_json"]
 yaml = ["dep:serde_yml"]
 toml = ["dep:toml"]
 
 [dependencies]
+aqueducts-schemas.workspace = true
+
+# Optional provider dependencies
+aqueducts-delta = { workspace = true, optional = true }
+aqueducts-odbc = { workspace = true, optional = true }
+
 datafusion.workspace = true
-deltalake.workspace = true
+object_store = { version = "0.12", default-features = false }
 
 serde.workspace = true
 serde_json = { workspace = true, optional = true }
@@ -33,20 +40,19 @@ toml = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 tokio.workspace = true
+async-trait.workspace = true
 
 thiserror.workspace = true
 
 tracing.workspace = true
 
+bon.workspace = true
 url.workspace = true
 regex.workspace = true
-derive-new.workspace = true
-chrono.workspace = true
-
-aqueducts-odbc = { workspace = true, optional = true }
-aqueducts-utils.workspace = true
 
 [dev-dependencies]
+aqueducts-schemas.workspace = true
 tokio = { workspace = true, features = ["full"] }
 rand.workspace = true
 tracing-test.workspace = true
+tempfile = "3"

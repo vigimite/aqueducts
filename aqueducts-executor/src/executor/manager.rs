@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use aqueducts_websockets::ExecutorMessage;
+use aqueducts::prelude::protocol::ExecutorMessage;
 use futures::future::BoxFuture;
 use tokio::sync::{broadcast, mpsc, Mutex, Semaphore};
 use tokio_util::sync::CancellationToken;

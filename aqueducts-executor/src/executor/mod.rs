@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
-use aqueducts::Aqueduct;
-use aqueducts_websockets::ExecutorMessage;
+use aqueducts::prelude::*;
 use datafusion::{execution::runtime_env::RuntimeEnvBuilder, prelude::SessionContext};
 use futures::future::BoxFuture;
 use tokio::sync::mpsc;
@@ -102,7 +101,7 @@ pub async fn execute_pipeline(
     ));
 
     info!(execution_id = %execution_id, "Starting pipeline execution");
-    let result = aqueducts::run_pipeline(Arc::new(ctx), pipeline, Some(progress_tracker)).await;
+    let result = run_pipeline(Arc::new(ctx), pipeline, Some(progress_tracker)).await;
 
     match result {
         Ok(_) => {

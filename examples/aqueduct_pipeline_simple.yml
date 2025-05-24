@@ -1,17 +1,18 @@
+version: "v2"
 sources:
   # Register a local file source containing temperature readings for various cities
-  - type: File
+  - type: file
     name: temp_readings
-    file_type:
-      type: Csv
+    format:
+      type: csv
       options: {}
     location: ./examples/temp_readings_${month}_${year}.csv # use templating functionality to parameterize the month and year
 
   #Register a local file source containing a mapping between location_ids and location names
-  - type: File
+  - type: file
     name: locations
-    file_type:
-      type: Csv
+    format:
+      type: csv
       options: {}
     location: ./examples/location_dict.csv
 
@@ -53,9 +54,9 @@ stages:
 
 # Write the pipeline result to a parquet file
 destination:
-  type: File
+  type: file
   name: results
-  file_type:
-    type: Parquet
+  format:
+    type: parquet
     options: {}
   location: ./examples/output_${month}_${year}.parquet

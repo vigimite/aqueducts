@@ -1,8 +1,9 @@
-use aqueducts_utils::serde::deserialize_file_location;
-use aqueducts_utils::store::register_object_store;
-use chrono::{DateTime, Utc};
-use datafusion::arrow::datatypes::DataType;
-use datafusion::arrow::datatypes::Schema;
+use std::sync::Arc;
+
+use aqueducts_schemas::{
+    sources::FileType, CsvSourceOptions, DirSource, FileSource, JsonSourceOptions,
+    ParquetSourceOptions, Source,
+};
 use datafusion::{
     datasource::{
         file_format::{csv::CsvFormat, json::JsonFormat, parquet::ParquetFormat},
@@ -10,215 +11,26 @@ use datafusion::{
     },
     prelude::*,
 };
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
 use tracing::debug;
 use tracing::instrument;
-use url::Url;
 
-pub(crate) mod error;
-pub(crate) type Result<T> = core::result::Result<T, error::Error>;
-
-/// A data source that can be either a delta table (`delta`), a `file`, a `directory` or an `odbc` connection
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-#[serde(tag = "type")]
-pub enum Source {
-    /// An in-memory source
-    InMemory(InMemorySource),
-    /// A delta table source
-    Delta(DeltaSource),
-    /// A file source
-    File(FileSource),
-    /// A directory source
-    Directory(DirSource),
-    #[cfg(feature = "odbc")]
-    /// An ODBC source
-    Odbc(OdbcSource),
-}
-
-impl Source {
-    pub fn name(&self) -> String {
-        match self {
-            Source::InMemory(in_memory_source) => in_memory_source.name.clone(),
-            Source::Delta(delta_source) => delta_source.name.clone(),
-            Source::File(file_source) => file_source.name.clone(),
-            Source::Directory(dir_source) => dir_source.name.clone(),
-            #[cfg(feature = "odbc")]
-            Source::Odbc(odbc_source) => odbc_source.name.clone(),
-        }
-    }
-}
-
-/// An in memory source already present in the provided session context
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct InMemorySource {
-    /// Name of the in-memory table, existence will be checked at runtime
-    pub name: String,
-}
-
-/// A delta table source
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct DeltaSource {
-    /// Name of the delta source, will be the registered table name in the SQL context
-    pub name: String,
-
-    /// A URL or Path to the location of the delta table
-    /// Supports relative local paths
-    #[serde(deserialize_with = "deserialize_file_location")]
-    pub location: Url,
-
-    /// A RFC3339 compliant timestamp to load the delta table state at a specific point in time
-    /// Used for deltas time traveling feature
-    pub version_ts: Option<DateTime<Utc>>,
-
-    /// Storage options for the delta table
-    /// Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>)
-    /// additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
-    #[serde(default)]
-    pub storage_options: HashMap<String, String>,
-}
-
-/// A file source
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct FileSource {
-    /// Name of the file source, will be the registered table name in the SQL context
-    pub name: String,
-
-    /// File type of the file to be ingested
-    /// Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
-    pub file_type: FileType,
-    #[serde(deserialize_with = "deserialize_file_location")]
-
-    /// A URL or Path to the location of the delta table
-    /// Supports relative local paths
-    pub location: Url,
-
-    /// Storage options for the delta table
-    /// Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>)
-    /// additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
-    #[serde(default)]
-    pub storage_options: HashMap<String, String>,
-}
-
-/// A Directory Source
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct DirSource {
-    /// Name of the directory source, will be the registered table name in the SQL context
-    pub name: String,
-
-    /// File type of the file to be ingested
-    /// Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
-    pub file_type: FileType,
-
-    /// Columns to partition the table by
-    /// This is a list of key value tuples where the key is the column name and the value is an [arrow::datatypes::DataType](https://docs.rs/arrow/latest/arrow/datatypes/enum.DataType.html)
-    #[cfg_attr(feature = "schema_gen", schemars(skip))]
-    #[serde(default)]
-    pub partition_cols: Vec<(String, DataType)>,
-
-    /// A URL or Path to the location of the delta table
-    /// Supports relative local paths
-    #[serde(deserialize_with = "deserialize_file_location")]
-    pub location: Url,
-
-    /// Storage options for the delta table
-    /// Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>)
-    /// additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)
-    #[serde(default)]
-    pub storage_options: HashMap<String, String>,
-}
-
-/// An ODBC source
-#[cfg(feature = "odbc")]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct OdbcSource {
-    /// Name of the ODBC source, will be the registered table name in the SQL context
-    pub name: String,
-
-    /// Query to execute when fetching data from the ODBC connection
-    /// This query will execute eagerly before the data is processed by the pipeline
-    /// Size of data returned from the query cannot exceed work memory
-    pub query: String,
-
-    /// ODBC connection string
-    /// Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
-    pub connection_string: String,
-}
-
-/// File type of the source file, supports `Parquet`, `Csv` or `Json`
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-#[serde(tag = "type", content = "options")]
-pub enum FileType {
-    /// Parquet source options
-    Parquet(ParquetSourceOptions),
-
-    /// Csv source options
-    Csv(CsvSourceOptions),
-
-    /// Json source options
-    Json(JsonSourceOptions),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct ParquetSourceOptions {
-    /// schema to read this CSV with
-    /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
-    #[cfg_attr(feature = "schema_gen", schemars(skip))]
-    schema: Option<Schema>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct CsvSourceOptions {
-    /// set to `true` to treat first row of CSV as the header
-    /// column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`
-    has_header: Option<bool>,
-
-    /// set a delimiter character to read this CSV with
-    delimiter: Option<char>,
-
-    /// schema to read this CSV with
-    /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
-    #[cfg_attr(feature = "schema_gen", schemars(skip))]
-    schema: Option<Schema>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct JsonSourceOptions {
-    /// schema to read this JSON with
-    /// uses [arrow::datatypes::Schema](https://docs.rs/arrow/latest/arrow/datatypes/struct.Schema.html) for ser-de
-    #[cfg_attr(feature = "schema_gen", schemars(skip))]
-    schema: Option<Schema>,
-}
+use crate::schema_transform::{data_type_to_arrow, fields_to_arrow_schema};
+use crate::store::register_object_store;
 
 /// Register an Aqueduct source
 /// Supports Delta tables, Parquet files, Csv Files and Json Files
 #[instrument(skip(ctx, source), err)]
-pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result<()> {
+pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> crate::error::Result<()> {
     match source {
         Source::InMemory(memory_source) => {
             debug!("Registering in-memory source '{}'", memory_source.name);
 
             if !ctx.table_exist(memory_source.name.as_str())? {
-                return Err(error::Error::MissingInMemory(memory_source.name));
+                return Err(crate::error::AqueductsError::not_found(
+                    "source",
+                    memory_source.name,
+                ));
             }
-        }
-        Source::Delta(delta_source) => {
-            debug!(
-                "Registering delta source '{}' at location '{}'",
-                delta_source.name, delta_source.location,
-            );
-
-            register_delta_source(ctx, delta_source).await?
         }
         Source::File(file_source) => {
             debug!(
@@ -231,151 +43,169 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result
         Source::Directory(dir_source) => {
             debug!(
                 "Registering directory source '{}' at location '{}' for type '{:?}'",
-                dir_source.name, dir_source.location, dir_source.file_type
+                dir_source.name, dir_source.location, dir_source.format
             );
 
             register_dir_source(ctx, dir_source).await?
         }
         #[cfg(feature = "odbc")]
         Source::Odbc(odbc_source) => {
-            debug!(
-                "Registering ODBC source '{}' using query '{}'",
-                odbc_source.name, odbc_source.query
-            );
-
+            debug!("Registering ODBC source '{}'", odbc_source.name);
             aqueducts_odbc::register_odbc_source(
                 ctx,
-                odbc_source.connection_string.as_str(),
-                odbc_source.query.as_str(),
-                odbc_source.name.as_str(),
+                &odbc_source.connection_string,
+                &odbc_source.query,
+                &odbc_source.name,
             )
-            .await?
+            .await
+            .map_err(|e| {
+                crate::error::AqueductsError::source(
+                    &odbc_source.name,
+                    format!("ODBC source error: {}", e),
+                )
+            })?;
+        }
+        #[cfg(not(feature = "odbc"))]
+        Source::Odbc(_) => {
+            return Err(crate::error::AqueductsError::unsupported(
+                "ODBC source",
+                "ODBC support not enabled. Enable 'odbc' feature",
+            ));
+        }
+        #[cfg(feature = "delta")]
+        Source::Delta(delta_source) => {
+            debug!("Registering Delta source '{}'", delta_source.name);
+            aqueducts_delta::source::register_delta_source(ctx, &delta_source)
+                .await
+                .map_err(|e| {
+                    crate::error::AqueductsError::source(
+                        &delta_source.name,
+                        format!("Delta source error: {}", e),
+                    )
+                })?;
+        }
+        #[cfg(not(feature = "delta"))]
+        Source::Delta(_) => {
+            return Err(crate::error::AqueductsError::unsupported(
+                "Delta source",
+                "Delta support not enabled. Enable 'delta' feature",
+            ));
         }
     };
 
     Ok(())
 }
 
-async fn register_delta_source(ctx: Arc<SessionContext>, delta_source: DeltaSource) -> Result<()> {
-    let builder = deltalake::DeltaTableBuilder::from_valid_uri(delta_source.location)?
-        .with_storage_options(delta_source.storage_options);
-
-    let table = if let Some(timestamp) = delta_source.version_ts {
-        builder
-            .with_datestring(timestamp.to_rfc3339())?
-            .load()
-            .await?
-    } else {
-        builder.load().await?
-    };
-
-    let _ = ctx.register_table(delta_source.name.as_str(), Arc::new(table))?;
-
-    Ok(())
-}
-
-async fn register_file_source(ctx: Arc<SessionContext>, file_source: FileSource) -> Result<()> {
+async fn register_file_source(
+    ctx: Arc<SessionContext>,
+    file_source: FileSource,
+) -> crate::error::Result<()> {
     // register the object store for this source
     register_object_store(
         ctx.clone(),
         &file_source.location,
-        &file_source.storage_options,
+        &file_source.storage_config,
     )?;
 
-    match file_source.file_type {
-        FileType::Parquet(ParquetSourceOptions {
-            schema: Some(schema),
-        }) => {
-            let options = ParquetReadOptions::default().schema(&schema);
-
-            ctx.register_parquet(
-                file_source.name.as_str(),
-                file_source.location.as_str(),
-                options,
-            )
-            .await?
-        }
-        FileType::Parquet(ParquetSourceOptions { schema: None }) => {
-            let options = ParquetReadOptions::default();
-
-            ctx.register_parquet(
-                file_source.name.as_str(),
-                file_source.location.as_str(),
-                options,
-            )
-            .await?
+    match file_source.format {
+        FileType::Parquet(ParquetSourceOptions { schema }) => {
+            if !schema.is_empty() {
+                let arrow_schema = fields_to_arrow_schema(&schema)?;
+                let options = ParquetReadOptions::default().schema(&arrow_schema);
+                ctx.register_parquet(
+                    file_source.name.as_str(),
+                    file_source.location.as_str(),
+                    options,
+                )
+                .await?
+            } else {
+                let options = ParquetReadOptions::default();
+                ctx.register_parquet(
+                    file_source.name.as_str(),
+                    file_source.location.as_str(),
+                    options,
+                )
+                .await?
+            }
         }
 
         FileType::Csv(CsvSourceOptions {
             has_header,
             delimiter,
-            schema: Some(schema),
+            schema,
         }) => {
-            ctx.register_csv(
-                file_source.name.as_str(),
-                file_source.location.as_str(),
-                CsvReadOptions::default()
-                    .has_header(has_header.unwrap_or(true))
-                    .delimiter_option(delimiter.map(|d| d as u8))
-                    .schema(&schema),
-            )
-            .await?
+            if !schema.is_empty() {
+                let arrow_schema = fields_to_arrow_schema(&schema)?;
+                ctx.register_csv(
+                    file_source.name.as_str(),
+                    file_source.location.as_str(),
+                    CsvReadOptions::default()
+                        .has_header(has_header)
+                        .delimiter(delimiter as u8)
+                        .schema(&arrow_schema),
+                )
+                .await?
+            } else {
+                ctx.register_csv(
+                    file_source.name.as_str(),
+                    file_source.location.as_str(),
+                    CsvReadOptions::default()
+                        .has_header(has_header)
+                        .delimiter(delimiter as u8),
+                )
+                .await?
+            }
         }
-        FileType::Csv(CsvSourceOptions {
-            has_header,
-            delimiter,
-            schema: None,
-        }) => {
-            ctx.register_csv(
-                file_source.name.as_str(),
-                file_source.location.as_str(),
-                CsvReadOptions::default()
-                    .has_header(has_header.unwrap_or(true))
-                    .delimiter_option(delimiter.map(|d| d as u8)),
-            )
-            .await?
-        }
-        FileType::Json(JsonSourceOptions {
-            schema: Some(schema),
-        }) => {
-            ctx.register_json(
-                file_source.name.as_str(),
-                file_source.location.as_str(),
-                NdJsonReadOptions::default().schema(&schema),
-            )
-            .await?;
-        }
-        FileType::Json(JsonSourceOptions { schema: None }) => {
-            ctx.register_json(
-                file_source.name.as_str(),
-                file_source.location.as_str(),
-                NdJsonReadOptions::default(),
-            )
-            .await?;
+
+        FileType::Json(JsonSourceOptions { schema }) => {
+            if !schema.is_empty() {
+                let arrow_schema = fields_to_arrow_schema(&schema)?;
+                ctx.register_json(
+                    file_source.name.as_str(),
+                    file_source.location.as_str(),
+                    NdJsonReadOptions::default().schema(&arrow_schema),
+                )
+                .await?;
+            } else {
+                ctx.register_json(
+                    file_source.name.as_str(),
+                    file_source.location.as_str(),
+                    NdJsonReadOptions::default(),
+                )
+                .await?;
+            }
         }
     };
 
     Ok(())
 }
 
-async fn register_dir_source(ctx: Arc<SessionContext>, dir_source: DirSource) -> Result<()> {
+async fn register_dir_source(
+    ctx: Arc<SessionContext>,
+    dir_source: DirSource,
+) -> crate::error::Result<()> {
     // register the object store for this source
     register_object_store(
         ctx.clone(),
         &dir_source.location,
-        &dir_source.storage_options,
+        &dir_source.storage_config,
     )?;
 
     let session_state = ctx.state();
 
-    let listing_table_url = ListingTableUrl::parse(dir_source.location)?;
-    let listing_config = match dir_source.file_type {
+    let listing_table_url = ListingTableUrl::parse(dir_source.location.as_str())?;
+    let listing_config = match dir_source.format {
         FileType::Parquet(ParquetSourceOptions { schema }) => {
+            let partition_cols: std::result::Result<Vec<_>, _> = dir_source
+                .partition_columns
+                .iter()
+                .map(|(name, dt)| data_type_to_arrow(dt).map(|arrow_dt| (name.clone(), arrow_dt)))
+                .collect();
             let listing_options = ListingOptions::new(Arc::new(ParquetFormat::default()))
-                .with_table_partition_cols(dir_source.partition_cols);
+                .with_table_partition_cols(partition_cols?);
 
-            let schema = if let Some(schema) = schema {
-                Arc::new(schema)
+            let schema = if !schema.is_empty() {
+                Arc::new(fields_to_arrow_schema(&schema)?)
             } else {
                 listing_options
                     .infer_schema(&session_state, &listing_table_url)
@@ -392,14 +222,19 @@ async fn register_dir_source(ctx: Arc<SessionContext>, dir_source: DirSource) ->
             schema,
         }) => {
             let format = CsvFormat::default()
-                .with_has_header(has_header.unwrap_or(true))
-                .with_delimiter(delimiter.unwrap_or(',') as u8);
+                .with_has_header(has_header)
+                .with_delimiter(delimiter as u8);
 
-            let listing_options = ListingOptions::new(Arc::new(format))
-                .with_table_partition_cols(dir_source.partition_cols);
+            let partition_cols: std::result::Result<Vec<_>, _> = dir_source
+                .partition_columns
+                .iter()
+                .map(|(name, dt)| data_type_to_arrow(dt).map(|arrow_dt| (name.clone(), arrow_dt)))
+                .collect();
+            let listing_options =
+                ListingOptions::new(Arc::new(format)).with_table_partition_cols(partition_cols?);
 
-            let schema = if let Some(schema) = schema {
-                Arc::new(schema)
+            let schema = if !schema.is_empty() {
+                Arc::new(fields_to_arrow_schema(&schema)?)
             } else {
                 listing_options
                     .infer_schema(&session_state, &listing_table_url)
@@ -414,11 +249,16 @@ async fn register_dir_source(ctx: Arc<SessionContext>, dir_source: DirSource) ->
         FileType::Json(JsonSourceOptions { schema }) => {
             let format = JsonFormat::default();
 
-            let listing_options = ListingOptions::new(Arc::new(format))
-                .with_table_partition_cols(dir_source.partition_cols);
+            let partition_cols: std::result::Result<Vec<_>, _> = dir_source
+                .partition_columns
+                .iter()
+                .map(|(name, dt)| data_type_to_arrow(dt).map(|arrow_dt| (name.clone(), arrow_dt)))
+                .collect();
+            let listing_options =
+                ListingOptions::new(Arc::new(format)).with_table_partition_cols(partition_cols?);
 
-            let schema = if let Some(schema) = schema {
-                Arc::new(schema)
+            let schema = if !schema.is_empty() {
+                Arc::new(fields_to_arrow_schema(&schema)?)
             } else {
                 listing_options
                     .infer_schema(&session_state, &listing_table_url)

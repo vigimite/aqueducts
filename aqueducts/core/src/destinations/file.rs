@@ -1,73 +1,17 @@
-use aqueducts_utils::serde::deserialize_file_location;
+use aqueducts_schemas::{destinations::FileType as DestinationFileType, FileDestination};
 use datafusion::config::{ConfigField, CsvOptions, TableParquetOptions};
 use datafusion::dataframe::DataFrameWriteOptions;
 use datafusion::prelude::*;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use url::Url;
 
-use super::Result;
-
-/// A file output destination
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct FileDestination {
-    ///  Name of the file to write
-    pub name: String,
-
-    /// Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix
-    #[serde(deserialize_with = "deserialize_file_location")]
-    pub location: Url,
-
-    /// File type, supported types are Parquet and CSV
-    pub file_type: FileType,
-
-    /// Describes whether to write a single file (can be used to overwrite destination file)
-    #[serde(default)]
-    pub single_file: bool,
-
-    /// Columns to partition table by
-    #[serde(default)]
-    pub partition_cols: Vec<String>,
-
-    /// Object store storage options
-    #[serde(default)]
-    pub storage_options: HashMap<String, String>,
-}
-
-/// File type and options
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-#[serde(tag = "type", content = "options")]
-pub enum FileType {
-    /// Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options
-    Parquet(#[serde(default)] HashMap<String, String>),
-
-    /// CSV options
-    Csv(CsvDestinationOptions),
-
-    /// Json destination, no supported options
-    Json,
-}
-
-/// Csv options
-#[derive(Debug, Clone, Serialize, Deserialize, Default, derive_new::new)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct CsvDestinationOptions {
-    /// Defaults to true, sets a header for the CSV file
-    has_header: Option<bool>,
-
-    /// Defaults to `,`, sets the delimiter char for the CSV file
-    delimiter: Option<char>,
-}
+use crate::error::Result;
 
 pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result<()> {
     let write_options = DataFrameWriteOptions::default()
-        .with_partition_by(file_def.partition_cols.clone())
+        .with_partition_by(file_def.partition_columns.clone())
         .with_single_file_output(file_def.single_file);
 
-    let _ = match &file_def.file_type {
-        FileType::Parquet(options) => {
+    let _ = match &file_def.format {
+        DestinationFileType::Parquet(options) => {
             let mut parquet_options = TableParquetOptions::default();
 
             options
@@ -81,15 +25,15 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
             )
             .await?
         }
-        FileType::Csv(csv_options) => {
+        DestinationFileType::Csv(csv_options) => {
             let csv_options = CsvOptions::default()
-                .with_has_header(csv_options.has_header.unwrap_or(true))
-                .with_delimiter(csv_options.delimiter.unwrap_or(',') as u8);
+                .with_has_header(csv_options.has_header)
+                .with_delimiter(csv_options.delimiter as u8);
 
             data.write_csv(file_def.location.as_str(), write_options, Some(csv_options))
                 .await?
         }
-        FileType::Json => {
+        DestinationFileType::Json => {
             data.write_json(file_def.location.as_str(), write_options, None)
                 .await?
         }
@@ -100,19 +44,37 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
 
 #[cfg(test)]
 mod tests {
-    use datafusion::arrow::array::RecordBatch;
     use datafusion::arrow::array::{ArrayRef, BooleanArray, Int32Array, StringArray};
+    use datafusion::arrow::datatypes::DataType;
+    use datafusion::arrow::record_batch::RecordBatch;
     use datafusion::assert_batches_eq;
-    use datafusion::datasource::file_format::parquet::ParquetFormat;
     use datafusion::datasource::listing::{
         ListingOptions, ListingTable, ListingTableConfig, ListingTableUrl,
     };
-    use deltalake::arrow::datatypes::DataType;
-    use std::{path::Path, sync::Arc};
+    use datafusion::datasource::physical_plan::parquet::ParquetFormat;
+    use datafusion::prelude::*;
+    use std::{collections::HashMap, path::Path, sync::Arc};
 
     use super::*;
+    use aqueducts_schemas::destinations::{CsvDestinationOptions, FileType};
+    use aqueducts_schemas::Location;
 
-    fn generate_test_file_path(file_name: &str) -> Url {
+    fn create_test_record_batch() -> RecordBatch {
+        let col_str = Arc::new(StringArray::from(vec!["a", "b", "c", "d"])) as ArrayRef;
+        let col_int = Arc::new(Int32Array::from(vec![1, 2, 3, 4])) as ArrayRef;
+        let col_bool = Arc::new(BooleanArray::from(vec![true, true, false, false])) as ArrayRef;
+        let col_val = Arc::new(Int32Array::from(vec![10, 20, 30, 40])) as ArrayRef;
+
+        RecordBatch::try_from_iter(vec![
+            ("col_str", col_str),
+            ("col_int", col_int),
+            ("col_bool", col_bool),
+            ("col_val", col_val),
+        ])
+        .unwrap()
+    }
+
+    fn generate_test_file_path(file_name: &str) -> url::Url {
         let local_path = Path::new(".")
             .canonicalize()
             .unwrap()
@@ -121,8 +83,7 @@ mod tests {
             .unwrap();
 
         let file_path = format!("file://{local_path}/tests/output/test_file/{file_name}");
-
-        Url::parse(file_path.as_str()).unwrap()
+        url::Url::parse(&file_path).unwrap()
     }
 
     #[tokio::test]
@@ -130,28 +91,15 @@ mod tests {
         let ctx = SessionContext::new();
 
         let path = generate_test_file_path("csv/write.csv");
-        let definition = FileDestination::new(
-            "write".into(),
-            path.clone(),
-            FileType::Csv(CsvDestinationOptions::new(Some(true), None)),
-            true,
-            vec![],
-            Default::default(),
-        );
+        let definition = FileDestination::builder()
+            .name("write".to_string())
+            .location(Location(path.clone()))
+            .format(FileType::Csv(CsvDestinationOptions::default()))
+            .single_file(true)
+            .build();
 
-        // Insert records into table
-        let col_1 = Arc::new(StringArray::from(vec!["a", "b", "c", "d"])) as ArrayRef;
-        let col_2 = Arc::new(Int32Array::from(vec![1, 2, 3, 4])) as ArrayRef;
-        let col_3 = Arc::new(BooleanArray::from(vec![true, true, false, false])) as ArrayRef;
-        let col_4 = Arc::new(Int32Array::from(vec![10, 20, 30, 40])) as ArrayRef;
-
-        let batch = RecordBatch::try_from_iter(vec![
-            ("col_1", col_1),
-            ("col_2", col_2),
-            ("col_3", col_3),
-            ("col_4", col_4),
-        ])
-        .unwrap();
+        // Create test data using helper
+        let batch = create_test_record_batch();
         let df = ctx.read_batch(batch).unwrap();
         write(&definition, df).await.unwrap();
 
@@ -159,23 +107,23 @@ mod tests {
             .read_csv(path.as_str(), CsvReadOptions::default())
             .await
             .unwrap()
-            .select_columns(&["col_1", "col_2", "col_3", "col_4"])
+            .select_columns(&["col_str", "col_int", "col_bool", "col_val"])
             .unwrap()
-            .sort(vec![col("col_1").sort(true, false)])
+            .sort(vec![col("col_str").sort(true, false)])
             .unwrap();
 
         let batches = df.collect().await.unwrap();
 
         assert_batches_eq!(
             [
-                "+-------+-------+-------+-------+",
-                "| col_1 | col_2 | col_3 | col_4 |",
-                "+-------+-------+-------+-------+",
-                "| a     | 1     | true  | 10    |",
-                "| b     | 2     | true  | 20    |",
-                "| c     | 3     | false | 30    |",
-                "| d     | 4     | false | 40    |",
-                "+-------+-------+-------+-------+",
+                "+---------+---------+----------+---------+",
+                "| col_str | col_int | col_bool | col_val |",
+                "+---------+---------+----------+---------+",
+                "| a       | 1       | true     | 10      |",
+                "| b       | 2       | true     | 20      |",
+                "| c       | 3       | false    | 30      |",
+                "| d       | 4       | false    | 40      |",
+                "+---------+---------+----------+---------+",
             ],
             batches.as_slice()
         );
@@ -186,28 +134,15 @@ mod tests {
         let ctx = SessionContext::new();
 
         let path = generate_test_file_path("parquet/write.parquet");
-        let definition = FileDestination::new(
-            "write".into(),
-            path.clone(),
-            FileType::Parquet(HashMap::default()),
-            true,
-            vec![],
-            Default::default(),
-        );
+        let definition = FileDestination::builder()
+            .name("write".to_string())
+            .location(Location(path.clone()))
+            .format(FileType::Parquet(HashMap::default()))
+            .single_file(true)
+            .build();
 
-        // Insert records into table
-        let col_1 = Arc::new(StringArray::from(vec!["a", "b", "c", "d"])) as ArrayRef;
-        let col_2 = Arc::new(Int32Array::from(vec![1, 2, 3, 4])) as ArrayRef;
-        let col_3 = Arc::new(BooleanArray::from(vec![true, true, false, false])) as ArrayRef;
-        let col_4 = Arc::new(Int32Array::from(vec![10, 20, 30, 40])) as ArrayRef;
-
-        let batch = RecordBatch::try_from_iter(vec![
-            ("col_1", col_1),
-            ("col_2", col_2),
-            ("col_3", col_3),
-            ("col_4", col_4),
-        ])
-        .unwrap();
+        // Create test data using helper
+        let batch = create_test_record_batch();
         let df = ctx.read_batch(batch).unwrap();
         write(&definition, df).await.unwrap();
 
@@ -215,23 +150,23 @@ mod tests {
             .read_parquet(path.as_str(), ParquetReadOptions::default())
             .await
             .unwrap()
-            .select_columns(&["col_1", "col_2", "col_3", "col_4"])
+            .select_columns(&["col_str", "col_int", "col_bool", "col_val"])
             .unwrap()
-            .sort(vec![col("col_1").sort(true, false)])
+            .sort(vec![col("col_str").sort(true, false)])
             .unwrap();
 
         let batches = df.collect().await.unwrap();
 
         assert_batches_eq!(
             [
-                "+-------+-------+-------+-------+",
-                "| col_1 | col_2 | col_3 | col_4 |",
-                "+-------+-------+-------+-------+",
-                "| a     | 1     | true  | 10    |",
-                "| b     | 2     | true  | 20    |",
-                "| c     | 3     | false | 30    |",
-                "| d     | 4     | false | 40    |",
-                "+-------+-------+-------+-------+",
+                "+---------+---------+----------+---------+",
+                "| col_str | col_int | col_bool | col_val |",
+                "+---------+---------+----------+---------+",
+                "| a       | 1       | true     | 10      |",
+                "| b       | 2       | true     | 20      |",
+                "| c       | 3       | false    | 30      |",
+                "| d       | 4       | false    | 40      |",
+                "+---------+---------+----------+---------+",
             ],
             batches.as_slice()
         );
@@ -244,14 +179,14 @@ mod tests {
 
         let suffix = format!("partitioned/{}/", rand::random::<usize>());
         let path = generate_test_file_path(suffix.as_str());
-        let definition = FileDestination::new(
-            "write".into(),
-            path.clone(),
-            FileType::Parquet(HashMap::default()),
-            false,
-            vec!["year".into()],
-            Default::default(),
-        );
+        let definition = FileDestination::builder()
+            .name("write".into())
+            .location(Location(path.clone()))
+            .format(FileType::Parquet(HashMap::default()))
+            .single_file(false)
+            .partition_columns(vec!["year".into()])
+            .storage_config(HashMap::default())
+            .build();
 
         // Insert records into table
         let year = Arc::new(StringArray::from(vec!["2023", "2023", "2024", "2024"])) as ArrayRef;

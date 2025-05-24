@@ -1,0 +1,88 @@
+version: "v2"
+
+sources:
+  - type: file
+    name: some_table
+    format:
+      type: Csv
+      options:
+        has_header: true
+        delimiter: ","
+    location: ${local_path}/tests/data/example_1.csv
+
+  - type: file
+    name: another_table
+    format:
+      type: Csv
+      options:
+        has_header: true
+        delimiter: ","
+    location: ${local_path}/tests/data/example_2.csv
+
+stages:
+  - - name: aggregate
+      query: >
+          SELECT date, country, SUM(a) as sum_1, SUM(b) as sum_2
+          FROM some_table 
+          GROUP BY 1, 2
+
+    - name: average
+      query: >
+          SELECT date, country, AVG(x) as avg_1, AVG(y) as avg_2
+          FROM another_table 
+          GROUP BY 1, 2
+
+  - - name: join
+      query: >
+        SELECT
+          COALESCE(agg.date, avg.date) as date,
+          COALESCE(agg.country, avg.country) as country,
+          sum_1,
+          sum_2,
+          avg_1,
+          avg_2
+        FROM aggregate agg
+        JOIN average avg ON agg.date = avg.date AND agg.country = avg.country
+        WHERE COALESCE(agg.date, avg.date) = '${date}'
+
+destination:
+  type: delta
+  name: example_output
+  location: ${local_path}/tests/output/test_delta_replace/${run_id}
+  storage_config: {}
+  table_properties: {}
+
+  write_mode:
+    operation: replace
+    params: 
+      - column: date
+        value: ${date}
+
+  partition_columns:
+    - date
+
+  schema:
+    - name: date
+      data_type: date32
+      nullable: true
+      metadata: {}
+    - name: country
+      data_type: utf8
+      nullable: true
+      metadata: {}
+    - name: sum_1
+      data_type: int64
+      nullable: true
+      metadata: {}
+    - name: sum_2
+      data_type: float64
+      nullable: true
+      metadata: {}
+    - name: avg_1
+      data_type: float64
+      nullable: true
+      metadata: {}
+    - name: avg_2
+      data_type: float64
+      nullable: true
+      metadata: {}

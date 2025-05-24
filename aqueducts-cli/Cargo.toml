@@ -25,9 +25,7 @@ yaml = ["aqueducts/yaml"]
 datafusion.workspace = true
 datafusion-functions-json.workspace = true
 
-aqueducts.workspace = true
-aqueducts-utils.workspace = true
-aqueducts-websockets.workspace = true
+aqueducts = { workspace = true, features = ["protocol"] }
 
 clap.workspace = true
 

@@ -7,8 +7,7 @@
         "type": "Csv",
         "options": {
           "has_header": true,
-          "delimiter": ",",
-          "schema": null
+          "delimiter": ","
         }
       },
       "location": "${local_path}/examples/test_data/example_1.csv"
@@ -20,8 +19,7 @@
         "type": "Csv",
         "options": {
           "has_header": true,
-          "delimiter": ",",
-          "schema": null
+          "delimiter": ","
         }
       },
       "location": "${local_path}/examples/test_data/example_2.csv"
@@ -43,8 +41,7 @@
     [
       {
         "name": "join",
-        "query": "SELECT  COALESCE(agg.date, avg.date) as date,  COALESCE(agg.country, avg.country) as country,  sum_1,  sum_2,  avg_1,  avg_2FROM aggregate agg JOIN average avg ON agg.date = avg.date AND agg.country = avg.country WHERE COALESCE(agg.date, avg.date) = '1970-01-01'",
-        "show": null
+        "query": "SELECT  COALESCE(agg.date, avg.date) as date,  COALESCE(agg.country, avg.country) as country,  sum_1,  sum_2,  avg_1,  avg_2FROM aggregate agg JOIN average avg ON agg.date = avg.date AND agg.country = avg.country WHERE COALESCE(agg.date, avg.date) = '1970-01-01'"
       }
     ]
   ],

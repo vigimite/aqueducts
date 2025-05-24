@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use aqueducts_websockets::{ClientMessage, ExecutorMessage};
+use aqueducts::prelude::*;
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};
@@ -111,7 +111,7 @@ impl WebSocketClient {
     }
 
     /// Submit a pipeline for execution
-    pub async fn execute_pipeline(&self, pipeline: aqueducts::Aqueduct) -> anyhow::Result<()> {
+    pub async fn execute_pipeline(&self, pipeline: Aqueduct) -> anyhow::Result<()> {
         // Send execution request
         self.send_message(ClientMessage::ExecutionRequest { pipeline })
             .await?;

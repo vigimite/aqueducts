@@ -1,10 +1,10 @@
 [workspace]
 members = [
+  "aqueducts/meta",
   "aqueducts/core",
+  "aqueducts/schemas",
   "aqueducts/odbc",
-  "aqueducts/utils",
-  "aqueducts/schema_gen",
-  "aqueducts/websockets",
+  "aqueducts/delta",
   "aqueducts-cli",
   "aqueducts-executor"
 ]
@@ -27,10 +27,11 @@ github = { repository = "vigimite/aqueducts", workflow = "build.yml" }
 
 [workspace.dependencies]
 # Internal crates
-aqueducts = { path = "aqueducts/core", version = "0.9.0" }
+aqueducts = { path = "aqueducts/meta", version = "0.9.0" }
+aqueducts-schemas = { path = "aqueducts/schemas", version = "0.9.0" }
+aqueducts-core = { path = "aqueducts/core", version = "0.9.0" }
+aqueducts-delta = { path = "aqueducts/delta", version = "0.9.0" }
 aqueducts-odbc = { path = "aqueducts/odbc", version = "0.9.0" }
-aqueducts-utils = { path = "aqueducts/utils", version = "0.9.0" }
-aqueducts-websockets = { path = "aqueducts/websockets", version = "0.9.0" }
 
 # Data processing libraries
 datafusion = "47"
@@ -51,6 +52,7 @@ tokio-stream = "0.1"
 tokio-util = "0.7"
 futures = "0.3"
 futures-util = "0.3"
+async-trait = "0.1"
 
 # Network and API
 axum = { version = "0.8.4", features = ["macros", "ws"] }
@@ -71,12 +73,9 @@ anyhow = "1.0.98"
 clap = { version = "4.5.38", features = ["derive", "env"] }
 
 # General utilities
+bon = "3.6.3"
 regex = "1"
-derive-new = "0.7"
 url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.16.0", features = ["v4", "serde"] }
 rand = "0.8"
-
-# Testing
-rstest = "0.25"
