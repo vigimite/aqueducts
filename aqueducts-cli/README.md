@@ -14,11 +14,34 @@ A command-line interface for executing Aqueducts data pipelines, with support fo
 
 ## Installation
 
+### Recommended Installation Methods
+
+**Homebrew (macOS and Linux):**
+```bash
+# Add the tap and install
+brew tap vigimite/aqueducts
+brew install aqueducts-cli
+```
+
+**Shell Installer (Cross-platform):**
+```bash
+# One-line installer for Linux, macOS, and Windows
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/vigimite/aqueducts/releases/latest/download/aqueducts-installer.sh | sh
+```
+
+**Direct Download:**
+Download pre-built binaries for your platform from the [latest release](https://github.com/vigimite/aqueducts/releases/latest):
+- Linux x86_64
+- macOS Apple Silicon (ARM64)  
+- macOS Intel (x86_64)
+
+### Build from Source
+
 ```bash
 # Install with default features (s3, gcs, azure, yaml)
 cargo install aqueducts-cli --locked
 
-# Install with odbc support
+# Install with odbc support (requires unixodbc-dev)
 cargo install aqueducts-cli --locked --features odbc
 
 # Install with minimal features

@@ -12,7 +12,7 @@ categories = ["command-line-utilities"]
 license = "Apache-2.0"
 
 [features]
-default = ["s3", "gcs", "azure", "yaml", "delta"]
+default = ["s3", "gcs", "azure", "yaml", "json", "delta"]
 s3 = ["aqueducts/s3"]
 gcs = ["aqueducts/gcs"]
 azure = ["aqueducts/azure"]

@@ -250,8 +250,8 @@ cargo install git-cliff
 ### Generating the Changelog
 
 ```bash
-# Generate the changelog
-git cliff --output CHANGELOG.md
+# Generate the changelog (paste manually)
+git cliff --unreleased --tag v0.10.0
 ```
 
 ## Pull Request Process

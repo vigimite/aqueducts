@@ -95,6 +95,7 @@ impl ObjectStoreRegistry {
     /// - S3Provider (if "s3" feature is enabled)
     /// - GcsProvider (if "gcs" feature is enabled)
     /// - AzureProvider (if "azure" feature is enabled)
+    #[allow(clippy::vec_init_then_push)]
     pub fn new() -> Self {
         let mut providers: Vec<Box<dyn ObjectStoreProvider>> = Vec::new();
 
@@ -138,7 +139,7 @@ impl ObjectStoreRegistry {
 
         Err(AqueductsError::unsupported(
             "URL scheme",
-            format!("Unsupported URL scheme: {}", location.scheme().to_string()),
+            format!("Unsupported URL scheme: {}", location.scheme()),
         ))
     }
 }
@@ -188,7 +189,7 @@ static GLOBAL_REGISTRY: OnceLock<ObjectStoreRegistry> = OnceLock::new();
 /// This function returns a reference to the global registry, creating it on first access.
 /// The registry includes all providers that are enabled via feature flags.
 pub fn global_registry() -> &'static ObjectStoreRegistry {
-    GLOBAL_REGISTRY.get_or_init(|| ObjectStoreRegistry::new())
+    GLOBAL_REGISTRY.get_or_init(ObjectStoreRegistry::new)
 }
 
 /// Register a cloud object store with a DataFusion SessionContext.

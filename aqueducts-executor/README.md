@@ -14,6 +14,53 @@ A deployable application used to execute Aqueduct pipeline definitions within yo
 
 ## Installation
 
+### Docker (Recommended)
+
+The easiest way to run the executor is using Docker. The Docker image includes **ODBC support with PostgreSQL drivers pre-installed**, making it ready for database connectivity out of the box.
+
+```bash
+# Pull from GitHub Container Registry
+docker pull ghcr.io/vigimite/aqueducts/aqueducts-executor:latest
+
+# Run with command line arguments
+docker run -d \
+  --name aqueducts-executor \
+  -p 3031:3031 \
+  ghcr.io/vigimite/aqueducts/aqueducts-executor:latest \
+  --api-key your_secret_key --max-memory 4
+
+# Or run with environment variables
+docker run -d \
+  --name aqueducts-executor \
+  -p 3031:3031 \
+  -e AQUEDUCTS_API_KEY=your_secret_key \
+  -e AQUEDUCTS_HOST=0.0.0.0 \
+  -e AQUEDUCTS_PORT=3031 \
+  -e AQUEDUCTS_MAX_MEMORY=4 \
+  -e AQUEDUCTS_LOG_LEVEL=info \
+  ghcr.io/vigimite/aqueducts/aqueducts-executor:latest
+```
+
+### Docker Compose
+
+For local development, use the provided docker-compose setup:
+
+```bash
+# Start just the database (default)
+docker-compose up
+
+# Start database + executor
+docker-compose --profile executor up
+
+# Build and start from source
+docker-compose --profile executor up --build
+```
+
+The executor will be available at `http://localhost:3031` with:
+- API key: `test_secret_key` (configurable)
+- Health check: `http://localhost:3031/api/health`
+- WebSocket: `ws://localhost:3031/ws/connect`
+
 ### Manual Installation
 
 Install the application using cargo:
@@ -40,10 +87,10 @@ cargo install aqueducts-executor --features odbc
 
 ## API Endpoints
 
-| Endpoint    | Method | Auth | Description                                        |
-|-------------|--------|------|----------------------------------------------------|
-| `/health`   | GET    | No   | Basic health check                                 |
-| `/ws`       | GET    | Yes  | WebSocket endpoint for bidirectional communication |
+| Endpoint       | Method | Auth | Description                                        |
+|----------------|--------|------|----------------------------------------------------|
+| `/api/health`  | GET    | No   | Basic health check                                 |
+| `/ws/connect`  | GET    | Yes  | WebSocket endpoint for bidirectional communication |
 
 ## ODBC Configuration Requirements
 

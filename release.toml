@@ -1,0 +1,41 @@
+# cargo-release configuration for aqueducts workspace
+[workspace]
+# Publish all crates in dependency order
+allow-branch = ["main"]
+# Use shared versioning across workspace
+shared-version = true
+# Skip individual crate confirmation
+no-confirm = true
+
+# Post-release actions
+post-release-replacements = [
+  { file = "README.md", search = "aqueducts = \"[^\"]*\"", replace = "aqueducts = \"{{version}}\"" },
+]
+
+# Individual crate configurations
+[package.aqueducts-schemas]
+publish = true
+
+[package.aqueducts-core] 
+publish = true
+depends = ["aqueducts-schemas"]
+
+[package.aqueducts-delta]
+publish = true
+depends = ["aqueducts-schemas", "aqueducts-core"]
+
+[package.aqueducts-odbc]
+publish = true  
+depends = ["aqueducts-schemas", "aqueducts-core"]
+
+[package.aqueducts-meta]
+publish = true
+depends = ["aqueducts-core", "aqueducts-delta", "aqueducts-odbc"]
+
+[package.aqueducts-executor]
+publish = true
+depends = ["aqueducts-core"]
+
+[package.aqueducts-cli]
+publish = true
+depends = ["aqueducts-core", "aqueducts-executor"]

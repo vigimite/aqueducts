@@ -647,7 +647,7 @@ mod tests {
         let field: Field = serde_json::from_str(field_json).unwrap();
         assert_eq!(field.name, "user_score");
         assert_eq!(field.data_type, DataType::Decimal128(5, 2));
-        assert_eq!(field.nullable, true);
+        assert!(field.nullable);
 
         // Test round-trip serialization
         let serialized = serde_json::to_string(&field).unwrap();

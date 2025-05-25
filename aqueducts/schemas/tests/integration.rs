@@ -55,7 +55,7 @@ fn test_field_defaults() {
     }"#;
 
     let field: Field = serde_json::from_str(field_json).unwrap();
-    assert_eq!(field.nullable, true); // Should get default
+    assert!(field.nullable); // Should get default
 }
 
 #[test]

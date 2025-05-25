@@ -48,7 +48,7 @@ async fn test_csv_source_to_memory_destination() {
         .expect("doubled_value column should exist");
 
     // Should have doubled the original values
-    assert!(doubled_values.len() > 0);
+    assert!(!doubled_values.is_empty());
 }
 
 #[tokio::test]
