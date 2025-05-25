@@ -20,8 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix clippy lints and remove some of the ci workflows
 - Fix cargo dist setup
 
-## New Contributors
-* @vigimite made their first contribution in [#93](https://github.com/vigimite/aqueducts/pull/93)
 ## [0.9.0] - 2025-03-19
 ### Details
 #### Added
