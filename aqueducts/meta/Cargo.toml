@@ -1,0 +1,53 @@
+[package]
+name = "aqueducts"
+authors.workspace = true
+edition.workspace = true
+description = "Unified meta-crate for the Aqueducts data pipeline framework"
+repository.workspace = true
+readme = "README.md"
+version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[features]
+default = ["yaml", "s3", "gcs", "azure"]
+
+# Format support features
+json = ["aqueducts-core/json"]
+toml = ["aqueducts-core/toml"]
+yaml = ["aqueducts-core/yaml"]
+
+# Cloud storage provider features
+s3 = ["aqueducts-core/s3"]
+gcs = ["aqueducts-core/gcs"]
+azure = ["aqueducts-core/azure"]
+
+# Database connectivity features
+odbc = ["aqueducts-core/odbc", "aqueducts-odbc"]
+delta = ["aqueducts-core/delta", "aqueducts-delta"]
+
+# Schema generation features
+schema_gen = ["aqueducts-schemas/schema_gen"]
+
+# Protocol features for executor/CLI integration
+protocol = ["aqueducts-schemas/protocol"]
+
+[dependencies]
+# Core aqueducts functionality
+aqueducts-core.workspace = true
+aqueducts-schemas.workspace = true
+
+# Optional database-specific crates
+aqueducts-odbc = { workspace = true, optional = true }
+aqueducts-delta = { workspace = true, optional = true }
+
+# Re-export common dependencies that users might need
+datafusion.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+tracing-test.workspace = true

@@ -1,16 +1,18 @@
+version: "v2"
+
 sources:
-  - type: File
+  - type: file
     name: some_table
-    file_type:
+    format:
       type: Csv
       options:
         has_header: true
         delimiter: ","
     location: ${local_path}/tests/data/example_1.csv
 
-  - type: File
+  - type: file
     name: another_table
-    file_type:
+    format:
       type: Csv
       options:
         has_header: true
@@ -44,43 +46,43 @@ stages:
         WHERE COALESCE(agg.date, avg.date) = '${date}'
 
 destination:
-  type: Delta
+  type: delta
   name: example_output
-  location: ${local_path}/tests/output/test_delta_replace/${run_id}
-  storage_options: {}
+  location: ${local_path}/tests/output/test_delta_upsert/${run_id}
+  storage_config: {}
   table_properties: {}
 
   write_mode:
-    operation: Replace
+    operation: upsert
     params: 
-      - column: date
-        value: ${date}
+      - date
+      - country
 
-  partition_cols:
+  partition_columns:
     - date
 
   schema:
     - name: date
-      type: date
+      data_type: date32
       nullable: true
       metadata: {}
     - name: country
-      type: string
+      data_type: utf8
       nullable: true
       metadata: {}
     - name: sum_1
-      type: integer
+      data_type: int64
       nullable: true
       metadata: {}
     - name: sum_2
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: avg_1
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: avg_2
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}

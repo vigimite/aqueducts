@@ -1,6 +1,4 @@
-use aqueducts::prelude::{ProgressEvent, ProgressTracker};
-use aqueducts::progress_tracker::OutputType;
-use aqueducts_websockets::{ExecutorMessage, StageOutputMessage};
+use aqueducts::prelude::*;
 use itertools::Itertools;
 use std::sync::atomic::AtomicUsize;
 use tokio::runtime::Handle;
@@ -90,7 +88,7 @@ impl ProgressTracker for ExecutorProgressTracker {
     fn on_output(
         &self,
         stage_name: &str,
-        output_type: aqueducts::progress_tracker::OutputType,
+        output_type: OutputType,
         schema: &datafusion::common::DFSchema,
         batches: &[datafusion::arrow::array::RecordBatch],
     ) {

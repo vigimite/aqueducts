@@ -2,15 +2,14 @@ use std::sync::Arc;
 use std::{collections::HashMap, path::PathBuf, sync::atomic::AtomicBool};
 
 use anyhow::{anyhow, Context};
-use aqueducts::prelude::ProgressEvent;
-use aqueducts_websockets::{ExecutorMessage, StageOutputMessage};
+use aqueducts::prelude::*;
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tokio::sync::mpsc;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::{parse_aqueduct_file, websocket_client::WebSocketClient};
+use crate::websocket_client::WebSocketClient;
 
 /// Execute a pipeline on a remote executor
 pub async fn run_remote(
@@ -20,7 +19,7 @@ pub async fn run_remote(
     api_key: String,
 ) -> anyhow::Result<()> {
     info!("Parsing pipeline from file: {}", file.display());
-    let aqueduct = parse_aqueduct_file(&file, params)?;
+    let aqueduct = Aqueduct::from_file(&file, params)?;
 
     let client = WebSocketClient::try_new(executor_url, api_key)
         .context("failed to build websocket client")?;

@@ -1,19 +1,13 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use anyhow::Context;
-use aqueducts::{progress_tracker::LoggingProgressTracker, run_pipeline};
+use aqueducts::prelude::*;
 use tracing::{debug, info};
 
-use crate::parse_aqueduct_file;
-
-pub async fn run_local(
-    file: PathBuf,
-    params: HashMap<String, String>,
-) -> Result<(), anyhow::Error> {
+pub async fn run_local(file: PathBuf, params: HashMap<String, String>) -> anyhow::Result<()> {
     info!("Running pipeline locally from file: {}", file.display());
 
-    aqueducts::register_handlers();
-    let aqueduct = parse_aqueduct_file(&file, params)?;
+    let aqueduct = Aqueduct::from_file(&file, params)?;
 
     debug!("Creating SessionContext");
     let mut ctx = datafusion::prelude::SessionContext::new();

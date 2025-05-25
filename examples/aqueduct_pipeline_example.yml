@@ -1,17 +1,18 @@
+version: "v2"
 sources:
-  - type: File
+  - type: file
     name: jan_data
-    file_type:
-      type: Csv
+    format:
+      type: csv
       options:
         has_header: true
         delimiter: ","
     location: ${local_path}/examples/temp_readings_jan_2024.csv
 
-  - type: File
+  - type: file
     name: feb_data
-    file_type:
-      type: Csv
+    format:
+      type: csv
       options:
         has_header: true
         delimiter: ","
@@ -58,55 +59,55 @@ stages:
       print_schema: true # print the resulting schema of this query to stdout
 
 destination:
-  type: Delta
+  type: delta
   name: example_output
   location: ${local_path}/examples/output_delta_example/${run_id}
-  storage_options: {}
+  storage_config: {}
   table_properties: {}
 
   # how to write this table
   # valid options are Append, Replace and Upsert
   write_mode:
     # upserts using the date as the "primary" key
-    operation: Upsert
+    operation: upsert
     params: 
       - date
 
   # columns by which to partition the table
-  partition_cols:
+  partition_columns:
     - date
 
   # table schema using de-serialization provided by `deltalake::kernel::StructField`
   schema:
     - name: date
-      type: date
+      data_type: date32
       nullable: true
       metadata: {}
     - name: location_id
-      type: integer
+      data_type: int32
       nullable: true
       metadata: {}
     - name: min_temp_c
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: min_humidity
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: max_temp_c
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: max_humidity
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: avg_temp_c
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}
     - name: avg_humidity
-      type: double
+      data_type: float64
       nullable: true
       metadata: {}

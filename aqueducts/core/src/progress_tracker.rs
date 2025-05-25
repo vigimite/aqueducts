@@ -1,70 +1,99 @@
+use aqueducts_schemas::{OutputType, ProgressEvent};
 use datafusion::arrow::array::RecordBatch;
 use datafusion::common::DFSchema;
-use serde::{Deserialize, Serialize};
 use tracing::{error, info, instrument};
 
-/// Progress events emitted during pipeline execution
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ProgressEvent {
-    /// Pipeline execution started
-    Started,
-    /// A source has been registered
-    SourceRegistered {
-        /// Name of the source
-        name: String,
-    },
-    /// A stage has started processing
-    StageStarted {
-        /// Name of the stage
-        name: String,
-        /// Position in the stages array (outer)
-        position: usize,
-        /// Position in the parallel stages array (inner)
-        sub_position: usize,
-    },
-    /// A stage has completed processing
-    StageCompleted {
-        /// Name of the stage
-        name: String,
-        /// Position in the stages array (outer)
-        position: usize,
-        /// Position in the parallel stages array (inner)
-        sub_position: usize,
-        /// Duration of the stage execution
-        duration_ms: u64,
-    },
-    /// Data has been written to the destination
-    DestinationCompleted,
-    /// Pipeline execution completed
-    Completed {
-        /// Total duration of the pipeline execution
-        duration_ms: u64,
-    },
-}
-
-/// Stage output types
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum OutputType {
-    /// Stage outputs the full dataframe
-    Show,
-    /// Stage outputs up to `usize` records
-    ShowLimit,
-    /// Stage outputs query plan
-    Explain,
-    /// Stage outputs query plan with execution metrics
-    ExplainAnalyze,
-    /// Stage outputs the dataframe schema
-    PrintSchema,
-}
-
-/// A trait for handling progress events and stage output during pipeline execution
+/// A trait for handling progress events and stage output during pipeline execution.
+///
+/// Implement this trait to create custom progress tracking and monitoring for
+/// Aqueducts pipeline execution. This allows you to:
+///
+/// - Monitor pipeline progress in real-time
+/// - Capture and display stage outputs
+/// - Send progress updates to external systems
+/// - Build custom UIs for pipeline monitoring
+///
+/// # Examples
+///
+/// ## Basic Custom Progress Tracker
+///
+/// ```rust
+/// use aqueducts_core::progress_tracker::ProgressTracker;
+/// use aqueducts_schemas::{ProgressEvent, OutputType};
+/// use datafusion::arrow::array::RecordBatch;
+/// use datafusion::common::DFSchema;
+///
+/// struct MyCustomTracker {
+///     start_time: std::time::Instant,
+/// }
+///
+/// impl MyCustomTracker {
+///     fn new() -> Self {
+///         Self {
+///             start_time: std::time::Instant::now(),
+///         }
+///     }
+/// }
+///
+/// impl ProgressTracker for MyCustomTracker {
+///     fn on_progress(&self, event: ProgressEvent) {
+///         match event {
+///             ProgressEvent::Started => {
+///                 println!("Pipeline started at {:?}", self.start_time);
+///             }
+///             ProgressEvent::SourceRegistered { name } => {
+///                 println!("Source '{}' registered", name);
+///             }
+///             ProgressEvent::StageCompleted { name, duration_ms, .. } => {
+///                 println!("Stage '{}' completed in {}ms", name, duration_ms);
+///             }
+///             ProgressEvent::Completed { duration_ms } => {
+///                 println!("Pipeline completed in {}ms", duration_ms);
+///             }
+///             _ => {}
+///         }
+///     }
+///
+///     fn on_output(
+///         &self,
+///         stage_name: &str,
+///         output_type: OutputType,
+///         _schema: &DFSchema,
+///         batches: &[RecordBatch],
+///     ) {
+///         let row_count: usize = batches.iter().map(|b| b.num_rows()).sum();
+///         println!("Stage '{}' produced {} rows ({:?})", stage_name, row_count, output_type);
+///     }
+/// }
+/// ```
 pub trait ProgressTracker: Send + Sync {
-    /// Called when a progress event occurs during pipeline execution
+    /// Called when a progress event occurs during pipeline execution.
+    ///
+    /// This method receives various types of progress events:
+    /// - `Started` - Pipeline execution has begun
+    /// - `SourceRegistered` - A data source has been registered
+    /// - `StageStarted` - A processing stage has started
+    /// - `StageCompleted` - A processing stage has finished
+    /// - `DestinationCompleted` - Data has been written to destination
+    /// - `Completed` - Entire pipeline has finished
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The progress event that occurred
     fn on_progress(&self, event: ProgressEvent);
 
-    /// Called when a stage produces output
+    /// Called when a stage produces output that should be displayed or captured.
+    ///
+    /// This method is called for stages that use output directives like `show`,
+    /// `explain`, or `print_schema`. It allows you to capture and process the
+    /// results of these operations.
+    ///
+    /// # Arguments
+    ///
+    /// * `stage_name` - Name of the stage producing output
+    /// * `output_type` - Type of output (Show, Explain, etc.)
+    /// * `schema` - Schema of the data being output
+    /// * `batches` - The actual data batches to display
     fn on_output(
         &self,
         stage_name: &str,
@@ -74,6 +103,30 @@ pub trait ProgressTracker: Send + Sync {
     );
 }
 
+/// A simple progress tracker that logs progress events and stage output using the `tracing` crate.
+///
+/// This is the default progress tracker provided by Aqueducts. It logs all progress events
+/// and stage outputs using structured logging with emoji icons for better readability.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use aqueducts_core::{run_pipeline, progress_tracker::LoggingProgressTracker, templating::TemplateLoader};
+/// use aqueducts_schemas::Aqueduct;
+/// use datafusion::prelude::SessionContext;
+/// use std::sync::Arc;
+///
+/// async fn example() -> Result<(), Box<dyn std::error::Error>> {
+///     let pipeline = Aqueduct::from_file("pipeline.yml", Default::default())?;
+///     let ctx = Arc::new(SessionContext::new());
+///     let tracker = Arc::new(LoggingProgressTracker);
+///     
+///     // This will log progress events as the pipeline executes
+///     let _result = run_pipeline(ctx, pipeline, Some(tracker)).await?;
+///     
+///     Ok(())
+/// }
+/// ```
 #[derive(Debug)]
 pub struct LoggingProgressTracker;
 

@@ -1,6 +1,9 @@
-use aqueducts::{prelude::ProgressEvent, Aqueduct};
+//! Protocol types for websocket communication between client and executor.
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use crate::{Aqueduct, ProgressEvent};
 
 /// Stage output sent down to clients
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,8 +1,7 @@
-use anyhow::{anyhow, Context};
-use aqueducts::prelude::*;
+use anyhow::anyhow;
 use clap::{Parser, Subcommand};
 use std::{collections::HashMap, error::Error, path::PathBuf};
-use tracing::{debug, info};
+use tracing::info;
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 use uuid::Uuid;
 
@@ -68,73 +67,6 @@ where
         .find('=')
         .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{s}`"))?;
     Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
-}
-
-/// Parse an Aqueduct pipeline from a file with the appropriate format
-/// Validates file extension and feature flags
-fn parse_aqueduct_file(
-    file: &PathBuf,
-    params: HashMap<String, String>,
-) -> Result<Aqueduct, anyhow::Error> {
-    let ext = file
-        .extension()
-        .and_then(|s| s.to_str())
-        .ok_or_else(|| anyhow!("Unable to determine file type: file has no extension"))?;
-
-    debug!("Parsing file with extension: {}", ext);
-
-    match ext {
-        "toml" => {
-            #[cfg(feature = "toml")]
-            {
-                debug!("Parsing TOML file: {}", file.display());
-                Aqueduct::try_from_toml(file, params).context("failed to parse TOML file")
-            }
-            #[cfg(not(feature = "toml"))]
-            {
-                Err(anyhow!(
-                    "TOML support is not enabled in this build of aqueducts-cli.\n\
-                    Please reinstall with: cargo install aqueducts-cli --features toml\n\
-                    Or use a supported format like YAML (default)"
-                ))
-            }
-        }
-        "json" => {
-            #[cfg(feature = "json")]
-            {
-                debug!("Parsing JSON file: {}", file.display());
-                Aqueduct::try_from_json(file, params).context("failed to parse JSON file")
-            }
-            #[cfg(not(feature = "json"))]
-            {
-                Err(anyhow!(
-                    "JSON support is not enabled in this build of aqueducts-cli.\n\
-                    Please reinstall with: cargo install aqueducts-cli --features json\n\
-                    Or use a supported format like YAML (default)"
-                ))
-            }
-        }
-        "yml" | "yaml" => {
-            #[cfg(feature = "yaml")]
-            {
-                debug!("Parsing YAML file: {}", file.display());
-                Aqueduct::try_from_yml(file, params).context("failed to parse YAML file")
-            }
-            #[cfg(not(feature = "yaml"))]
-            {
-                Err(anyhow!(
-                    "YAML support is not enabled in this build of aqueducts-cli.\n\
-                    Please reinstall with: cargo install aqueducts-cli --features yaml"
-                ))
-            }
-        }
-        _ => {
-            Err(anyhow!(
-                "Unsupported file extension: .{}. Supported formats are: YAML (.yml, .yaml), JSON (.json), TOML (.toml)",
-                ext
-            ))
-        }
-    }
 }
 
 #[tokio::main]

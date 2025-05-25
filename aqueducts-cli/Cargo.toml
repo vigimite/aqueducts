@@ -12,10 +12,11 @@ categories = ["command-line-utilities"]
 license = "Apache-2.0"
 
 [features]
-default = ["s3", "gcs", "azure", "yaml"]
+default = ["s3", "gcs", "azure", "yaml", "delta"]
 s3 = ["aqueducts/s3"]
 gcs = ["aqueducts/gcs"]
 azure = ["aqueducts/azure"]
+delta = ["aqueducts/delta"]
 odbc = ["aqueducts/odbc"]
 json = ["aqueducts/json"]
 toml = ["aqueducts/toml"]
@@ -25,9 +26,7 @@ yaml = ["aqueducts/yaml"]
 datafusion.workspace = true
 datafusion-functions-json.workspace = true
 
-aqueducts.workspace = true
-aqueducts-utils.workspace = true
-aqueducts-websockets.workspace = true
+aqueducts = { workspace = true, features = ["protocol"] }
 
 clap.workspace = true
 

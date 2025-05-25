@@ -1,40 +1,12 @@
-use aqueducts_utils::store::register_object_store;
+use aqueducts_schemas::Destination;
 use datafusion::{dataframe::DataFrame, datasource::MemTable, execution::context::SessionContext};
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, instrument};
 
-pub mod delta;
+use crate::error::{AqueductsError, Result};
+use crate::store::register_object_store;
+
 pub mod file;
-#[cfg(feature = "odbc")]
-pub mod odbc;
-
-pub(crate) mod error;
-pub(crate) type Result<T> = core::result::Result<T, error::Error>;
-
-/// Target output for the Aqueduct table
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-#[serde(tag = "type")]
-pub enum Destination {
-    /// An in-memory destination
-    InMemory(InMemoryDestination),
-    /// A delta table destination
-    Delta(delta::DeltaDestination),
-    /// A file output destination
-    File(file::FileDestination),
-    #[cfg(feature = "odbc")]
-    /// An ODBC insert query to write to a DB table
-    Odbc(odbc::OdbcDestination),
-}
-
-/// An in-memory table destination
-#[derive(Debug, Clone, Serialize, Deserialize, derive_new::new)]
-#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
-pub struct InMemoryDestination {
-    /// Name to register the table with in the provided `SessionContext`
-    pub name: String,
-}
 
 /// Creates a `Destination`
 #[instrument(skip(ctx, destination), err)]
@@ -44,28 +16,68 @@ pub async fn register_destination(
 ) -> Result<()> {
     match destination {
         Destination::InMemory(_) => Ok(()),
-        Destination::Delta(table_def) => {
-            debug!(
-                "Creating delta table  (if it doesn't exist yet) '{}' at location '{}'",
-                table_def.name, table_def.location
-            );
-
-            let _ = delta::create(table_def).await?;
-            Ok(())
-        }
         Destination::File(file_def) => {
-            register_object_store(ctx, &file_def.location, &file_def.storage_options)?;
+            register_object_store(ctx, &file_def.location, &file_def.storage_config)?;
             Ok(())
         }
         #[cfg(feature = "odbc")]
-        Destination::Odbc(odbc_def) => {
+        Destination::Odbc(odbc_dest) => {
+            debug!("Preparing ODBC destination '{}'", odbc_dest.name);
             aqueducts_odbc::register_odbc_destination(
-                odbc_def.connection_string.as_str(),
-                odbc_def.name.as_str(),
+                &odbc_dest.connection_string,
+                &odbc_dest.name,
             )
-            .await?;
+            .await
+            .map_err(|e| {
+                AqueductsError::destination(
+                    &odbc_dest.name,
+                    format!("ODBC destination error: {}", e),
+                )
+            })?;
             Ok(())
         }
+        #[cfg(feature = "delta")]
+        Destination::Delta(delta_dest) => {
+            debug!("Preparing Delta destination '{}'", delta_dest.name);
+
+            let arrow_fields: Result<Vec<_>> = delta_dest
+                .schema
+                .iter()
+                .map(|field| {
+                    crate::schema_transform::field_to_arrow(field).map_err(|e| {
+                        AqueductsError::schema_validation(format!("Schema conversion error: {}", e))
+                    })
+                })
+                .collect();
+            let arrow_fields = arrow_fields?;
+
+            aqueducts_delta::prepare_delta_destination(
+                &delta_dest.name,
+                delta_dest.location.as_str(),
+                &delta_dest.storage_config,
+                &delta_dest.partition_columns,
+                &delta_dest.table_properties,
+                &arrow_fields,
+            )
+            .await
+            .map_err(|e| {
+                AqueductsError::destination(
+                    &delta_dest.name,
+                    format!("Delta destination error: {}", e),
+                )
+            })?;
+            Ok(())
+        }
+        #[cfg(not(feature = "odbc"))]
+        Destination::Odbc(dest) => Err(AqueductsError::unsupported(
+            &dest.name,
+            "ODBC support not enabled. Enable 'odbc' feature",
+        )),
+        #[cfg(not(feature = "delta"))]
+        Destination::Delta(dest) => Err(AqueductsError::unsupported(
+            &dest.name,
+            "Delta support not enabled. Enable 'delta' feature",
+        )),
     }
 }
 
@@ -88,15 +100,6 @@ pub async fn write_to_destination(
 
             Ok(())
         }
-        Destination::Delta(table_def) => {
-            debug!(
-                "Writing data to delta table '{}' at location '{}'",
-                table_def.name, table_def.location
-            );
-            let _ = delta::write(table_def, data).await?;
-
-            Ok(())
-        }
         Destination::File(file_def) => {
             debug!("Writing data to file at location '{}'", file_def.location);
             file::write(file_def, data).await?;
@@ -104,10 +107,57 @@ pub async fn write_to_destination(
             Ok(())
         }
         #[cfg(feature = "odbc")]
-        Destination::Odbc(odbc_def) => {
-            odbc::write(odbc_def, data).await?;
+        Destination::Odbc(odbc_dest) => {
+            debug!("Writing data to ODBC destination '{}'", odbc_dest.name);
 
+            let schema = data.schema().as_arrow().clone();
+            let batches = data.collect().await?;
+
+            aqueducts_odbc::write_arrow_batches(
+                &odbc_dest.connection_string,
+                &odbc_dest.name, // Using name as table name
+                odbc_dest.write_mode.clone(),
+                batches,
+                Arc::new(schema),
+                odbc_dest.batch_size,
+            )
+            .await
+            .map_err(|e| {
+                AqueductsError::destination(
+                    &odbc_dest.name,
+                    format!("ODBC destination error: {}", e),
+                )
+            })?;
             Ok(())
         }
+        #[cfg(feature = "delta")]
+        Destination::Delta(delta_dest) => {
+            debug!("Writing data to Delta destination '{}'", delta_dest.name);
+            aqueducts_delta::write_to_delta_destination(
+                &delta_dest.name,
+                delta_dest.location.as_str(),
+                &delta_dest.storage_config,
+                &delta_dest.write_mode,
+                data,
+            )
+            .await
+            .map_err(|e| {
+                AqueductsError::destination(
+                    &delta_dest.name,
+                    format!("Delta destination error: {}", e),
+                )
+            })?;
+            Ok(())
+        }
+        #[cfg(not(feature = "odbc"))]
+        Destination::Odbc(dest) => Err(AqueductsError::unsupported(
+            &dest.name,
+            "ODBC support not enabled. Enable 'odbc' feature",
+        )),
+        #[cfg(not(feature = "delta"))]
+        Destination::Delta(dest) => Err(AqueductsError::unsupported(
+            &dest.name,
+            "Delta support not enabled. Enable 'delta' feature",
+        )),
     }
 }

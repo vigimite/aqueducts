@@ -3,6 +3,7 @@
 /aqueducts-cli/target
 /examples/output*
 /aqueducts/core/tests/output/**
+/aqueducts/delta/tests/output/**
 .venv
 site/
 .cache/

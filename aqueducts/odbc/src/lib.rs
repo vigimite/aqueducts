@@ -1,48 +1,58 @@
+//! # Aqueducts ODBC Integration
+//!
+//! This crate provides ODBC connectivity for Aqueducts pipelines, enabling integration
+//! with databases that support ODBC drivers (PostgreSQL, SQL Server, MySQL, etc.).
+//!
+//! ## Features
+//!
+//! - **OdbcSource**: Read data from ODBC-compatible databases using SQL queries
+//! - **OdbcDestination**: Write data to ODBC-compatible databases with transaction support
+//! - **Connection Pooling**: Efficient connection management for high-throughput operations
+//! - **Transaction Support**: ACID compliance with automatic rollback on errors
+//!
+//! ## Usage
+//!
+//! This crate is typically used through the main `aqueducts` meta-crate with the `odbc` feature:
+//!
+//! ```toml
+//! [dependencies]
+//! aqueducts = { version = "0.9", features = ["odbc"] }
+//! ```
+//!
+//! The ODBC integration is automatically registered when the feature is enabled.
+//! Configure ODBC sources and destinations in your pipeline YAML/JSON/TOML files:
+
+mod error;
+
 use std::sync::Arc;
 
-use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
-use arrow_odbc::{insert_into_table, OdbcReaderBuilder, OdbcWriter};
-use datafusion::arrow::array::RecordBatchIterator;
-use datafusion::arrow::compute::concat_batches;
-use datafusion::arrow::datatypes::Schema;
-use datafusion::arrow::{array::RecordBatch, error::ArrowError};
-use datafusion::datasource::MemTable;
-use datafusion::execution::context::SessionContext;
+use aqueducts_schemas::destinations::WriteMode;
+use arrow_odbc::{
+    insert_into_table,
+    odbc_api::{ConnectionOptions, Environment},
+    OdbcReaderBuilder, OdbcWriter,
+};
+use datafusion::{
+    arrow::{
+        array::{RecordBatch, RecordBatchIterator},
+        compute::concat_batches,
+        datatypes::Schema,
+        error::ArrowError,
+    },
+    catalog::MemTable,
+    prelude::SessionContext,
+};
+use error::Result;
 use tracing::error;
 
-pub mod error;
-
-pub type Result<T> = core::result::Result<T, error::Error>;
-
 /// Register a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
-/// ```rust,ignore
-/// use datafusion::prelude::SessionContext;
-/// use arrow_odbc::odbc_api::ConnectionOptions;
-///
-/// let connection_string: &str = "\
-///     Driver={PostgreSQL Unicode};\
-///     Server=localhost;\
-///     UID=postgres;\
-///     PWD=postgres;\
-/// ";
-///
-/// // query to request data from the ODBC source
-/// // make sure to constrain this query to a dataset that is manageble in memory
-/// let query = "SELECT * FROM my_table WHERE date > '2024-01-01'";
-///
-/// let ctx = SessionContext::new();
-///
-/// register_odbc_source(&ctx, query, connection_string, "my_table_name").await.unwrap();
-///
-/// let df = ctx.sql("SELECT * FROM my_table_name").await.unwrap();
-/// df.show().await.unwrap();
-/// ```
+#[doc(hidden)]
 pub async fn register_odbc_source(
     ctx: Arc<SessionContext>,
     connection_string: &str,
     query: &str,
     source_name: &str,
-) -> Result<()> {
+) -> error::Result<()> {
     let odbc_environment = Environment::new().unwrap();
 
     let connection = odbc_environment
@@ -73,6 +83,7 @@ pub async fn register_odbc_source(
 
 /// Checks if the provided table for the destination exists
 /// will try to query one record from the provided table name
+#[doc(hidden)]
 pub async fn register_odbc_destination(
     connection_string: &str,
     destination_name: &str,
@@ -92,33 +103,42 @@ pub async fn register_odbc_destination(
     Ok(())
 }
 
-/// Write arrow batches to a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
-/// ```rust,ignore
-/// use datafusion::prelude::SessionContext;
-/// use arrow_odbc::odbc_api::ConnectionOptions;
-/// use std::sync::Arc;
-///
-/// let connection_string: &str = "\
-///     Driver={PostgreSQL Unicode};\
-///     Server=localhost;\
-///     UID=postgres;\
-///     PWD=postgres;\
-/// ";
-///
-/// let query = "SELECT * FROM my_table WHERE date > '2024-01-01'";
-/// let ctx = SessionContext::new();
-/// register_odbc_source(&ctx, query, connection_string, "my_table_name").await.unwrap();
-///
-/// //check if table exists
-/// register_odbc_destination(connection_string, "another_table").await.unwrap();
-///
-/// let df = ctx.sql("SELECT * FROM my_table_name").await.unwrap();
-/// let schema = df.schema().as_arrow().clone();
-/// let batches = df.collect().await.unwrap();
-///
-/// write_arrow_batches(connection_string, "another_table", batches, Arc::new(schema), 1000).await.unwrap();
-/// ```
+#[doc(hidden)]
 pub async fn write_arrow_batches(
+    connection_string: &str,
+    destination_name: &str,
+    write_mode: WriteMode,
+    batches: Vec<datafusion::arrow::array::RecordBatch>,
+    schema: std::sync::Arc<datafusion::arrow::datatypes::Schema>,
+    batch_size: usize,
+) -> error::Result<()> {
+    match write_mode {
+        WriteMode::Append => {
+            append_arrow_batches(
+                connection_string,
+                destination_name,
+                batches,
+                schema,
+                batch_size,
+            )
+            .await
+        }
+        WriteMode::Custom(custom_statements) => {
+            custom(
+                connection_string,
+                custom_statements.pre_insert.clone(),
+                custom_statements.insert.as_str(),
+                batches,
+                schema,
+                batch_size,
+            )
+            .await
+        }
+    }
+}
+
+/// Write arrow batches to a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
+async fn append_arrow_batches(
     connection_string: &str,
     destination_name: &str,
     batches: Vec<RecordBatch>,
@@ -145,9 +165,9 @@ pub async fn write_arrow_batches(
 
 /// Performs an insert with a prepared statement provided.
 /// Optionally, it can execute preliminary statements (such as `delete from ...`).
-/// All statemets are executed within the same transaction and it gets rolled back
+/// All statements are executed within the same transaction and it gets rolled back
 /// in case of any errors.
-pub async fn custom(
+async fn custom(
     connection_string: &str,
     pre_insert: Option<String>,
     insert: &str,
@@ -288,7 +308,7 @@ mod tests {
         .unwrap();
         let schema = record_batch.schema();
 
-        let result = write_arrow_batches(
+        let result = append_arrow_batches(
             connection_string,
             "temp_readings_empty",
             vec![record_batch],
@@ -300,10 +320,13 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    /// Tests a trasaction with a delete and an insert
+    /// Tests a transaction with a delete and an insert
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_custom_delete_insert_ok() {
+        use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
+        use arrow_odbc::OdbcReaderBuilder;
+
         let odbc_environment = Environment::new().unwrap();
         let connection_string: &str = "\
             Driver={PostgreSQL Unicode};\
@@ -328,7 +351,7 @@ mod tests {
         .unwrap();
         let schema = record_batch.schema();
 
-        let _ = write_arrow_batches(
+        let _ = append_arrow_batches(
             connection_string,
             "test_custom_delete_insert_ok",
             vec![record_batch],
@@ -385,6 +408,9 @@ mod tests {
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_custom_delete_insert_failed() {
+        use arrow_odbc::odbc_api::{ConnectionOptions, Environment};
+        use arrow_odbc::OdbcReaderBuilder;
+
         let odbc_environment = Environment::new().unwrap();
         let connection_string: &str = "\
             Driver={PostgreSQL Unicode};\
@@ -409,7 +435,7 @@ mod tests {
         .unwrap();
         let schema = record_batch.schema();
 
-        let _ = write_arrow_batches(
+        let _ = append_arrow_batches(
             connection_string,
             "test_custom_delete_insert_failed",
             vec![record_batch],

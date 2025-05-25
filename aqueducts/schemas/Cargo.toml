@@ -1,0 +1,37 @@
+[package]
+name = "aqueducts-schemas"
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+repository.workspace = true
+readme.workspace = true
+version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[features]
+default = []
+schema_gen = ["schemars"]
+protocol = ["uuid"]
+
+[dependencies]
+serde.workspace = true
+bon.workspace = true
+url.workspace = true
+chrono.workspace = true
+
+# Optional dependencies for features
+schemars = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
+serde_yml.workspace = true
+
+[[bin]]
+name = "generate_schema"
+path = "src/generate_schema.rs"
+required-features = ["schema_gen", "serde_json"]

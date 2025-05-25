@@ -11,13 +11,14 @@ Join our Discord community to connect with other contributors, get help, and dis
 ## Table of Contents
 
 1. [Development Environment Setup](#development-environment-setup)
-2. [Running the Components](#running-the-components)
-3. [Testing](#testing)
-4. [Code Style](#code-style)
-5. [Commit Guidelines](#commit-guidelines)
-6. [Changelog Generation](#changelog-generation)
-7. [Pull Request Process](#pull-request-process)
-8. [Special Configurations](#special-configurations)
+2. [Crate Structure](#crate-structure)
+3. [Running the Components](#running-the-components)
+4. [Testing](#testing)
+5. [Code Style](#code-style)
+6. [Commit Guidelines](#commit-guidelines)
+7. [Changelog Generation](#changelog-generation)
+8. [Pull Request Process](#pull-request-process)
+9. [Special Configurations](#special-configurations)
 
 ## Development Environment Setup
 
@@ -46,7 +47,7 @@ Join our Discord community to connect with other contributors, get help, and dis
 
 ### Docker Compose Setup
 
-The project includes a Docker Compose configuration for easily setting up supporting services:
+The project includes a Docker Compose configuration to set up supporting services:
 
 1. Start the development environment:
    ```bash
@@ -63,18 +64,69 @@ The project includes a Docker Compose configuration for easily setting up suppor
 
 ### Feature Flags
 
-When working on features that require specific feature flags, build with those flags enabled:
+Aqueducts uses a unified meta crate with feature flags. When working on features, build with appropriate flags:
 
 ```bash
 # For ODBC support
 cargo build --features odbc
+
+# For Delta Lake support
+cargo build --features delta
 
 # For all cloud storage options
 cargo build --features s3,gcs,azure
 
 # For all format options
 cargo build --features yaml,json,toml
+
+# For development with all features
+cargo build --all-features
 ```
+
+## Crate Structure
+
+Aqueducts follows a modular architecture:
+
+### Library Crates
+
+- **`aqueducts/meta`** (meta crate): Unified interface with feature flags
+  - Re-exports from all other crates
+  - Provides `prelude`
+  - Controls feature flags
+
+- **`aqueducts/core/`**: Pipeline execution engine
+  - `run_pipeline()` function
+  - Progress tracking system
+  - Template parameter substitution
+
+- **`aqueducts/schemas/`**: Configuration types and parsing
+  - Serde serialization/deserialization
+  - Schema validation
+
+- **`aqueducts/delta/`**: Delta Lake integration
+  - Delta table sources and destinations
+  - Append/upsert/replace operations
+  - Time travel support
+
+- **`aqueducts/odbc/`**: Database connectivity
+  - ODBC sources and destinations
+  - Secure connection string handling
+  - Transaction support
+
+### Application Crates
+
+- **`aqueducts-cli/`**: Command-line interface
+- **`aqueducts-executor/`**: Remote execution server
+
+### Working with the Crate Structure
+
+When contributing:
+
+1. **For new features**: Add to the appropriate library crate
+2. **For user-facing APIs**: Ensure they're re-exported in the meta crate
+3. **For internal APIs**: Use `#[doc(hidden)]` if they must be public
+4. **For errors**: Use the unified `AqueductsError` system
+5. **For tests**: Place in the most specific crate possible
 
 ## Running the Components
 
@@ -105,51 +157,32 @@ This setup simulates a real-world deployment scenario where the executor runs cl
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (excluding ODBC tests)
 cargo test --workspace
 
-# Run tests for a specific crate
+# Run tests for specific crates
 cargo test -p aqueducts-core
+cargo test -p aqueducts-schemas  
+cargo test -p aqueducts          # meta crate
 
 # Run a specific test
 cargo test test_name
 
-# Run tests with all features enabled, this needs the PostgreSQL server provided in the docker-compose
+# Run ODBC tests (requires PostgreSQL server from docker-compose)
+cargo test --features odbc_tests -p aqueducts-odbc
+
+# Run tests with all features enabled
 cargo test --workspace --all-features
+
+# Test configuration file parsing
+cargo test -p aqueducts-schemas --test integration
 ```
-
-## Code Style
-
-Follow the established code style in the project:
-
-1. Format your code using `rustfmt`:
-   ```bash
-   cargo fmt
-   ```
-
-2. Check for code style issues:
-   ```bash
-   cargo fmt -- --check
-   ```
-
-3. Run linter checks:
-   ```bash
-   cargo clippy --workspace
-   ```
-
-Key style guidelines:
-- Use `snake_case` for functions and variables, `CamelCase` for types/structs
-- Group imports: std library first, external crates second, internal modules last
-- Use `thiserror` for error types, implement `std::error::Error` trait
-- Follow the existing module organization by domain concepts
 
 ## Commit Guidelines
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages to ensure consistent commit history and automatic changelog generation.
 
 ### Commit Message Format
-
-Each commit message consists of a **header**, a **body**, and a **footer**:
 
 ```
 <type>(<scope>): <subject>
@@ -174,18 +207,12 @@ The scope is optional and should be a noun describing a section of the codebase:
 
 - **cli**: Changes related to the CLI interface
 - **executor**: Changes related to the executor component
-- **core**: Changes to core library functionality
+- **core**: Changes to core library functionality (pipeline execution, error handling)
+- **schemas**: Changes to configuration types
+- **meta**: Changes to the unified meta crate interface
 - **odbc**: Changes related to ODBC functionality
-- **s3**: Changes related to S3 storage
 - **delta**: Changes related to Delta Lake functionality
-
-#### Subject
-
-The subject contains a succinct description of the change:
-
-- Use the imperative, present tense: "add" not "added" nor "adds"
-- Don't capitalize the first letter
-- No period (.) at the end
+- **docs**: Documentation updates
 
 ### Examples
 
@@ -198,7 +225,15 @@ fix(executor): resolve memory leak during large file processing
 ```
 
 ```
-refactor(core): improve error handling in pipeline execution
+refactor(core): implement unified error handling across all crates
+```
+
+```
+feat(schemas): add v2 configuration format support
+```
+
+```
+docs: update examples to use v2 format
 ```
 
 ## Changelog Generation
@@ -223,9 +258,18 @@ git cliff --output CHANGELOG.md
 
 1. Create a new branch for your feature or bugfix
 2. Implement your changes with appropriate tests
-3. Ensure all tests pass and code styling is consistent
-4. Update documentation if necessary
-5. Submit a pull request with a clear description of the changes
+3. Ensure all tests pass and code styling is consistent:
+   ```bash
+   cargo fmt
+   cargo clippy --workspace
+   cargo test --workspace
+   ```
+4. Update documentation if necessary:
+   - Add examples to public APIs
+   - Update configuration examples to use v2 format
+   - Update relevant README/ARCHITECTURE docs
+5. Verify the meta crate re-exports any new public APIs
+6. Submit a pull request with a clear description of the changes
 
 ## Special Configurations
 

@@ -1,3 +1,5 @@
+version = "v2"
+
 stages = [
   [
     { name = "jan_aggregated", query = """
@@ -31,73 +33,81 @@ stages = [
 ]
 
 [[sources]]
-type = "File"
+type = "file"
 name = "jan_data"
 location = "${local_path}/examples/temp_readings_jan_2024.csv"
-[sources.file_type]
-type = "Csv"
-[sources.file_type.options]
+[sources.format]
+type = "csv"
+[sources.format.options]
 has_header = true
 delimiter = ","
 
 [[sources]]
-type = "File"
+type = "file"
 name = "feb_data"
 location = "${local_path}/examples/temp_readings_feb_2024.csv"
-[sources.file_type]
-type = "Csv"
-[sources.file_type.options]
+[sources.format]
+type = "csv"
+[sources.format.options]
 has_header = true
 delimiter = ","
 
 [destination]
-type = "Delta"
+type = "delta"
 name = "example_output"
 location = "${local_path}/examples/output_delta_example/${run_id}"
-storage_options = {}
+storage_config = {}
 table_properties = {}
-partition_cols = ["date"]
+partition_columns = ["date"]
 
 [destination.write_mode]
-operation = "Upsert"
+operation = "upsert"
 params = ["date"]
+
 [[destination.schema]]
 name = "date"
-type = "date"
+data_type = "date32"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "location_id"
-type = "integer"
+data_type = "int32"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "min_temp_c"
-type = "double"
+data_type = "float64"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "min_humidity"
-type = "double"
+data_type = "float64"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "max_temp_c"
-type = "double"
+data_type = "float64"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "max_humidity"
-type = "double"
+data_type = "float64"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "avg_temp_c"
-type = "double"
+data_type = "float64"
 nullable = true
 metadata = {}
+
 [[destination.schema]]
 name = "avg_humidity"
-type = "double"
+data_type = "float64"
 nullable = true
 metadata = {}

@@ -1,15 +1,22 @@
 [package]
-name = "aqueducts-utils"
+name = "aqueducts-delta"
 authors.workspace = true
 edition.workspace = true
 description.workspace = true
+homepage.workspace = true
 repository.workspace = true
 readme.workspace = true
 version.workspace = true
-homepage.workspace = true
 keywords.workspace = true
 categories.workspace = true
 license.workspace = true
+
+[dependencies]
+deltalake.workspace = true
+aqueducts-schemas.workspace = true
+datafusion.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
 
 [features]
 default = []
@@ -17,21 +24,10 @@ s3 = ["deltalake/s3"]
 gcs = ["deltalake/gcs"]
 azure = ["deltalake/azure"]
 
-[dependencies]
-datafusion.workspace = true
-deltalake.workspace = true
-
-url.workspace = true
-
-serde.workspace = true
-serde_json.workspace = true
-
-thiserror.workspace = true
-
-uuid.workspace = true
-
-tracing.workspace = true
-
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
+rand.workspace = true
 tracing-test.workspace = true
+serde_json.workspace = true
+url.workspace = true
+tempfile = "3"
