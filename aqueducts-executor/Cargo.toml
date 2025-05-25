@@ -41,6 +41,8 @@ uuid.workspace = true
 itertools = "0.14.0"
 tower-http = { version = "0.6.4", features = ["trace"] }
 
+openssl.workspace = true
+
 [dev-dependencies]
 futures.workspace = true
 tower.workspace = true
