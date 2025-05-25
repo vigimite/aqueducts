@@ -49,7 +49,25 @@ aqueducts = { version = "0.9", features = ["json", "toml", "yaml", "s3", "gcs", 
 
 ### CLI
 
-Install the CLI to run pipelines locally or connect to a remote executor:
+#### Recommended Installation Methods
+
+**Homebrew (macOS and Linux):**
+```bash
+# Add the tap and install
+brew tap vigimite/aqueducts
+brew install aqueducts
+```
+
+**Shell Installer (Linux, macOS, Windows):**
+```bash
+# One-line installer
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/vigimite/aqueducts/releases/latest/download/aqueducts-installer.sh | sh
+```
+
+**Direct Download:**
+Download pre-built binaries from the [latest release](https://github.com/vigimite/aqueducts/releases/latest).
+
+#### Build from Source
 
 ```bash
 # Install with default features (s3, gcs, azure, yaml)

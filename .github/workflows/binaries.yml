@@ -1,0 +1,51 @@
+name: Test Binary Builds
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'aqueducts-cli/**'
+
+jobs:
+  test-build:
+    name: Test Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary-name: aqueducts
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary-name: aqueducts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup build environment (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y unixodbc-dev
+
+      - name: Setup build environment (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install unixodbc
+
+      - name: Test build
+        run: cargo build --release --target ${{ matrix.target }} -p aqueducts-cli
+
+      - name: Verify binary
+        run: |
+          ls -la target/${{ matrix.target }}/release/
+          file target/${{ matrix.target }}/release/${{ matrix.binary-name }}

@@ -16,6 +16,13 @@ updates:
     open-pull-requests-limit: 10
     target-branch: main
     labels: [auto-dependencies]
+  - package-ecosystem: cargo
+    directory: "aqueducts-executor/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    target-branch: main
+    labels: [auto-dependencies]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
