@@ -38,13 +38,13 @@ Add Aqueducts to your Rust project:
 ```toml
 [dependencies]
 # Default setup with file processing and cloud storage
-aqueducts = "0.9"
+aqueducts = "0.10"
 
 # Minimal setup for local file processing only
-aqueducts = { version = "0.9", default-features = false, features = ["yaml"] }
+aqueducts = { version = "0.10", default-features = false, features = ["yaml"] }
 
 # Full-featured setup with all storage providers and databases
-aqueducts = { version = "0.9", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
+aqueducts = { version = "0.10", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
 ```
 
 ### CLI

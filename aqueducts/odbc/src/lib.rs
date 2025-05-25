@@ -16,7 +16,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! aqueducts = { version = "0.9", features = ["odbc"] }
+//! aqueducts = { version = "0.10", features = ["odbc"] }
 //! ```
 //!
 //! The ODBC integration is automatically registered when the feature is enabled.

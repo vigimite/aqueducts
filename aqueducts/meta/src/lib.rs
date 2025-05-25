@@ -211,13 +211,13 @@
 //! ```toml
 //! [dependencies]
 //! # Minimal setup with just local file processing
-//! aqueducts = { version = "0.9", default-features = false, features = ["yaml"] }
+//! aqueducts = { version = "0.10", default-features = false, features = ["yaml"] }
 //!
 //! # Cloud data processing with S3 and Delta Lake
-//! aqueducts = { version = "0.9", features = ["yaml", "s3", "delta"] }
+//! aqueducts = { version = "0.10", features = ["yaml", "s3", "delta"] }
 //!
 //! # Full-featured setup with all storage providers and formats
-//! aqueducts = { version = "0.9", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
+//! aqueducts = { version = "0.10", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
 //! ```
 //!
 //! ## Error Handling

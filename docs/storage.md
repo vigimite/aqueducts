@@ -426,7 +426,7 @@ Aqueducts uses Cargo feature flags to include only the cloud storage providers y
 
     ```toml
     [dependencies]
-    aqueducts-core = { version = "0.9", features = ["s3", "gcs", "azure"] }
+    aqueducts-core = { version = "0.10", features = ["s3", "gcs", "azure"] }
     ```
 
 === "Command Line"

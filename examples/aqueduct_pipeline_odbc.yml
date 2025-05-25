@@ -2,11 +2,13 @@ version: "v2"
 sources:
   - type: odbc
     name: jan_data
+    # connection_string: Driver={PostgreSQL Unicode};Server=db;UID=${user};PWD=${pass}; # <- For executor
     connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
     query: SELECT * FROM temp_readings WHERE timestamp BETWEEN '2024-01-01' AND '2024-01-31'
 
   - type: odbc
     name: feb_data
+    # connection_string: Driver={PostgreSQL Unicode};Server=db;UID=${user};PWD=${pass}; # <- For executor
     connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
     query: SELECT * FROM temp_readings WHERE timestamp BETWEEN '2024-02-01' AND '2024-02-29'
 
@@ -52,6 +54,7 @@ stages:
 destination:
   type: odbc
   name: temp_readings_aggregated
+    # connection_string: Driver={PostgreSQL Unicode};Server=db;UID=${user};PWD=${pass}; # <- For executor
   connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
   write_mode:
     operation: append

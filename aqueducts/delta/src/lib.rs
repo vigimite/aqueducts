@@ -16,7 +16,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! aqueducts = { version = "0.9", features = ["delta"] }
+//! aqueducts = { version = "0.10", features = ["delta"] }
 //! ```
 //!
 //! The Delta integration is automatically registered when the feature is enabled.
