@@ -235,7 +235,7 @@ mod tests {
             nullable: false,
             description: None,
         };
-        
+
         let value_field = Field {
             name: "value".to_string(),
             data_type: DataType::Int32,
@@ -258,15 +258,15 @@ mod tests {
             assert!(!keys_sorted);
             assert_eq!(entries_field.name(), "entries");
             assert!(!entries_field.is_nullable());
-            
+
             if let ArrowDataType::Struct(struct_fields) = entries_field.data_type() {
                 assert_eq!(struct_fields.len(), 2);
-                
+
                 let key_arrow = &struct_fields[0];
                 assert_eq!(key_arrow.name(), "key");
                 assert_eq!(key_arrow.data_type(), &ArrowDataType::Utf8);
                 assert!(!key_arrow.is_nullable());
-                
+
                 let value_arrow = &struct_fields[1];
                 assert_eq!(value_arrow.name(), "value");
                 assert_eq!(value_arrow.data_type(), &ArrowDataType::Int32);
