@@ -13,7 +13,7 @@ COPY aqueducts/ ./aqueducts/
 COPY aqueducts-cli/ ./aqueducts-cli/
 COPY aqueducts-executor/ ./aqueducts-executor/
 
-RUN cargo build --release -p aqueducts-executor
+RUN cargo build --release --features odbc -p aqueducts-executor
 
 FROM debian:bookworm-slim
 
