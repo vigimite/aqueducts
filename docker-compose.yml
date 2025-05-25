@@ -14,7 +14,9 @@ services:
 
   aqueducts-executor:
     profiles: ["executor"]
-    build: .
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
     ports:
       - "3031:3031"
     environment:

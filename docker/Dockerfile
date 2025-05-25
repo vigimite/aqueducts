@@ -20,12 +20,17 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     unixodbc \
+    odbc-postgresql \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home --shell /bin/bash aqueducts
 
 COPY --from=builder /app/target/release/aqueducts-executor /usr/local/bin/aqueducts-executor
+
+# Copy ODBC configuration files
+COPY docker/odbcinst.ini /etc/odbcinst.ini
+COPY docker/odbc.ini /etc/odbc.ini
 
 RUN chmod +x /usr/local/bin/aqueducts-executor
 

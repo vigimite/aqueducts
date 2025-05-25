@@ -16,7 +16,7 @@ A deployable application used to execute Aqueduct pipeline definitions within yo
 
 ### Docker (Recommended)
 
-The easiest way to run the executor is using Docker:
+The easiest way to run the executor is using Docker. The Docker image includes **ODBC support with PostgreSQL drivers pre-installed**, making it ready for database connectivity out of the box.
 
 ```bash
 # Pull from GitHub Container Registry
