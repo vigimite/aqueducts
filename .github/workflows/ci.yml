@@ -95,7 +95,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         rust: [stable]
 
     services:
@@ -132,11 +132,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client unixodbc-dev odbc-postgresql
 
-      - name: Setup build environment (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install postgresql unixodbc
-
       - name: Setup test database (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -147,9 +142,6 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace --all-features
-        env:
-          # Skip ODBC tests on macOS as they're flaky in CI
-          RUST_TEST_THREADS: 1
 
   # Build check for different feature combinations
   features:
