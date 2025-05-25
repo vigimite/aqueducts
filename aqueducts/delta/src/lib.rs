@@ -60,7 +60,7 @@ pub async fn register_delta_source(
     let table = if let Some(version) = config.version {
         builder.with_version(version).load().await?
     } else if let Some(timestamp) = &config.timestamp {
-        builder.with_timestamp(timestamp.clone()).load().await?
+        builder.with_timestamp(*timestamp).load().await?
     } else {
         builder.load().await?
     };

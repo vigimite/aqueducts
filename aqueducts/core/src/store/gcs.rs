@@ -61,9 +61,9 @@ impl ObjectStoreProvider for GcsProvider {
             };
         }
 
-        Ok(builder
+        builder
             .build()
             .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)
-            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))?)
+            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))
     }
 }

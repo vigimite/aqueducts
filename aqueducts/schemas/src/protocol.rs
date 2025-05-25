@@ -28,6 +28,7 @@ pub enum StageOutputMessage {
 /// Client websocket message
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[allow(clippy::large_enum_variant)]
 pub enum ClientMessage {
     /// Execution requested by client
     ExecutionRequest {

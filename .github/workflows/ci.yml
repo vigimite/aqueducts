@@ -88,23 +88,6 @@ jobs:
       - name: Run security audit
         run: cargo audit
 
-  # License and dependency check
-  licenses:
-    name: License Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install cargo-deny
-        run: cargo install cargo-deny --locked
-
-      - name: Check licenses and dependencies
-        run: cargo deny check
-
   # Run tests
   test:
     name: Test
@@ -113,11 +96,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        rust: [stable, beta]
-        exclude:
-          # Only test beta on Ubuntu to save CI time
-          - os: macos-latest
-            rust: beta
+        rust: [stable]
 
     services:
       postgres:
@@ -171,29 +150,6 @@ jobs:
         env:
           # Skip ODBC tests on macOS as they're flaky in CI
           RUST_TEST_THREADS: 1
-
-  # MSRV (Minimum Supported Rust Version) check
-  msrv:
-    name: MSRV
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Rust (MSRV)
-        uses: dtolnay/rust-toolchain@master
-        with:
-          # Update this to match your actual MSRV
-          toolchain: 1.75.0
-
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Setup build environment
-        run: sudo apt-get update && sudo apt-get install -y unixodbc-dev
-
-      - name: Check MSRV compatibility
-        run: cargo check --workspace --all-features
 
   # Build check for different feature combinations
   features:

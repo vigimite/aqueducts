@@ -236,7 +236,7 @@ fn calculate_ttl<'a>(
                 None
             }
         })
-        .last()
+        .next_back()
         .unwrap_or(stage_pos + 1);
 
     stage_ttls
