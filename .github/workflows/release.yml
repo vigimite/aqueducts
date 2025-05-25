@@ -44,53 +44,10 @@ on:
   push:
     tags:
       - '**[0-9]+.[0-9]+.[0-9]+*'
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Run in dry-run mode (skip publishing)'
-        required: false
-        default: true
-        type: boolean
 
 jobs:
-  # Publish crates to crates.io first
-  publish-crates:
-    runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          submodules: recursive
-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install cargo-release
-        run: cargo install cargo-release
-
-      - name: Setup build environment
-        run: sudo apt-get update && sudo apt-get install -y unixodbc-dev
-
-      - name: Publish workspace with cargo-release
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            echo "Dry-run mode: Skipping actual publishing"
-            cargo release publish --workspace --dry-run
-          else
-            cargo release publish --workspace --execute
-          fi
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
   # Run 'dist plan' (or host) to determine what tasks we need to do
   plan:
-    needs: [publish-crates]
-    if: ${{ always() && (github.event.pull_request || needs.publish-crates.result == 'success') }}
     runs-on: "ubuntu-22.04"
     outputs:
       val: ${{ steps.plan.outputs.manifest }}
