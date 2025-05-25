@@ -47,7 +47,7 @@ pub enum AqueductsError {
 }
 
 impl AqueductsError {
-    // === Configuration & Setup ===
+    // === Templating ===
     pub fn unsupported(operation: impl Into<String>, context: impl Into<String>) -> Self {
         Self::Unsupported {
             operation: operation.into(),

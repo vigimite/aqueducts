@@ -47,7 +47,7 @@ Join our Discord community to connect with other contributors, get help, and dis
 
 ### Docker Compose Setup
 
-The project includes a Docker Compose configuration for easily setting up supporting services:
+The project includes a Docker Compose configuration to set up supporting services:
 
 1. Start the development environment:
    ```bash
@@ -89,19 +89,17 @@ Aqueducts follows a modular architecture:
 
 ### Library Crates
 
-- **`aqueducts/`** (meta crate): Unified interface with feature flags
+- **`aqueducts/meta`** (meta crate): Unified interface with feature flags
   - Re-exports from all other crates
-  - Provides `prelude` module for easy imports
-  - Controls feature flags for the entire ecosystem
+  - Provides `prelude`
+  - Controls feature flags
 
 - **`aqueducts/core/`**: Pipeline execution engine
   - `run_pipeline()` function
-  - Unified error handling (`AqueductsError`)
   - Progress tracking system
   - Template parameter substitution
 
 - **`aqueducts/schemas/`**: Configuration types and parsing
-  - v2 format support
   - Serde serialization/deserialization
   - Schema validation
 
@@ -180,41 +178,11 @@ cargo test --workspace --all-features
 cargo test -p aqueducts-schemas --test integration
 ```
 
-## Code Style
-
-Follow the established code style in the project:
-
-1. Format your code using `rustfmt`:
-   ```bash
-   cargo fmt
-   ```
-
-2. Check for code style issues:
-   ```bash
-   cargo fmt -- --check
-   ```
-
-3. Run linter checks:
-   ```bash
-   cargo clippy --workspace
-   ```
-
-Key style guidelines:
-- Use `snake_case` for functions and variables, `CamelCase` for types/structs  
-- Group imports: std library first, external crates second, internal modules last
-- Use unified `AqueductsError` for error handling across all crates
-- Follow the existing module organization by domain concepts
-- Use `#[doc(hidden)]` for internal APIs that must be public for cross-crate usage
-- Always add comprehensive documentation with examples for public APIs
-- Use v2 configuration format in all example files
-
 ## Commit Guidelines
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages to ensure consistent commit history and automatic changelog generation.
 
 ### Commit Message Format
-
-Each commit message consists of a **header**, a **body**, and a **footer**:
 
 ```
 <type>(<scope>): <subject>
@@ -240,20 +208,11 @@ The scope is optional and should be a noun describing a section of the codebase:
 - **cli**: Changes related to the CLI interface
 - **executor**: Changes related to the executor component
 - **core**: Changes to core library functionality (pipeline execution, error handling)
-- **schemas**: Changes to configuration types and v2 format
+- **schemas**: Changes to configuration types
 - **meta**: Changes to the unified meta crate interface
 - **odbc**: Changes related to ODBC functionality
 - **delta**: Changes related to Delta Lake functionality
-- **error**: Changes to unified error handling system
 - **docs**: Documentation updates
-
-#### Subject
-
-The subject contains a succinct description of the change:
-
-- Use the imperative, present tense: "add" not "added" nor "adds"
-- Don't capitalize the first letter
-- No period (.) at the end
 
 ### Examples
 

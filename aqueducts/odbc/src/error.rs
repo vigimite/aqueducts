@@ -22,10 +22,6 @@ pub enum OdbcError {
     #[error("ODBC driver error: {message}")]
     DriverError { message: String },
 
-    /// ODBC data type conversion error.
-    #[error("ODBC data type conversion failed: {message}")]
-    TypeConversionError { message: String },
-
     /// Arrow error occurred.
     #[error("Arrow error: {0}")]
     Arrow(#[from] datafusion::arrow::error::ArrowError),
@@ -37,16 +33,11 @@ pub enum OdbcError {
 
 impl OdbcError {
     /// Create a connection failed error.
-    ///
-    /// Note: This deliberately doesn't include connection string details
-    /// to prevent password leakage in error messages.
     pub fn connection_failed() -> Self {
         Self::ConnectionFailed
     }
 
     /// Create a query failed error.
-    ///
-    /// Note: Only include the query text if it doesn't contain sensitive data.
     pub fn query_failed(message: impl Into<String>) -> Self {
         Self::QueryFailed {
             message: message.into(),
@@ -63,13 +54,6 @@ impl OdbcError {
     /// Create a driver error.
     pub fn driver_error(message: impl Into<String>) -> Self {
         Self::DriverError {
-            message: message.into(),
-        }
-    }
-
-    /// Create a type conversion error.
-    pub fn type_conversion_error(message: impl Into<String>) -> Self {
-        Self::TypeConversionError {
             message: message.into(),
         }
     }

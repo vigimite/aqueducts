@@ -3,7 +3,7 @@
 //! These types provide a unified way to define data schemas that can be converted
 //! to Arrow, Delta Lake, and other backend-specific schema formats.
 
-use crate::serde_helpers::{default_nullable, deserialize_data_type};
+use crate::serde_helpers::{default_true, deserialize_data_type};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
@@ -56,7 +56,7 @@ pub struct Field {
     pub data_type: DataType,
 
     /// Whether the field can contain null values
-    #[serde(default = "default_nullable")]
+    #[serde(default = "default_true")]
     pub nullable: bool,
 
     /// Optional description of what this field represents

@@ -20,7 +20,7 @@ protocol = ["uuid"]
 serde.workspace = true
 bon.workspace = true
 url.workspace = true
-datafusion.workspace = true
+chrono.workspace = true
 
 # Optional dependencies for features
 schemars = { workspace = true, optional = true }

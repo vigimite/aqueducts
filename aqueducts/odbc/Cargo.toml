@@ -22,7 +22,6 @@ datafusion.workspace = true
 arrow-odbc.workspace = true
 
 serde.workspace = true
-async-trait.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 

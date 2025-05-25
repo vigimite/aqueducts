@@ -6,6 +6,8 @@ use datafusion::{
 use std::sync::Arc;
 use tracing::instrument;
 
+use crate::error::{AqueductsError, Result};
+
 /// Process a stage in the Aqueduct pipeline
 /// The result of the operation will be registered within the `SessionContext` as an
 /// in-memory table using the stages name as the table name
@@ -14,8 +16,8 @@ use tracing::instrument;
 pub async fn process_stage(
     ctx: Arc<SessionContext>,
     stage: Stage,
-    progress_tracker: Option<&Arc<dyn crate::ProgressTracker>>,
-) -> crate::error::Result<()> {
+    progress_tracker: Option<Arc<dyn crate::ProgressTracker>>,
+) -> Result<()> {
     let options = SQLOptions::new()
         .with_allow_ddl(false)
         .with_allow_dml(false)
@@ -25,7 +27,13 @@ pub async fn process_stage(
         .sql_with_options(stage.query.as_str(), options)
         .await?
         .cache()
-        .await?;
+        .await
+        .map_err(|e| {
+            AqueductsError::stage(
+                &stage.name,
+                format!("Error occured during stage execution: {e}"),
+            )
+        })?;
     let schema = result.schema().clone();
 
     if stage.explain || stage.explain_analyze {
@@ -38,7 +46,7 @@ pub async fn process_stage(
         let explain = result.clone().explain(false, stage.explain_analyze)?;
         let batches = explain.collect().await?;
 
-        if let Some(tracker) = progress_tracker {
+        if let Some(tracker) = &progress_tracker {
             tracker.on_output(&stage.name, output_type, &schema, &batches);
         }
     }
@@ -46,13 +54,13 @@ pub async fn process_stage(
     match stage.show {
         Some(0) => {
             let batches = result.clone().collect().await?;
-            if let Some(tracker) = progress_tracker {
+            if let Some(tracker) = &progress_tracker {
                 tracker.on_output(&stage.name, OutputType::Show, &schema, &batches);
             }
         }
         Some(limit) => {
             let batches = result.clone().limit(0, Some(limit))?.collect().await?;
-            if let Some(tracker) = progress_tracker {
+            if let Some(tracker) = &progress_tracker {
                 tracker.on_output(&stage.name, OutputType::ShowLimit, &schema, &batches);
             }
         }
@@ -60,7 +68,7 @@ pub async fn process_stage(
     };
 
     if stage.print_schema {
-        if let Some(tracker) = progress_tracker {
+        if let Some(tracker) = &progress_tracker {
             let schema = result.schema();
             tracker.on_output(&stage.name, OutputType::PrintSchema, schema, &[]);
         }

@@ -1,11 +1,11 @@
 use anyhow::anyhow;
 use aqueducts::prelude::*;
 use futures_util::{SinkExt, StreamExt};
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tokio::sync::{mpsc, Mutex};
 use tokio_tungstenite::{
     connect_async,
-    tungstenite::{client::IntoClientRequest, http::HeaderValue, protocol::Message},
+    tungstenite::{client::IntoClientRequest, http::Uri, protocol::Message, ClientRequestBuilder},
 };
 use tracing::{debug, error, info};
 use url::Url;
@@ -41,10 +41,9 @@ impl WebSocketClient {
         let (incoming_tx, incoming_rx) = mpsc::channel::<ExecutorMessage>(32);
 
         debug!("Connecting with API key authentication");
-        let mut request = self.executor_url.clone().into_client_request()?;
-        request
-            .headers_mut()
-            .insert(X_API_KEY_HEADER, HeaderValue::from_str(&self.api_key)?);
+        let request = ClientRequestBuilder::new(Uri::from_str(self.executor_url.as_str())?)
+            .with_header(X_API_KEY_HEADER, &self.api_key)
+            .into_client_request()?;
 
         let (ws_stream, _) = connect_async(request).await?;
         debug!("WebSocket connection established");
@@ -61,7 +60,7 @@ impl WebSocketClient {
                 match serde_json::to_string(&message) {
                     Ok(json) => {
                         debug!("Sending message: {}", json);
-                        if let Err(e) = ws_sender.send(Message::Text(json)).await {
+                        if let Err(e) = ws_sender.send(Message::Text(json.into())).await {
                             error!("Error sending message: {}", e);
                             break;
                         }

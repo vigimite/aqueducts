@@ -21,78 +21,193 @@
 //!
 //! The ODBC integration is automatically registered when the feature is enabled.
 //! Configure ODBC sources and destinations in your pipeline YAML/JSON/TOML files:
-//!
-//! ```yaml
-//! sources:
-//!   - name: postgres_source
-//!     odbc:
-//!       connection_string: "Driver={PostgreSQL Unicode};Server=localhost;UID=user;PWD=pass;"
-//!       query: "SELECT * FROM orders WHERE date >= '2024-01-01'"
-//!
-//! destination:
-//!   odbc:
-//!     connection_string: "Driver={PostgreSQL Unicode};Server=localhost;UID=user;PWD=pass;"
-//!     table: "processed_orders"
-//!     mode: "insert"  # or "upsert", "replace"
-//! ```
-//!
-//! ## Security Note
-//!
-//! Connection strings containing credentials are handled securely and are never
-//! exposed in error messages or logs to prevent password leakage.
 
-// Internal implementation modules - not part of public API
-mod destination;
 mod error;
-mod source;
 
-// Re-export configuration schema types for user convenience
-pub use aqueducts_schemas::{OdbcDestination, OdbcSource};
+use std::sync::Arc;
 
-// Internal functions used by the core pipeline engine
-// These are public for the core crate but not intended for end users
+use aqueducts_schemas::destinations::WriteMode;
+use arrow_odbc::{
+    insert_into_table,
+    odbc_api::{ConnectionOptions, Environment},
+    OdbcReaderBuilder, OdbcWriter,
+};
+use datafusion::{
+    arrow::{
+        array::{RecordBatch, RecordBatchIterator},
+        compute::concat_batches,
+        datatypes::Schema,
+        error::ArrowError,
+    },
+    catalog::MemTable,
+    prelude::SessionContext,
+};
+use error::Result;
+use tracing::error;
+
+/// Register a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
 #[doc(hidden)]
-pub use destination::register_odbc_destination;
-#[doc(hidden)]
-pub use source::register_odbc_source;
+pub async fn register_odbc_source(
+    ctx: Arc<SessionContext>,
+    connection_string: &str,
+    query: &str,
+    source_name: &str,
+) -> error::Result<()> {
+    let odbc_environment = Environment::new().unwrap();
 
-// Include all the implementation functions but mark them as hidden from documentation
+    let connection = odbc_environment
+        .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    let parameters = ();
+
+    let cursor = connection
+        .execute(query, parameters, None)?
+        .expect("SELECT statement must produce a cursor");
+
+    let reader = OdbcReaderBuilder::new().build(cursor)?;
+
+    let batches = reader
+        .into_iter()
+        .collect::<std::result::Result<Vec<RecordBatch>, ArrowError>>()?;
+
+    let df = ctx.read_batches(batches)?;
+
+    let schema = df.schema().clone();
+    let partitioned = df.collect_partitioned().await?;
+    let table = MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned)?;
+
+    ctx.register_table(source_name, Arc::new(table))?;
+
+    Ok(())
+}
+
+/// Checks if the provided table for the destination exists
+/// will try to query one record from the provided table name
+#[doc(hidden)]
+pub async fn register_odbc_destination(
+    connection_string: &str,
+    destination_name: &str,
+) -> Result<()> {
+    let odbc_environment = Environment::new().unwrap();
+
+    let connection = odbc_environment
+        .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    let parameters = ();
+
+    let query = format!("SELECT * FROM {destination_name} LIMIT 1");
+    connection
+        .execute(query.as_str(), parameters, None)?
+        .expect("SELECT statement must produce a cursor");
+
+    Ok(())
+}
+
 #[doc(hidden)]
 pub async fn write_arrow_batches(
     connection_string: &str,
     destination_name: &str,
+    write_mode: WriteMode,
     batches: Vec<datafusion::arrow::array::RecordBatch>,
     schema: std::sync::Arc<datafusion::arrow::datatypes::Schema>,
     batch_size: usize,
 ) -> error::Result<()> {
-    destination::write_arrow_batches(
-        connection_string,
-        destination_name,
-        batches,
-        schema,
-        batch_size,
-    )
-    .await
+    match write_mode {
+        WriteMode::Append => {
+            append_arrow_batches(
+                connection_string,
+                destination_name,
+                batches,
+                schema,
+                batch_size,
+            )
+            .await
+        }
+        WriteMode::Custom(custom_statements) => {
+            custom(
+                connection_string,
+                custom_statements.pre_insert.clone(),
+                custom_statements.insert.as_str(),
+                batches,
+                schema,
+                batch_size,
+            )
+            .await
+        }
+    }
 }
 
-#[doc(hidden)]
-pub async fn custom(
+/// Write arrow batches to a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
+async fn append_arrow_batches(
+    connection_string: &str,
+    destination_name: &str,
+    batches: Vec<RecordBatch>,
+    schema: Arc<Schema>,
+    batch_size: usize,
+) -> Result<()> {
+    let odbc_environment = Environment::new().unwrap();
+
+    let connection = odbc_environment
+        .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    let batches = [concat_batches(&schema, batches.iter())?];
+    let mut record_batch_iterator = RecordBatchIterator::new(batches.into_iter().map(Ok), schema);
+
+    insert_into_table(
+        &connection,
+        &mut record_batch_iterator,
+        destination_name,
+        batch_size,
+    )?;
+
+    Ok(())
+}
+
+/// Performs an insert with a prepared statement provided.
+/// Optionally, it can execute preliminary statements (such as `delete from ...`).
+/// All statements are executed within the same transaction and it gets rolled back
+/// in case of any errors.
+async fn custom(
     connection_string: &str,
     pre_insert: Option<String>,
     insert: &str,
-    batches: Vec<datafusion::arrow::array::RecordBatch>,
-    schema: std::sync::Arc<datafusion::arrow::datatypes::Schema>,
+    batches: Vec<RecordBatch>,
+    schema: Arc<Schema>,
     batch_size: usize,
-) -> error::Result<()> {
-    destination::custom(
-        connection_string,
-        pre_insert,
-        insert,
-        batches,
-        schema,
-        batch_size,
-    )
-    .await
+) -> Result<()> {
+    let odbc_environment = Environment::new()?;
+
+    let connection = odbc_environment
+        .connect_with_connection_string(connection_string, ConnectionOptions::default())?;
+
+    let batches = [concat_batches(&schema, batches.iter())?];
+    let record_batch_iterator =
+        RecordBatchIterator::new(batches.into_iter().map(Ok), schema.clone());
+
+    let mut writer = OdbcWriter::new(batch_size, &schema, connection.prepare(insert)?)?;
+
+    let _ = connection.set_autocommit(false);
+
+    let result = || -> Result<()> {
+        if let Some(stmt) = pre_insert {
+            connection.execute(&stmt, (), None)?;
+        }
+        writer.write_all(record_batch_iterator)?;
+
+        Ok(())
+    };
+
+    match result() {
+        Ok(_) => {
+            connection.commit()?;
+            Ok(())
+        }
+        Err(err) => {
+            connection.rollback()?;
+            error!("ROLLBACK transaction: {err:?}");
+            Err(err)
+        }
+    }
 }
 
 #[cfg(all(test, feature = "odbc_tests"))]
@@ -115,7 +230,7 @@ mod tests {
 
         let ctx = Arc::new(SessionContext::new());
 
-        source::register_odbc_source(
+        register_odbc_source(
             ctx.clone(),
             connection_string,
             "SELECT * FROM temp_readings WHERE timestamp::date BETWEEN '2024-01-01' AND '2024-01-31'",
@@ -154,8 +269,7 @@ mod tests {
             PWD=postgres;\
         ";
 
-        let result =
-            destination::register_odbc_destination(connection_string, "temp_readings_empty").await;
+        let result = register_odbc_destination(connection_string, "temp_readings_empty").await;
 
         assert!(result.is_ok());
     }
@@ -194,7 +308,7 @@ mod tests {
         .unwrap();
         let schema = record_batch.schema();
 
-        let result = destination::write_arrow_batches(
+        let result = append_arrow_batches(
             connection_string,
             "temp_readings_empty",
             vec![record_batch],
@@ -237,7 +351,7 @@ mod tests {
         .unwrap();
         let schema = record_batch.schema();
 
-        let _ = destination::write_arrow_batches(
+        let _ = append_arrow_batches(
             connection_string,
             "test_custom_delete_insert_ok",
             vec![record_batch],
@@ -255,7 +369,7 @@ mod tests {
         ])
         .unwrap();
 
-        destination::custom(
+        custom(
             connection_string,
             Some("delete from test_custom_delete_insert_ok where id = 1".to_string()),
             "insert into test_custom_delete_insert_ok values (?, ?)",
@@ -321,7 +435,7 @@ mod tests {
         .unwrap();
         let schema = record_batch.schema();
 
-        let _ = destination::write_arrow_batches(
+        let _ = append_arrow_batches(
             connection_string,
             "test_custom_delete_insert_failed",
             vec![record_batch],
@@ -339,7 +453,7 @@ mod tests {
         ])
         .unwrap();
 
-        destination::custom(
+        custom(
             connection_string,
             Some("delete from test_custom_delete_insert_failed where id = 1".to_string()),
             "insert into WRONG_TABLE values (?, ?)",

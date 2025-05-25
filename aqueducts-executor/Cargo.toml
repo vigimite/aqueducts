@@ -16,7 +16,7 @@ default = []
 odbc = ["aqueducts/odbc"]
 
 [dependencies]
-aqueducts = { workspace = true, features = ["protocol", "json", "s3", "gcs", "azure"] }
+aqueducts = { workspace = true, features = ["protocol", "json", "s3", "gcs", "azure", "delta"] }
 
 axum.workspace = true
 clap.workspace = true
@@ -28,7 +28,6 @@ serde.workspace = true
 serde_json.workspace = true
 
 tokio = { workspace = true, features = ["full"] }
-tokio-stream.workspace = true
 tokio-util.workspace = true
 futures.workspace = true
 futures-util.workspace = true

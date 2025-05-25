@@ -19,7 +19,6 @@ pub async fn run_local(file: PathBuf, params: HashMap<String, String>) -> anyhow
     debug!("Starting pipeline execution");
     run_pipeline(Arc::new(ctx), aqueduct, Some(progress_tracker))
         .await
-        .map_err(|e| anyhow::anyhow!(e))
         .context("Failure during execution of aqueducts file")?;
 
     debug!("Pipeline execution completed successfully");

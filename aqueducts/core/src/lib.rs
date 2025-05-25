@@ -6,31 +6,25 @@ use regex::Regex;
 use tokio::task::JoinHandle;
 use tracing::{debug, instrument, warn};
 
-// Public API modules
 pub mod error;
 pub mod progress_tracker;
 pub mod templating;
 
-// Internal implementation modules - not part of public API
-#[doc(hidden)]
-pub mod destinations;
+mod destinations;
 mod schema_transform;
-#[doc(hidden)]
-pub mod sources;
+mod sources;
 mod stages;
-#[doc(hidden)]
-pub mod store;
+mod store;
 
 use destinations::{register_destination, write_to_destination};
 use progress_tracker::*;
 use sources::register_source;
 use stages::process_stage;
 
-/// Execute an Aqueducts data pipeline with optional progress tracking.
+/// Execute an Aqueducts data pipeline.
 ///
-/// This is the main entry point for running data pipelines defined in configuration files.
-/// The pipeline will execute all sources, stages, and destinations in the correct order,
-/// with optional progress tracking for monitoring execution status.
+/// This is the main entry point for running data pipelines defined in aqueduct files.
+/// The pipeline will execute all sources, stages, and destinations in sequential order
 ///
 /// # Arguments
 ///
@@ -42,14 +36,6 @@ use stages::process_stage;
 ///
 /// Returns the SessionContext after successful execution, which can be used
 /// for further operations or inspection of registered tables.
-///
-/// # Errors
-///
-/// Returns [`error::AqueductsError`] for various failure scenarios:
-/// - Source registration failures
-/// - Stage execution errors
-/// - Destination write failures
-/// - Schema validation issues
 ///
 /// # Example
 ///
@@ -155,7 +141,7 @@ pub async fn run_pipeline(
                     });
                 }
 
-                process_stage(ctx_, stage_, tracker.as_ref()).await?;
+                process_stage(ctx_, stage_, tracker.clone()).await?;
 
                 let elapsed = time.elapsed();
                 debug!(

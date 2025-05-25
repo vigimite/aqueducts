@@ -1,6 +1,5 @@
 use aqueducts_delta::{
-    destination::{prepare_delta_destination, write_to_delta_destination},
-    source::register_delta_source,
+    register_delta_source, {prepare_delta_destination, write_to_delta_destination},
 };
 use aqueducts_schemas::{DeltaSource, DeltaWriteMode, ReplaceCondition};
 use datafusion::{
@@ -12,21 +11,19 @@ use datafusion::{
     assert_batches_eq,
     execution::context::SessionContext,
 };
-use std::{collections::HashMap, path::Path, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
+use tempfile::TempDir;
 use url::Url;
 
-fn generate_test_table_path(test_name: &str) -> Url {
-    let local_path = Path::new(".")
-        .canonicalize()
-        .unwrap()
-        .into_os_string()
-        .into_string()
-        .unwrap();
+fn generate_test_table_path(test_name: &str) -> (TempDir, Url) {
+    let temp_dir = TempDir::new().expect("Failed to create temp directory");
+    let table_path = temp_dir.path().join(test_name).join("test_table");
 
-    let run_id = rand::random::<usize>();
-    let table_path = format!("file://{local_path}/tests/output/{test_name}/{run_id}/test_table");
+    std::fs::create_dir_all(&table_path).expect("Failed to create table directory");
 
-    Url::parse(table_path.as_str()).unwrap()
+    let url = Url::from_file_path(&table_path).expect("Failed to create file URL");
+
+    (temp_dir, url)
 }
 
 fn create_test_arrow_schema() -> Vec<ArrowField> {
@@ -41,7 +38,7 @@ async fn test_delta_source_register_ok() {
     let ctx = Arc::new(SessionContext::new());
 
     // Create test data first
-    let location = generate_test_table_path("source_test");
+    let (_temp_dir, location) = generate_test_table_path("source_test");
 
     // Create some test data
     let col_1 = Arc::new(StringArray::from(vec!["a", "b", "c"])) as ArrayRef;
@@ -59,7 +56,6 @@ async fn test_delta_source_register_ok() {
 
     // Create and write to the table
     prepare_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -71,7 +67,6 @@ async fn test_delta_source_register_ok() {
     .unwrap();
 
     write_to_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -118,7 +113,7 @@ async fn test_delta_source_register_ok() {
 #[tokio::test]
 async fn test_delta_destination_append_ok() {
     let ctx = Arc::new(SessionContext::new());
-    let location = generate_test_table_path("append_test");
+    let (_temp_dir, location) = generate_test_table_path("append_test");
 
     let arrow_schema = create_test_arrow_schema();
     let storage_config = HashMap::new();
@@ -127,7 +122,6 @@ async fn test_delta_destination_append_ok() {
 
     // Prepare the destination
     prepare_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -148,7 +142,6 @@ async fn test_delta_destination_append_ok() {
 
     // Write the data
     write_to_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -194,7 +187,7 @@ async fn test_delta_destination_append_ok() {
 #[tokio::test]
 async fn test_delta_destination_upsert_ok() {
     let ctx = Arc::new(SessionContext::new());
-    let location = generate_test_table_path("upsert_test");
+    let (_temp_dir, location) = generate_test_table_path("upsert_test");
 
     let arrow_schema = create_test_arrow_schema();
     let storage_config = HashMap::new();
@@ -203,7 +196,6 @@ async fn test_delta_destination_upsert_ok() {
 
     // Prepare the destination
     prepare_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -224,7 +216,6 @@ async fn test_delta_destination_upsert_ok() {
 
     // Write initial data
     write_to_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -245,7 +236,6 @@ async fn test_delta_destination_upsert_ok() {
 
     // Write updated data
     write_to_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -274,15 +264,13 @@ async fn test_delta_destination_upsert_ok() {
         .unwrap();
     let batches = result.collect().await.unwrap();
 
-    // Note: The current implementation may just append since full merge is complex
-    // This test validates that the upsert operation completes without error
     assert!(!batches.is_empty());
 }
 
 #[tokio::test]
 async fn test_delta_destination_replace_ok() {
     let ctx = Arc::new(SessionContext::new());
-    let location = generate_test_table_path("replace_test");
+    let (_temp_dir, location) = generate_test_table_path("replace_test");
 
     let arrow_schema = create_test_arrow_schema();
     let storage_config = HashMap::new();
@@ -291,7 +279,6 @@ async fn test_delta_destination_replace_ok() {
 
     // Prepare the destination
     prepare_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,
@@ -312,7 +299,6 @@ async fn test_delta_destination_replace_ok() {
 
     // Write replacement data
     write_to_delta_destination(
-        ctx.clone(),
         "test_table",
         location.as_str(),
         &storage_config,

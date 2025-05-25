@@ -53,5 +53,6 @@ destination:
   type: odbc
   name: temp_readings_aggregated
   connection_string: Driver={PostgreSQL Unicode};Server=localhost;UID=${user};PWD=${pass};
-  query: INSERT INTO temp_readings_aggregated (date, location_id, min_temp_c, min_humidity, max_temp_c, max_humidity, avg_temp_c, avg_humidity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  write_mode:
+    operation: append
   batch_size: 100

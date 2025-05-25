@@ -1,7 +1,6 @@
 //! Shared serde helper functions for deserialization and default values.
 //!
 //! This module consolidates common serde helpers used across the schema types
-//! to avoid duplication and ensure consistency in serialization behavior.
 
 use crate::data_types::DataType;
 use serde::{Deserialize, Deserializer};
@@ -16,19 +15,9 @@ pub fn default_true() -> bool {
     true
 }
 
-/// Default value for nullable fields
-pub fn default_nullable() -> bool {
-    true
-}
-
 /// Default comma delimiter for CSV files
 pub fn default_comma() -> char {
     ','
-}
-
-/// Default single file flag for file destinations
-pub fn default_single_file() -> bool {
-    true
 }
 
 /// Default batch size for ODBC operations

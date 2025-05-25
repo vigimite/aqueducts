@@ -11,7 +11,7 @@ use crate::Aqueduct;
 
 /// Serialization format of the Aqueduct pipeline configuration.
 ///
-/// Aqueducts supports multiple configuration file formats for maximum flexibility.
+/// Aqueducts supports multiple configuration file formats.
 /// The format is typically inferred from the file extension, but can also be
 /// specified explicitly when loading from strings.
 #[derive(Debug, Clone)]
@@ -36,56 +36,6 @@ pub enum TemplateFormat {
 ///
 /// Aqueducts supports template parameters in configuration files using the `${parameter_name}` syntax.
 /// These parameters are substituted at load time with values from the provided parameter map.
-///
-/// # Examples
-///
-/// ## Loading from a file with parameters
-///
-/// ```rust,no_run
-/// use aqueducts_core::templating::TemplateLoader;
-/// use aqueducts_schemas::Aqueduct;
-/// use std::collections::HashMap;
-///
-/// let mut params = HashMap::new();
-/// params.insert("table_name".to_string(), "orders".to_string());
-/// params.insert("date_filter".to_string(), "2024-01-01".to_string());
-///
-/// let pipeline = Aqueduct::from_file("pipeline.yml", params)?;
-/// # Ok::<(), Box<dyn std::error::Error>>(())
-/// ```
-///
-/// ## Loading from a string
-///
-/// ```rust,no_run
-/// use aqueducts_core::templating::{TemplateLoader, TemplateFormat};
-/// use aqueducts_schemas::Aqueduct;
-/// use std::collections::HashMap;
-///
-/// let yaml_config = r#"
-/// sources:
-///   - type: File
-///     name: my_source
-///     file_type:
-///       type: Csv
-///       options: {}
-///     location: "${input_file}"
-/// stages: []
-/// destination:
-///   type: File
-///   name: output
-///   file_type:
-///     type: Parquet
-///     options: {}
-///   location: "${output_file}"
-/// "#;
-///
-/// let mut params = HashMap::new();
-/// params.insert("input_file".to_string(), "data.csv".to_string());
-/// params.insert("output_file".to_string(), "output.parquet".to_string());
-///
-/// let pipeline = Aqueduct::from_str(yaml_config, TemplateFormat::Yaml, params)?;
-/// # Ok::<(), Box<dyn std::error::Error>>(())
-/// ```
 pub trait TemplateLoader {
     /// Load an Aqueduct pipeline configuration from a file.
     ///
@@ -204,61 +154,15 @@ impl TemplateLoader for Aqueduct {
 
         debug!("Parsing file with extension: {}", ext);
 
-        let raw = std::fs::read_to_string(path)?;
-        match ext {
-            "toml" => {
-                #[cfg(feature = "toml")]
-                {
-                    debug!("Parsing TOML file: {}", path.display());
-                    let parsed = toml::from_str::<toml::Value>(raw.as_str())?;
-                    let parsed = toml::to_string(&parsed)?;
-                    let definition = Self::substitute_params(parsed.as_str(), params)?;
-                    let aqueduct = toml::from_str::<Aqueduct>(definition.as_str())?;
+        let format = match ext {
+            "toml" => TemplateFormat::Toml,
+            "json" => TemplateFormat::Json,
+            "yml" | "yaml" => TemplateFormat::Yaml,
+            ext => TemplateFormat::Unknown(ext.to_string()),
+        };
 
-                    Ok(aqueduct)
-                }
-                #[cfg(not(feature = "toml"))]
-                {
-                    Err(AqueductsError::unsupported("template format", "TOML support is not enabled in this build. Enable the corresponding feature flag"))
-                }
-            }
-            "json" => {
-                #[cfg(feature = "json")]
-                {
-                    debug!("Parsing JSON file: {}", path.display());
-                    let parsed = serde_json::from_str::<serde_json::Value>(raw.as_str())?;
-                    let parsed = serde_json::to_string(&parsed)?;
-                    let definition = Self::substitute_params(parsed.as_str(), params)?;
-                    let aqueduct = serde_json::from_str::<Aqueduct>(definition.as_str())?;
-
-                    Ok(aqueduct)
-                }
-                #[cfg(not(feature = "json"))]
-                {
-                    Err(AqueductsError::unsupported("template format", "JSON support is not enabled in this build. Enable the corresponding feature flag"))
-                }
-            }
-            "yml" | "yaml" => {
-                #[cfg(feature = "yaml")]
-                {
-                    debug!("Parsing YAML file: {}", path.display());
-                    let parsed = serde_yml::from_str::<serde_yml::Value>(raw.as_str())?;
-                    let parsed = serde_yml::to_string(&parsed)?;
-                    let definition = Self::substitute_params(parsed.as_str(), params)?;
-                    let aqueduct = serde_yml::from_str::<Aqueduct>(definition.as_str())?;
-
-                    Ok(aqueduct)
-                }
-                #[cfg(not(feature = "yaml"))]
-                {
-                    Err(AqueductsError::unsupported("template format", "YAML support is not enabled in this build. Enable the corresponding feature flag"))
-                }
-            }
-            ext => Err(AqueductsError::unsupported(
-                "template format",
-                format!("Unknown format: {}", ext),
-            )),
-        }
+        let contents = std::fs::read_to_string(path)?;
+        Self::from_str(contents, format, params)
     }
 
     fn from_str<T: AsRef<str>>(

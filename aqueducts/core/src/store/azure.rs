@@ -8,8 +8,8 @@ use std::{collections::HashMap, sync::Arc};
 use tracing::warn;
 use url::Url;
 
-use super::{ObjectStoreProvider, StoreError};
-use crate::error::Result;
+use super::ObjectStoreProvider;
+use crate::error::{AqueductsError, Result};
 
 /// Provider for Azure Blob Storage.
 ///
@@ -30,19 +30,19 @@ use crate::error::Result;
 ///
 /// ## Supported Configuration Options
 ///
-/// | Option | Description | Environment Variable |
-/// |--------|-------------|---------------------|
-/// | `azure_storage_account_name` | Storage account name | `AZURE_STORAGE_ACCOUNT_NAME` |
-/// | `azure_storage_account_key` | Storage account access key | `AZURE_STORAGE_ACCOUNT_KEY` |
-/// | `azure_storage_client_id` | Azure AD client ID | `AZURE_CLIENT_ID` |
-/// | `azure_storage_client_secret` | Azure AD client secret | `AZURE_CLIENT_SECRET` |
-/// | `azure_storage_tenant_id` | Azure AD tenant ID | `AZURE_TENANT_ID` |
-/// | `azure_storage_use_emulator` | Use storage emulator | - |
-/// | `azure_storage_use_azure_cli` | Use Azure CLI credentials | - |
-/// | `azure_federated_token_file` | Federated token file path | - |
-/// | `azure_use_fabric_endpoint` | Use Fabric endpoint | - |
-/// | `azure_msi_endpoint` | MSI endpoint URL | - |
-/// | `azure_disable_tagging` | Disable object tagging | - |
+/// | Option                        | Description                | Environment Variable         |
+/// |-------------------------------|----------------------------|------------------------------|
+/// | `azure_storage_account_name`  | Storage account name       | `AZURE_STORAGE_ACCOUNT_NAME` |
+/// | `azure_storage_account_key`   | Storage account access key | `AZURE_STORAGE_ACCOUNT_KEY`  |
+/// | `azure_storage_client_id`     | Azure AD client ID         | `AZURE_CLIENT_ID`            |
+/// | `azure_storage_client_secret` | Azure AD client secret     | `AZURE_CLIENT_SECRET`        |
+/// | `azure_storage_tenant_id`     | Azure AD tenant ID         | `AZURE_TENANT_ID`            |
+/// | `azure_storage_use_emulator`  | Use storage emulator       | -                            |
+/// | `azure_storage_use_azure_cli` | Use Azure CLI credentials  | -                            |
+/// | `azure_federated_token_file`  | Federated token file path  | -                            |
+/// | `azure_use_fabric_endpoint`   | Use Fabric endpoint        | -                            |
+/// | `azure_msi_endpoint`          | MSI endpoint URL           | -                            |
+/// | `azure_disable_tagging`       | Disable object tagging     | -                            |
 pub struct AzureProvider;
 
 impl ObjectStoreProvider for AzureProvider {
@@ -80,7 +80,6 @@ impl ObjectStoreProvider for AzureProvider {
             builder = match key.as_str() {
                 "azure_storage_account_name" | "account_name" => builder.with_account(value),
                 "azure_storage_account_key" | "account_key" => builder.with_access_key(value),
-                // Note: SAS token configuration may not be available in object_store 0.12
                 "azure_storage_client_id" | "client_id" => builder.with_client_id(value),
                 "azure_storage_client_secret" | "client_secret" => {
                     builder.with_client_secret(value)
@@ -110,6 +109,6 @@ impl ObjectStoreProvider for AzureProvider {
         Ok(builder
             .build()
             .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)
-            .map_err(|e| StoreError::Creation { source: e })?)
+            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))?)
     }
 }

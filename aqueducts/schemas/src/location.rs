@@ -6,8 +6,7 @@ use url::Url;
 
 /// A location that can be either a file path or a URL
 ///
-/// This type automatically converts file paths to file:// URLs during deserialization,
-/// making it easy to work with both local files and remote URLs uniformly.
+/// This type automatically converts file paths to file:// URLs during deserialization
 ///
 /// # Examples
 ///
@@ -130,7 +129,6 @@ mod tests {
 
     #[test]
     fn test_windows_path() {
-        // Only test on Windows or if the path format is supported
         if cfg!(windows) {
             let location: Location = r"C:\temp\data.csv".try_into().unwrap();
             assert_eq!(location.scheme(), "file");
@@ -161,17 +159,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_input() {
-        // Test some edge cases - actually, most strings are valid as file paths
-        // so this test just ensures the basic functionality works
-        let result = Location::try_from("./test.txt");
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap().scheme(), "file");
-    }
-
-    #[test]
     fn test_location_in_config() {
-        // Test that Location works well in configuration structs
         use serde_json;
 
         #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
@@ -194,7 +182,6 @@ mod tests {
 
     #[test]
     fn test_mixed_location_types() {
-        // Test that we can handle various location types in the same context
         let locations = vec![
             ("./local.csv", "file"),
             ("/absolute/path.json", "file"),
@@ -217,7 +204,6 @@ mod tests {
 
     #[test]
     fn test_yaml_deserialization() {
-        // Test that Location works with YAML (common for config files)
         let yaml = r#"
 location: "./data/input.csv"
 "#;

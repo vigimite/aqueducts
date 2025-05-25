@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 /// let debug_stage = Stage::builder()
 ///     .name("debug_query".to_string())
 ///     .query("SELECT * FROM source LIMIT 5".to_string())
-///     .maybe_show(Some(10))
+///     .show(10)
 ///     .build();
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]

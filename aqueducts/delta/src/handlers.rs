@@ -15,15 +15,6 @@ static INIT: Once = Once::new();
 /// all cloud providers that are enabled via feature flags.
 ///
 /// The registration is performed exactly once, even if this function is called multiple times.
-///
-/// # Example
-///
-/// ```rust
-/// use aqueducts_delta::register_handlers;
-///
-/// // Register all enabled cloud provider handlers
-/// register_handlers();
-/// ```
 pub fn register_handlers() {
     INIT.call_once(|| {
         tracing::debug!("Registering Delta Lake object store handlers");

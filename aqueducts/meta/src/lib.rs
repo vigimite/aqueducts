@@ -113,6 +113,97 @@
 //!     operation: append
 //! ```
 //!
+//! ## Template Parameters
+//!
+//! Aqueducts supports template parameters in configuration files using `${parameter_name}` syntax.
+//! This allows you to create reusable pipeline configurations that can be customized at runtime.
+//!
+//! ### Example: Parameterized Pipeline
+//!
+//! ```yaml
+//! # pipeline-template.yml
+//! version: "v2"
+//! sources:
+//!   - type: file
+//!     name: input_data
+//!     format:
+//!       type: csv
+//!       options:
+//!         has_header: true
+//!     location: "${input_path}"
+//!
+//! stages:
+//!   - - name: filter_data
+//!       query: |
+//!         SELECT *
+//!         FROM input_data
+//!         WHERE date >= '${start_date}'
+//!           AND region = '${target_region}'
+//!
+//! destination:
+//!   type: file
+//!   name: filtered_output
+//!   format:
+//!     type: parquet
+//!   location: "${output_path}"
+//! ```
+//!
+//! ### Loading Templates with Parameters
+//!
+//! ```rust,no_run
+//! use aqueducts::prelude::*;
+//! use std::collections::HashMap;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<()> {
+//!     // Define template parameters
+//!     let mut params = HashMap::new();
+//!     params.insert("input_path".to_string(), "s3://data/sales-2024.csv".to_string());
+//!     params.insert("start_date".to_string(), "2024-01-01".to_string());
+//!     params.insert("target_region".to_string(), "US".to_string());
+//!     params.insert("output_path".to_string(), "s3://results/us-sales.parquet".to_string());
+//!     
+//!     // Load templated pipeline
+//!     let pipeline = Aqueduct::from_file("pipeline-template.yml", params)?;
+//!     let ctx = std::sync::Arc::new(datafusion::prelude::SessionContext::new());
+//!     
+//!     run_pipeline(ctx, pipeline, None).await?;
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ### Loading from Strings
+//!
+//! ```rust,no_run
+//! use aqueducts::prelude::*;
+//! use std::collections::HashMap;
+//!
+//! let template = r#"
+//! version: "v2"
+//! sources:
+//!   - type: file
+//!     name: logs
+//!     format: { type: json }
+//!     location: "${log_path}"
+//! stages:
+//!   - - name: filter
+//!       query: "SELECT * FROM logs WHERE level = '${log_level}'"
+//! destination:
+//!   type: file
+//!   name: output
+//!   format: { type: parquet }
+//!   location: "${output_path}"
+//! "#;
+//!
+//! let mut params = HashMap::new();
+//! params.insert("log_path".to_string(), "/var/log/app.jsonl".to_string());
+//! params.insert("log_level".to_string(), "ERROR".to_string());
+//! params.insert("output_path".to_string(), "/tmp/errors.parquet".to_string());
+//!
+//! let pipeline = Aqueduct::from_str(template, TemplateFormat::Yaml, params)?;
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
 //! ## Feature Flag Guide
 //!
 //! When using Aqueducts in your `Cargo.toml`, enable only the features you need:
@@ -195,10 +286,4 @@ pub mod prelude {
 
     // DataFusion essentials that users typically need
     pub use datafusion::prelude::SessionContext;
-
-    // Common async runtime
-    pub use tokio;
-
-    // Logging
-    pub use tracing::{debug, error, info, warn};
 }

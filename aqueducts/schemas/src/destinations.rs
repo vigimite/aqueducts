@@ -4,7 +4,7 @@
 //! file outputs (CSV, JSON, Parquet), databases via ODBC, and Delta Lake tables.
 
 use crate::location::Location;
-use crate::serde_helpers::{default_batch_size, default_comma, default_single_file, default_true};
+use crate::serde_helpers::{default_batch_size, default_comma, default_true};
 use bon::Builder;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -73,8 +73,8 @@ pub struct FileDestination {
     pub format: FileType,
 
     /// Describes whether to write a single file (can be used to overwrite destination file)
-    #[serde(default = "default_single_file")]
-    #[builder(default = default_single_file())]
+    #[serde(default = "default_true")]
+    #[builder(default = default_true())]
     pub single_file: bool,
 
     /// Columns to partition table by
@@ -147,14 +147,39 @@ pub struct OdbcDestination {
     /// Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
     pub connection_string: String,
 
-    /// SQL query pattern to execute for each row
-    /// Use placeholders like $1, $2, etc. for column values
-    pub query: String,
+    /// Strategy for performing ODBC write operation
+    pub write_mode: WriteMode,
 
     /// Batch size for inserts (defaults to 1000)
     #[serde(default = "default_batch_size")]
     #[builder(default = default_batch_size())]
     pub batch_size: usize,
+}
+
+/// Write modes for the `Destination` output.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
+#[serde(tag = "operation", content = "transaction", rename_all = "snake_case")]
+pub enum WriteMode {
+    /// `Append`: appends data to the `Destination`
+    #[serde(alias = "append", alias = "Append")]
+    Append,
+
+    /// `Custom`: Inserts data with a prepared stament. Option to perform any number of (non-insert) preliminary statements
+    #[serde(alias = "custom", alias = "Custom")]
+    Custom(CustomStatements),
+}
+
+/// SQL statements for `Custom` write mode.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Builder)]
+#[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
+#[serde(rename_all = "snake_case")]
+pub struct CustomStatements {
+    /// Optional (non-insert) preliminary statement
+    pub pre_insert: Option<String>,
+
+    /// Insert prepared statement
+    pub insert: String,
 }
 
 // Delta destination configuration (will be used by aqueducts-delta crate)

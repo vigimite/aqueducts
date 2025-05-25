@@ -11,50 +11,6 @@
 //! - **Environment variable support**: Cloud providers automatically read configuration from environment variables
 //! - **DataFusion integration**: Direct integration with DataFusion's SessionContext
 //!
-//! ## Basic Usage
-//!
-//! ```rust
-//! use std::collections::HashMap;
-//! use std::sync::Arc;
-//! use url::Url;
-//! use aqueducts_core::store::{ObjectStoreRegistry, register_object_store};
-//! use datafusion::prelude::SessionContext;
-//!
-//! // Create a registry that includes all available providers
-//! let registry = ObjectStoreRegistry::new();
-//!
-//! // Create a local file store
-//! let file_url = Url::parse("file:///tmp/data").unwrap();
-//! let options = HashMap::new();
-//! let store = registry.create_store(&file_url, &options).unwrap();
-//!
-//! // Register with DataFusion
-//! let ctx = Arc::new(SessionContext::new());
-//! register_object_store(ctx, &file_url, &options).unwrap();
-//! ```
-//!
-//! ## Cloud Provider Usage
-//!
-//! Cloud providers are feature-gated and automatically read configuration from environment variables:
-//!
-//! ```rust,no_run
-//! # use std::collections::HashMap;
-//! # use url::Url;
-//! # use aqueducts_core::store::ObjectStoreRegistry;
-//! // S3 (requires "s3" feature)
-//! let s3_url = Url::parse("s3://my-bucket/path").unwrap();
-//! let registry = ObjectStoreRegistry::new();
-//!
-//! // Will use AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc. from environment
-//! let _store = registry.create_store(&s3_url, &HashMap::new());
-//!
-//! // Or override with explicit options
-//! let mut options = HashMap::new();
-//! options.insert("aws_access_key_id".to_string(), "AKIAIOSFODNN7EXAMPLE".to_string());
-//! options.insert("aws_secret_access_key".to_string(), "secret".to_string());
-//! let _store = registry.create_store(&s3_url, &options);
-//! ```
-//!
 //! ## Supported URL Schemes
 //!
 //! - `file://` - Local file system
@@ -68,7 +24,6 @@ use std::{
     sync::{Arc, OnceLock},
 };
 
-use thiserror::Error;
 use url::Url;
 
 #[cfg(feature = "s3")]
@@ -89,33 +44,7 @@ pub use gcs::GcsProvider;
 #[cfg(feature = "azure")]
 pub use azure::AzureProvider;
 
-/// Errors that can occur when working with object stores.
-#[derive(Error, Debug)]
-pub enum StoreError {
-    /// The URL scheme is not supported by any registered provider.
-    #[error("Unsupported URL scheme: {scheme}")]
-    UnsupportedScheme { scheme: String },
-
-    /// Failed to create the object store instance.
-    #[error("Object store creation failed: {source}")]
-    Creation {
-        #[from]
-        source: object_store::Error,
-    },
-}
-
-impl From<StoreError> for crate::error::AqueductsError {
-    fn from(err: StoreError) -> Self {
-        match err {
-            StoreError::UnsupportedScheme { scheme } => {
-                Self::unsupported("URL scheme", format!("Unsupported URL scheme: {}", scheme))
-            }
-            StoreError::Creation { source } => Self::storage("object_store", source.to_string()),
-        }
-    }
-}
-
-/// Result type for store operations.
+use crate::error::AqueductsError;
 
 /// Trait for object storage providers.
 ///
@@ -123,38 +52,6 @@ impl From<StoreError> for crate::error::AqueductsError {
 /// - Determining which URL schemes it supports
 /// - Creating object store instances for supported URLs
 /// - Handling provider-specific configuration options
-///
-/// ## Example Implementation
-///
-/// ```rust
-/// # use std::collections::HashMap;
-/// # use std::sync::Arc;
-/// # use url::Url;
-/// # use aqueducts_core::store::{ObjectStoreProvider, StoreError};
-/// # use aqueducts_core::error::Result;
-/// struct MyCustomProvider;
-///
-/// impl ObjectStoreProvider for MyCustomProvider {
-///     fn supports_scheme(&self, scheme: &str) -> bool {
-///         scheme == "custom"
-///     }
-///
-///     fn create_store(
-///         &self,
-///         location: &Url,
-///         _options: &HashMap<String, String>,
-///     ) -> Result<Arc<dyn object_store::ObjectStore>> {
-///         if location.scheme() == "custom" {
-///             // Create your custom store here
-///             Ok(Arc::new(object_store::memory::InMemory::new()))
-///         } else {
-///             Err(StoreError::UnsupportedScheme {
-///                 scheme: location.scheme().to_string(),
-///             }.into())
-///         }
-///     }
-/// }
-/// ```
 pub trait ObjectStoreProvider: Send + Sync {
     /// Check if this provider supports the given URL scheme.
     fn supports_scheme(&self, scheme: &str) -> bool;
@@ -186,47 +83,6 @@ pub trait ObjectStoreProvider: Send + Sync {
 ///
 /// Note: While local file system and in-memory storage are handled directly by DataFusion,
 /// this registry provides them for API consistency.
-///
-/// ## Example Usage
-///
-/// ```rust
-/// use std::collections::HashMap;
-/// use url::Url;
-/// use aqueducts_core::store::ObjectStoreRegistry;
-///
-/// let registry = ObjectStoreRegistry::new();
-///
-/// // Create stores for different backends
-/// let file_url = Url::parse("file:///tmp/data").unwrap();
-/// let memory_url = Url::parse("memory://test").unwrap();
-/// let options = HashMap::new();
-///
-/// let file_store = registry.create_store(&file_url, &options).unwrap();
-/// let memory_store = registry.create_store(&memory_url, &options).unwrap();
-/// ```
-///
-/// ## Feature-gated Cloud Providers
-///
-/// ```rust,no_run
-/// # use std::collections::HashMap;
-/// # use url::Url;
-/// # use aqueducts_core::store::ObjectStoreRegistry;
-/// // These URLs will only work if the respective features are enabled
-/// let s3_url = Url::parse("s3://my-bucket/path").unwrap();
-/// let gcs_url = Url::parse("gs://my-bucket/path").unwrap();
-/// let azure_url = Url::parse("az://my-account/container/path").unwrap();
-///
-/// let registry = ObjectStoreRegistry::new();
-/// let options: HashMap<String, String> = HashMap::new();
-///
-/// // Will use environment variables for authentication by default
-/// # #[cfg(feature = "s3")]
-/// let _s3_store = registry.create_store(&s3_url, &options);
-/// # #[cfg(feature = "gcs")]
-/// let _gcs_store = registry.create_store(&gcs_url, &options);
-/// # #[cfg(feature = "azure")]
-/// let _azure_store = registry.create_store(&azure_url, &options);
-/// ```
 pub struct ObjectStoreRegistry {
     providers: Vec<Box<dyn ObjectStoreProvider>>,
 }
@@ -269,22 +125,6 @@ impl ObjectStoreRegistry {
     /// # Returns
     ///
     /// An object store instance, or an error if no provider supports the URL scheme.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// # use std::collections::HashMap;
-    /// # use url::Url;
-    /// # use aqueducts_core::store::ObjectStoreRegistry;
-    /// let registry = ObjectStoreRegistry::new();
-    /// let url = Url::parse("file:///tmp/data").unwrap();
-    /// let options = HashMap::new();
-    ///
-    /// match registry.create_store(&url, &options) {
-    ///     Ok(store) => println!("Created store successfully"),
-    ///     Err(e) => eprintln!("Failed to create store: {}", e),
-    /// }
-    /// ```
     pub fn create_store(
         &self,
         location: &Url,
@@ -296,10 +136,10 @@ impl ObjectStoreRegistry {
             }
         }
 
-        Err(StoreError::UnsupportedScheme {
-            scheme: location.scheme().to_string(),
-        }
-        .into())
+        Err(AqueductsError::unsupported(
+            "URL scheme",
+            format!("Unsupported URL scheme: {}", location.scheme().to_string()),
+        ))
     }
 }
 
@@ -314,24 +154,6 @@ impl Default for ObjectStoreRegistry {
 /// This provider supports:
 /// - `file://` URLs for local file system access
 /// - `memory://` URLs for in-memory storage (useful for testing)
-///
-/// ## Example Usage
-///
-/// ```rust
-/// # use std::collections::HashMap;
-/// # use url::Url;
-/// # use aqueducts_core::store::{LocalFileProvider, ObjectStoreProvider};
-/// let provider = LocalFileProvider;
-/// let options = HashMap::new();
-///
-/// // Local file system
-/// let file_url = Url::parse("file:///tmp/data").unwrap();
-/// let file_store = provider.create_store(&file_url, &options).unwrap();
-///
-/// // In-memory storage
-/// let memory_url = Url::parse("memory://test").unwrap();
-/// let memory_store = provider.create_store(&memory_url, &options).unwrap();
-/// ```
 pub struct LocalFileProvider;
 
 impl ObjectStoreProvider for LocalFileProvider {
@@ -347,10 +169,10 @@ impl ObjectStoreProvider for LocalFileProvider {
         match location.scheme() {
             "file" => Ok(Arc::new(object_store::local::LocalFileSystem::new())),
             "memory" => Ok(Arc::new(object_store::memory::InMemory::new())),
-            scheme => Err(StoreError::UnsupportedScheme {
-                scheme: scheme.to_string(),
-            }
-            .into()),
+            scheme => Err(AqueductsError::unsupported(
+                "URL scheme",
+                format!("Unsupported URL scheme: {}", scheme),
+            )),
         }
     }
 }
@@ -358,23 +180,13 @@ impl ObjectStoreProvider for LocalFileProvider {
 /// Global registry instance for object store providers.
 ///
 /// This ensures that the registry is only created once and reused across multiple
-/// calls to `register_object_store()`, which is more efficient when working with
-/// many different storage locations.
+/// calls to `register_object_store()`
 static GLOBAL_REGISTRY: OnceLock<ObjectStoreRegistry> = OnceLock::new();
 
 /// Get the global object store registry.
 ///
 /// This function returns a reference to the global registry, creating it on first access.
 /// The registry includes all providers that are enabled via feature flags.
-///
-/// # Example
-///
-/// ```rust
-/// # use aqueducts_core::store::global_registry;
-/// let registry = global_registry();
-/// // The same registry instance will be returned on subsequent calls
-/// let same_registry = global_registry();
-/// ```
 pub fn global_registry() -> &'static ObjectStoreRegistry {
     GLOBAL_REGISTRY.get_or_init(|| ObjectStoreRegistry::new())
 }
@@ -397,34 +209,6 @@ pub fn global_registry() -> &'static ObjectStoreRegistry {
 ///
 /// `Ok(())` if the store was registered successfully, or if the scheme is local.
 /// `Err(StoreError)` if no provider supports the scheme or store creation fails.
-///
-/// # Example
-///
-/// ```rust,no_run
-/// # use std::collections::HashMap;
-/// # use std::sync::Arc;
-/// # use url::Url;
-/// # use aqueducts_core::store::register_object_store;
-/// # use datafusion::prelude::SessionContext;
-/// #
-/// # // Create minimal example without actually instantiating heavy objects
-/// # fn example_usage() -> Result<(), Box<dyn std::error::Error>> {
-/// let ctx = Arc::new(SessionContext::new());
-/// let s3_url = Url::parse("s3://my-bucket/data")?;
-/// let mut options = HashMap::new();
-/// options.insert("aws_region".to_string(), "us-west-2".to_string());
-///
-/// // Register S3 store with DataFusion (skipped in no_run example)
-/// # if false { // Skip heavy operations in doc tests
-/// register_object_store(ctx.clone(), &s3_url, &options)?;
-/// # }
-///
-/// // Local files are handled automatically by DataFusion - no registration needed
-/// let file_url = Url::parse("file:///tmp/data")?;
-/// register_object_store(ctx, &file_url, &HashMap::new())?; // No-op, safe to run
-/// # Ok(())
-/// # }
-/// ```
 pub fn register_object_store(
     ctx: Arc<datafusion::prelude::SessionContext>,
     location: &Url,
@@ -435,7 +219,6 @@ pub fn register_object_store(
         return Ok(());
     }
 
-    // Use the global registry for efficiency when dealing with multiple stores
     let registry = global_registry();
     let store = registry.create_store(location, storage_options)?;
 
@@ -550,19 +333,5 @@ mod tests {
         assert!(provider.supports_scheme("abfss"));
         assert!(!provider.supports_scheme("file"));
         assert!(!provider.supports_scheme("s3"));
-    }
-
-    #[test]
-    fn test_register_object_store_skips_local_schemes() {
-        use datafusion::prelude::SessionContext;
-
-        let ctx = Arc::new(SessionContext::new());
-        let file_url = Url::parse("file:///tmp/test").unwrap();
-        let memory_url = Url::parse("memory://test").unwrap();
-        let options = HashMap::new();
-
-        // These should not error since they're skipped
-        assert!(register_object_store(ctx.clone(), &file_url, &options).is_ok());
-        assert!(register_object_store(ctx, &memory_url, &options).is_ok());
     }
 }

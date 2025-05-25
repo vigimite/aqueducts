@@ -3,8 +3,8 @@
 //! This module provides an S3 implementation of the `ObjectStoreProvider` trait
 //! using the `object_store` crate's AWS S3 backend.
 
-use super::{ObjectStoreProvider, StoreError};
-use crate::error::Result;
+use super::ObjectStoreProvider;
+use crate::error::{AqueductsError, Result};
 use object_store::aws::AmazonS3Builder;
 use std::{collections::HashMap, sync::Arc};
 use tracing::warn;
@@ -27,77 +27,24 @@ use url::Url;
 /// - `AWS_PROFILE` - AWS profile name
 /// - `AWS_ALLOW_HTTP` - Allow HTTP connections (set to "true")
 ///
-/// ## Example Usage with Environment Variables
-///
-/// ```bash
-/// export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-/// export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-/// export AWS_REGION=us-west-2
-/// ```
-///
-/// ```rust,no_run
-/// # use std::collections::HashMap;
-/// # use url::Url;
-/// # use aqueducts_core::store::{S3Provider, ObjectStoreProvider};
-/// let provider = S3Provider;
-/// let url = Url::parse("s3://my-bucket/path/to/data").unwrap();
-/// let options = HashMap::new(); // Uses environment variables
-///
-/// let store = provider.create_store(&url, &options).unwrap();
-/// ```
-///
-/// ## Example Usage with Explicit Configuration
-///
-/// ```rust,no_run
-/// # use std::collections::HashMap;
-/// # use url::Url;
-/// # use aqueducts_core::store::{S3Provider, ObjectStoreProvider};
-/// let provider = S3Provider;
-/// let url = Url::parse("s3://my-bucket/data").unwrap();
-/// let mut options = HashMap::new();
-/// options.insert("aws_access_key_id".to_string(), "AKIAIOSFODNN7EXAMPLE".to_string());
-/// options.insert("aws_secret_access_key".to_string(), "your-secret-key".to_string());
-/// options.insert("aws_region".to_string(), "us-west-2".to_string());
-///
-/// let store = provider.create_store(&url, &options).unwrap();
-/// ```
-///
-/// ## S3-Compatible Services
-///
-/// ```rust,no_run
-/// # use std::collections::HashMap;
-/// # use url::Url;
-/// # use aqueducts_core::store::{S3Provider, ObjectStoreProvider};
-/// let provider = S3Provider;
-/// let url = Url::parse("s3://my-bucket/data").unwrap();
-/// let mut options = HashMap::new();
-/// options.insert("aws_endpoint".to_string(), "https://minio.example.com".to_string());
-/// options.insert("aws_access_key_id".to_string(), "minioadmin".to_string());
-/// options.insert("aws_secret_access_key".to_string(), "minioadmin".to_string());
-/// options.insert("aws_region".to_string(), "us-east-1".to_string());
-/// options.insert("aws_allow_http".to_string(), "true".to_string());
-///
-/// let store = provider.create_store(&url, &options).unwrap();
-/// ```
-///
-/// ## Supported Configuration Options
+/// ## Supported Configuration Override Options
 ///
 /// All options can be provided with or without the `aws_` prefix:
 ///
-/// | Option | Description | Environment Variable |
-/// |--------|-------------|---------------------|
-/// | `aws_access_key_id` | AWS access key ID | `AWS_ACCESS_KEY_ID` |
-/// | `aws_secret_access_key` | AWS secret access key | `AWS_SECRET_ACCESS_KEY` |
-/// | `aws_region` | AWS region | `AWS_REGION` |
-/// | `aws_endpoint` | Custom S3 endpoint | `AWS_ENDPOINT` |
-/// | `aws_session_token` | AWS session token | `AWS_SESSION_TOKEN` |
-/// | `aws_allow_http` | Allow HTTP connections | `AWS_ALLOW_HTTP` |
-/// | `aws_virtual_hosted_style_request` | Use virtual hosted-style requests | - |
-/// | `aws_checksum_algorithm` | Checksum algorithm for uploads | - |
-/// | `aws_s3_express` | Enable S3 Express One Zone | - |
-/// | `aws_unsigned_payload` | Use unsigned payload | - |
-/// | `aws_skip_signature` | Skip request signing | - |
-/// | `aws_imdsv1_fallback` | Enable IMDSv1 fallback | - |
+/// | Option                             | Description                       | Environment Variable    |
+/// |------------------------------------|-----------------------------------|-------------------------|
+/// | `aws_access_key_id`                | AWS access key ID                 | `AWS_ACCESS_KEY_ID`     |
+/// | `aws_secret_access_key`            | AWS secret access key             | `AWS_SECRET_ACCESS_KEY` |
+/// | `aws_region`                       | AWS region                        | `AWS_REGION`            |
+/// | `aws_endpoint`                     | Custom S3 endpoint                | `AWS_ENDPOINT`          |
+/// | `aws_session_token`                | AWS session token                 | `AWS_SESSION_TOKEN`     |
+/// | `aws_allow_http`                   | Allow HTTP connections            | `AWS_ALLOW_HTTP`        |
+/// | `aws_virtual_hosted_style_request` | Use virtual hosted-style requests | -                       |
+/// | `aws_checksum_algorithm`           | Checksum algorithm for uploads    | -                       |
+/// | `aws_s3_express`                   | Enable S3 Express One Zone        | -                       |
+/// | `aws_unsigned_payload`             | Use unsigned payload              | -                       |
+/// | `aws_skip_signature`               | Skip request signing              | -                       |
+/// | `aws_imdsv1_fallback`              | Enable IMDSv1 fallback            | -                       |
 pub struct S3Provider;
 
 impl ObjectStoreProvider for S3Provider {
@@ -161,6 +108,6 @@ impl ObjectStoreProvider for S3Provider {
         Ok(builder
             .build()
             .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)
-            .map_err(|e| StoreError::Creation { source: e })?)
+            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))?)
     }
 }

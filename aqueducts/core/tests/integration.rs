@@ -1,7 +1,6 @@
 //! Integration tests for aqueducts core pipeline functionality.
 //!
-//! These tests focus on end-to-end pipeline execution using the bon builder patterns
-//! and test data helpers to verify core functionality.
+//! These tests focus on end-to-end pipeline execution and test data helpers to verify core functionality.
 
 mod common;
 
@@ -15,7 +14,6 @@ use std::sync::Arc;
 async fn test_csv_source_to_memory_destination() {
     let dataset = TestDataSet::new().unwrap();
 
-    // Create pipeline using bon builders
     let pipeline = Aqueduct::builder()
         .sources(vec![Source::File(
             FileSource::builder()
@@ -38,7 +36,6 @@ async fn test_csv_source_to_memory_destination() {
     let ctx = Arc::new(SessionContext::new());
     let result_ctx = run_pipeline(ctx, pipeline, None).await.unwrap();
 
-    // Verify the result
     let table = result_ctx.table("result").await.unwrap();
     let batches = table.collect().await.unwrap();
 
@@ -83,11 +80,9 @@ async fn test_parquet_source_to_csv_destination() {
     let ctx = Arc::new(SessionContext::new());
     run_pipeline(ctx, pipeline, None).await.unwrap();
 
-    // Verify output file was created
     let output_path = output_url.to_file_path().unwrap();
     assert!(output_path.exists());
 
-    // Read and verify content
     let content = std::fs::read_to_string(&output_path).unwrap();
     assert!(content.contains("id,name,value,active"));
     assert!(content.contains("true")); // Should only have active=true records
@@ -98,7 +93,6 @@ async fn test_parquet_source_to_csv_destination() {
 async fn test_pipeline_without_destination() {
     let dataset = TestDataSet::new().unwrap();
 
-    // Pipeline without destination should still execute and leave final stage as table
     let pipeline = Aqueduct::builder()
         .sources(vec![Source::File(
             FileSource::builder()

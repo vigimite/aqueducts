@@ -8,17 +8,13 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 
 **Features:**
 
-- **Multi-format Configuration**: Define ETL pipelines in YAML, JSON, or TOML with v2 schema support
-- **Flexible Deployment**: Run pipelines locally, remotely, or embedded in your applications
-- **Powerful SQL Processing**: Process data using SQL with the power of Apache DataFusion
-- **Rich Data Sources**: Extract from CSV, JSONL, Parquet files, Delta tables, and ODBC databases
-- **Versatile Destinations**: Load data into local files, object stores, or Delta tables
-- **Cloud Storage**: Built-in support for Local, S3, GCS, and Azure Blob storage
+- **Declarative Pipeline Configuration**: Define ETL pipelines in YAML, JSON, or TOML
+- **Pipeline Execution**: Run pipelines locally, remotely, or embedded in your applications
+- **Data Source Support**: Extract from CSV, JSONL, Parquet files, Delta tables, and ODBC databases
+- **Data Destination Support**: Load data into local files, object stores, or Delta tables
+- **Cloud Storage Support**: Built-in support for Local, S3, GCS, and Azure Blob storage
 - **Advanced Operations**: Upsert/Replace/Append operations with partition support
 - **Template System**: Parameter substitution with `${variable}` syntax
-- **Progress Tracking**: Real-time progress monitoring with customizable trackers
-- **Memory Management**: Resource-intensive operation controls
-- **Unified Error Handling**: Semantic error types across all components
 
 ## Documentation
 

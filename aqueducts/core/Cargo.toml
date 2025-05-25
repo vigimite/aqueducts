@@ -18,7 +18,6 @@ gcs = ["object_store/gcp", "aqueducts-delta?/gcs"]
 azure = ["object_store/azure", "aqueducts-delta?/azure"]
 odbc = ["dep:aqueducts-odbc"]
 delta = ["dep:aqueducts-delta"]
-schema_gen = ["schemars"]
 json = ["dep:serde_json"]
 yaml = ["dep:serde_yml"]
 toml = ["dep:toml"]
@@ -37,21 +36,17 @@ serde.workspace = true
 serde_json = { workspace = true, optional = true }
 serde_yml = { workspace = true, optional = true }
 toml = { workspace = true, optional = true }
-schemars = { workspace = true, optional = true }
 
 tokio.workspace = true
-async-trait.workspace = true
 
 thiserror.workspace = true
 
 tracing.workspace = true
 
-bon.workspace = true
 url.workspace = true
 regex.workspace = true
 
 [dev-dependencies]
-aqueducts-schemas.workspace = true
 tokio = { workspace = true, features = ["full"] }
 rand.workspace = true
 tracing-test.workspace = true

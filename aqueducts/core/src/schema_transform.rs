@@ -228,6 +228,58 @@ mod tests {
     }
 
     #[test]
+    fn test_map_type_conversion() {
+        let key_field = Field {
+            name: "key".to_string(),
+            data_type: DataType::Utf8,
+            nullable: false,
+            description: None,
+        };
+        
+        let value_field = Field {
+            name: "value".to_string(),
+            data_type: DataType::Int32,
+            nullable: true,
+            description: None,
+        };
+
+        let map_field = Field {
+            name: "metadata".to_string(),
+            data_type: DataType::Map(Box::new(key_field), Box::new(value_field), false),
+            nullable: false,
+            description: None,
+        };
+
+        let arrow_field = field_to_arrow(&map_field).unwrap();
+        assert_eq!(arrow_field.name(), "metadata");
+        assert!(!arrow_field.is_nullable());
+
+        if let ArrowDataType::Map(entries_field, keys_sorted) = arrow_field.data_type() {
+            assert!(!keys_sorted);
+            assert_eq!(entries_field.name(), "entries");
+            assert!(!entries_field.is_nullable());
+            
+            if let ArrowDataType::Struct(struct_fields) = entries_field.data_type() {
+                assert_eq!(struct_fields.len(), 2);
+                
+                let key_arrow = &struct_fields[0];
+                assert_eq!(key_arrow.name(), "key");
+                assert_eq!(key_arrow.data_type(), &ArrowDataType::Utf8);
+                assert!(!key_arrow.is_nullable());
+                
+                let value_arrow = &struct_fields[1];
+                assert_eq!(value_arrow.name(), "value");
+                assert_eq!(value_arrow.data_type(), &ArrowDataType::Int32);
+                assert!(value_arrow.is_nullable());
+            } else {
+                panic!("Expected Struct type for Map entries");
+            }
+        } else {
+            panic!("Expected Map type");
+        }
+    }
+
+    #[test]
     fn test_schema_conversion() {
         let fields = vec![
             Field {

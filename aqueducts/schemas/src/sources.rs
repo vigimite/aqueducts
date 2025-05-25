@@ -8,6 +8,7 @@ use crate::data_types::{DataType, Field};
 use crate::location::Location;
 use crate::serde_helpers::{default_comma, default_true, deserialize_partition_columns};
 use bon::Builder;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -144,7 +145,8 @@ pub struct OdbcSource {
     /// Query to execute when fetching data from the ODBC connection
     /// This query will execute eagerly before the data is processed by the pipeline
     /// Size of data returned from the query cannot exceed work memory
-    pub query: String,
+    #[serde(alias = "query")]
+    pub load_query: String,
 
     /// ODBC connection string
     /// Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)
@@ -243,7 +245,7 @@ pub struct DeltaSource {
     /// When unspecified, will read the latest version
     pub version: Option<i64>,
 
-    /// ISO 8601 timestamp to read the delta table at
+    /// RFC3339 timestamp to read the delta table at
     /// When unspecified, will read the latest version
-    pub timestamp: Option<String>,
+    pub timestamp: Option<DateTime<Utc>>,
 }

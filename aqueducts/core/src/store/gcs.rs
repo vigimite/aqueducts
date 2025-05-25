@@ -8,8 +8,8 @@ use std::{collections::HashMap, sync::Arc};
 use tracing::warn;
 use url::Url;
 
-use super::{ObjectStoreProvider, StoreError};
-use crate::error::Result;
+use super::ObjectStoreProvider;
+use crate::error::{AqueductsError, Result};
 
 /// Provider for Google Cloud Storage.
 ///
@@ -26,11 +26,11 @@ use crate::error::Result;
 ///
 /// ## Supported Configuration Options
 ///
-/// | Option | Description | Environment Variable |
-/// |--------|-------------|---------------------|
-/// | `google_service_account` | Path to service account JSON | `GOOGLE_APPLICATION_CREDENTIALS` |
-/// | `google_service_account_key` | Service account private key | - |
-/// | `google_application_credentials` | Application credentials | `GOOGLE_APPLICATION_CREDENTIALS` |
+/// | Option                           | Description                  | Environment Variable             |
+/// |----------------------------------|------------------------------|----------------------------------|
+/// | `google_service_account`         | Path to service account JSON | `GOOGLE_APPLICATION_CREDENTIALS` |
+/// | `google_service_account_key`     | Service account private key  | -                                |
+/// | `google_application_credentials` | Application credentials      | `GOOGLE_APPLICATION_CREDENTIALS` |
 pub struct GcsProvider;
 
 impl ObjectStoreProvider for GcsProvider {
@@ -64,6 +64,6 @@ impl ObjectStoreProvider for GcsProvider {
         Ok(builder
             .build()
             .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)
-            .map_err(|e| StoreError::Creation { source: e })?)
+            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))?)
     }
 }

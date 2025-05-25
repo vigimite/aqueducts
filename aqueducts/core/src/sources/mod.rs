@@ -54,7 +54,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> crate:
             aqueducts_odbc::register_odbc_source(
                 ctx,
                 &odbc_source.connection_string,
-                &odbc_source.query,
+                &odbc_source.load_query,
                 &odbc_source.name,
             )
             .await
@@ -75,7 +75,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> crate:
         #[cfg(feature = "delta")]
         Source::Delta(delta_source) => {
             debug!("Registering Delta source '{}'", delta_source.name);
-            aqueducts_delta::source::register_delta_source(ctx, &delta_source)
+            aqueducts_delta::register_delta_source(ctx, &delta_source)
                 .await
                 .map_err(|e| {
                     crate::error::AqueductsError::source(

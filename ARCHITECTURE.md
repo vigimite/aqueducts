@@ -2,17 +2,17 @@
 
 ## Overview
 
-Aqueducts is a framework to write and execute ETL data pipelines declaratively. It allows you to define multi-step data transformation processes in YAML, JSON, or TOML format with v2 schema support and execute them either locally, remotely, or embedded in your applications.
+Aqueducts is a framework to write and execute ETL data pipelines declaratively. It allows you to define multi-step data transformation processes in YAML, JSON, or TOML format and execute them either locally, remotely.
 
 ## Components
 
-Aqueducts follows a modular architecture with clear separation of concerns:
+Aqueducts consists of several components:
 
 ### Library Crates
 
 - **Meta Crate** (`aqueducts`): Unified interface providing all functionality through feature flags
-- **Core Library** (`aqueducts-core`): Pipeline execution engine with unified error handling
-- **Schema Library** (`aqueducts-schemas`): Configuration types, validation, and v2 format support
+- **Core Library** (`aqueducts-core`): Pipeline execution engine
+- **Schema Library** (`aqueducts-schemas`): Pipeline definition types, validation
 - **Provider Libraries**: 
   - `aqueducts-delta`: Delta Lake integration
   - `aqueducts-odbc`: ODBC database connectivity
@@ -68,39 +68,11 @@ Connecting to the executor is done via HTTPS. When connecting to the executor, a
 
 ## Pipeline Architecture
 
-An aqueduct is a pipeline definition consisting of 3 main parts with v2 schema support:
+An aqueduct is a pipeline definition consisting of 3 main parts:
 
 - **Source**: The source data for this pipeline
-- **Stage**: Transformations applied within this pipeline  
+- **Stage**: Transformations applied within this pipeline
 - **Destination**: Output of the pipeline result
-
-### Configuration Format
-
-Aqueducts supports v2 configuration format with:
-
-```yaml
-version: "v2"
-sources:
-  - type: file  # lowercase types
-    name: my_data
-    format:    # 'format' instead of 'file_type'
-      type: csv
-      options:
-        has_header: true
-
-stages:
-  - - name: transform
-      query: "SELECT * FROM my_data"
-
-destination:
-  type: delta
-  name: output
-  location: "s3://bucket/output/"
-  storage_config: {}  # 'storage_config' instead of 'storage_options'
-  partition_columns: ["date"]  # 'partition_columns' instead of 'partition_cols'
-  write_mode:
-    operation: append  # lowercase operations
-```
 
 ### Source
 
@@ -238,37 +210,6 @@ When a query approaches the memory limit:
 1. DataFusion will attempt to spill data to disk for operations that support it
 2. Some operations may fail explicitly rather than cause system-wide out-of-memory errors
 3. Progress events will indicate when memory limits are affecting performance
-
-## Error Handling Architecture
-
-Aqueducts implements a unified error handling system across all components:
-
-### Semantic Error Types
-
-All operations return semantic errors through the unified `AqueductsError` type:
-
-- **Config**: Configuration validation errors
-- **DataProcessing**: Query execution and data transformation errors  
-- **SchemaValidation**: Schema mismatch and validation errors
-- **Storage**: File system and object store errors
-- **Source/Destination**: Provider-specific errors with context
-- **Template**: Parameter substitution and parsing errors
-
-### Error Conversion
-
-External errors are automatically converted to semantic categories:
-
-```rust
-// DataFusion errors → DataProcessing
-// Arrow errors → DataProcessing  
-// Object store errors → Storage
-// Delta errors → destination-specific errors
-// ODBC errors → source/destination-specific (with credential protection)
-```
-
-### Security
-
-ODBC errors never expose connection strings or credentials in error messages to prevent password leakage.
 
 ## Technology Stack
 
