@@ -19,3 +19,8 @@ install-path = "CARGO_HOME"
 publish-jobs = ["homebrew"]
 # Whether to install an updater program
 install-updater = false
+
+# Homebrew-specific configuration
+[dist.homebrew]
+# Override the formula name to match the crate name
+formula-name = "aqueducts-cli"

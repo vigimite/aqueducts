@@ -11,3 +11,21 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./examples/temp_readings_jan_2024.csv:/opt/temp_readings_jan_2024.csv
       - ./examples/temp_readings_feb_2024.csv:/opt/temp_readings_feb_2024.csv
+
+  aqueducts-executor:
+    profiles: ["executor"]
+    build: .
+    ports:
+      - "3031:3031"
+    environment:
+      - RUST_LOG=info
+    command: ["aqueducts-executor", "--host", "0.0.0.0", "--port", "3031", "--api-key", "test_secret_key"]
+    restart: unless-stopped
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3031/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

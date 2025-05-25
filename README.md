@@ -55,7 +55,7 @@ aqueducts = { version = "0.9", features = ["json", "toml", "yaml", "s3", "gcs", 
 ```bash
 # Add the tap and install
 brew tap vigimite/aqueducts
-brew install aqueducts
+brew install aqueducts-cli
 ```
 
 **Shell Installer (Linux, macOS, Windows):**

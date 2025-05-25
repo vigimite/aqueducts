@@ -20,7 +20,7 @@ A command-line interface for executing Aqueducts data pipelines, with support fo
 ```bash
 # Add the tap and install
 brew tap vigimite/aqueducts
-brew install aqueducts
+brew install aqueducts-cli
 ```
 
 **Shell Installer (Cross-platform):**
