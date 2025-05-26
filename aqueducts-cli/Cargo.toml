@@ -24,9 +24,8 @@ yaml = ["aqueducts/yaml"]
 
 [dependencies]
 datafusion.workspace = true
-datafusion-functions-json.workspace = true
 
-aqueducts = { workspace = true, features = ["protocol"] }
+aqueducts = { workspace = true, features = ["protocol", "custom_udfs"] }
 
 clap.workspace = true
 

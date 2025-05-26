@@ -16,13 +16,12 @@ default = []
 odbc = ["aqueducts/odbc"]
 
 [dependencies]
-aqueducts = { workspace = true, features = ["protocol", "json", "s3", "gcs", "azure", "delta"] }
+aqueducts = { workspace = true, features = ["protocol", "json", "s3", "gcs", "azure", "delta", "custom_udfs"] }
 
 axum.workspace = true
 clap.workspace = true
 
 datafusion.workspace = true
-datafusion-functions-json.workspace = true
 
 serde.workspace = true
 serde_json.workspace = true
