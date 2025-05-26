@@ -1,6 +1,6 @@
 # Aqueducts
 
-[![Build status](https://github.com/vigimite/aqueducts/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/vigimite/aqueducts/actions/workflows/CI.yml) [![Crates.io](https://img.shields.io/crates/v/aqueducts)](https://crates.io/crates/aqueducts) [![Documentation](https://docs.rs/aqueducts/badge.svg)](https://docs.rs/aqueducts)
+[![Build status](https://github.com/vigimite/aqueducts/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vigimite/aqueducts/actions/workflows/ci.yml) [![Crates.io](https://img.shields.io/crates/v/aqueducts)](https://crates.io/crates/aqueducts) [![Documentation](https://docs.rs/aqueducts/badge.svg)](https://docs.rs/aqueducts)
 
 <img src="https://github.com/vigimite/aqueducts/raw/main/logo.png" width="100">
 
@@ -27,25 +27,9 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 
 Join our Discord community to get help, share your work, and connect with other Aqueducts users:
 
-[![Discord](https://img.shields.io/discord/1368541645255086120?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/astQZM3wqy)
+[![Discord](https://img.shields.io/discord/1368541645255086120)](https://discord.gg/astQZM3wqy)
 
 ## Installation
-
-### Library
-
-Add Aqueducts to your Rust project:
-
-```toml
-[dependencies]
-# Default setup with file processing and cloud storage
-aqueducts = "0.10"
-
-# Minimal setup for local file processing only
-aqueducts = { version = "0.10", default-features = false, features = ["yaml"] }
-
-# Full-featured setup with all storage providers and databases
-aqueducts = { version = "0.10", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
-```
 
 ### CLI
 
@@ -90,6 +74,22 @@ cargo install aqueducts-executor --locked
 
 # For ODBC support (requires unixodbc-dev to be installed)
 cargo install aqueducts-executor --locked --features odbc
+```
+
+### Library
+
+Add Aqueducts to your Rust project:
+
+```toml
+[dependencies]
+# Default setup with file processing and cloud storage
+aqueducts = "0.10"
+
+# Minimal setup for local file processing only
+aqueducts = { version = "0.10", default-features = false, features = ["yaml"] }
+
+# Full-featured setup with all storage providers and databases
+aqueducts = { version = "0.10", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
 ```
 
 ## Quick Start

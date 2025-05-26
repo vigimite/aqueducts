@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Aqueducts! This guide will help y
 
 Join our Discord community to connect with other contributors, get help, and discuss development:
 
-[Join Aqueducts Discord](https://discord.gg/astQZM3wqy)
+[![Discord](https://img.shields.io/discord/1368541645255086120?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/astQZM3wqy)
 
 ## Table of Contents
 
