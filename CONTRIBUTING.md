@@ -14,11 +14,10 @@ Join our Discord community to connect with other contributors, get help, and dis
 2. [Crate Structure](#crate-structure)
 3. [Running the Components](#running-the-components)
 4. [Testing](#testing)
-5. [Code Style](#code-style)
-6. [Commit Guidelines](#commit-guidelines)
-7. [Changelog Generation](#changelog-generation)
-8. [Pull Request Process](#pull-request-process)
-9. [Special Configurations](#special-configurations)
+5. [Commit Guidelines](#commit-guidelines)
+6. [Changelog Generation](#changelog-generation)
+7. [Pull Request Process](#pull-request-process)
+8. [Special Configurations](#special-configurations)
 
 ## Development Environment Setup
 

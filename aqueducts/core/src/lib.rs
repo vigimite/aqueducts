@@ -6,6 +6,8 @@ use regex::Regex;
 use tokio::task::JoinHandle;
 use tracing::{debug, instrument, warn};
 
+#[cfg(feature = "custom_udfs")]
+pub mod custom_udfs;
 pub mod error;
 pub mod progress_tracker;
 pub mod templating;

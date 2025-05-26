@@ -34,6 +34,9 @@ schema_gen = ["aqueducts-schemas/schema_gen"]
 # Protocol features for executor/CLI integration
 protocol = ["aqueducts-schemas/protocol"]
 
+# Custom udfs to extend the SQL syntax
+custom_udfs = ["aqueducts-core/custom_udfs"]
+
 [dependencies]
 # Core aqueducts functionality
 aqueducts-core.workspace = true

@@ -73,7 +73,7 @@ pub async fn execute_pipeline(
         SessionContext::new()
     };
 
-    datafusion_functions_json::register_all(&mut ctx).expect("Failed to register JSON functions");
+    aqueducts::custom_udfs::register_all(&mut ctx).expect("failed to register custom_udfs");
 
     let num_sources = pipeline.sources.len();
     let num_stages = pipeline

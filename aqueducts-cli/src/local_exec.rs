@@ -11,8 +11,8 @@ pub async fn run_local(file: PathBuf, params: HashMap<String, String>) -> anyhow
 
     debug!("Creating SessionContext");
     let mut ctx = datafusion::prelude::SessionContext::new();
-    datafusion_functions_json::register_all(&mut ctx)
-        .context("Failed to register JSON functions")?;
+
+    aqueducts::custom_udfs::register_all(&mut ctx)?;
 
     let progress_tracker = Arc::new(LoggingProgressTracker);
 

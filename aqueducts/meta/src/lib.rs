@@ -249,6 +249,7 @@
 
 // Core functionality re-exports
 pub use aqueducts_core::{
+    custom_udfs,
     error::{AqueductsError, Result},
     progress_tracker::{LoggingProgressTracker, ProgressTracker},
     run_pipeline,
