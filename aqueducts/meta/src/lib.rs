@@ -249,7 +249,6 @@
 
 // Core functionality re-exports
 pub use aqueducts_core::{
-    custom_udfs,
     error::{AqueductsError, Result},
     progress_tracker::{LoggingProgressTracker, ProgressTracker},
     run_pipeline,
@@ -257,6 +256,8 @@ pub use aqueducts_core::{
 };
 
 // Optional crate re-exports
+#[cfg(feature = "custom_udfs")]
+pub use aqueducts_core::custom_udfs;
 #[cfg(feature = "odbc")]
 pub use aqueducts_odbc as odbc;
 
