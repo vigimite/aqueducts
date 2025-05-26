@@ -19,15 +19,15 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 ## Documentation
 
 - [Full Documentation](https://vigimite.github.io/aqueducts)
-- [Architecture Documentation](ARCHITECTURE.md)
-- [Change Log](CHANGELOG.md)
-- [Contributing Guide](CONTRIBUTING.md)
+- [Architecture Documentation](https://github.com/vigimite/aqueducts/blob/main/ARCHITECTURE.md)
+- [Change Log](https://github.com/vigimite/aqueducts/blob/main/CHANGELOG.md)
+- [Contributing Guide](https://github.com/vigimite/aqueducts/blob/main/CONTRIBUTING.md)
 
 ## Community
 
 Join our Discord community to get help, share your work, and connect with other Aqueducts users:
 
-[![Discord](https://img.shields.io/discord/1234567890?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/astQZM3wqy)
+[![Discord](https://img.shields.io/discord/1368541645255086120?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/astQZM3wqy)
 
 ## Installation
 
@@ -233,8 +233,8 @@ Aqueducts consists of several components:
 - **Executor**: Server component for running pipelines remotely, closer to data sources
 
 For component-specific details, see the respective README files:
-- [CLI README](aqueducts-cli/README.md)
-- [Executor README](aqueducts-executor/README.md)
+- [CLI README](https://github.com/vigimite/aqueducts/blob/main/aqueducts-cli/README.md)
+- [Executor README](https://github.com/vigimite/aqueducts/blob/main/aqueducts-executor/README.md)
 
 ## Acknowledgements
 
@@ -250,7 +250,7 @@ Please show these projects some love and support! ❤️
 
 Contributions to Aqueducts are welcome! Whether it's bug reports, feature requests, or code contributions, we appreciate all forms of help.
 
-Please see the [Contributing Guide](CONTRIBUTING.md) for detailed instructions on how to:
+Please see the [Contributing Guide](https://github.com/vigimite/aqueducts/blob/main/CONTRIBUTING.md) for detailed instructions on how to:
 - Set up your development environment
 - Run the project locally
 - Set up Docker Compose for testing

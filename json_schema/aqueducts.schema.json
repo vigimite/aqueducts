@@ -1,13 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Aqueduct",
-  "description": "Definition for an `Aqueduct` data pipeline",
+  "description": "Definition for an `Aqueduct` data pipeline.\n\nAn aqueduct defines a complete data processing pipeline with sources, transformation stages, and an optional destination. Most configuration uses sensible defaults to minimize verbosity.\n\n# Examples\n\n``` use aqueducts_schemas::{Aqueduct, Source, FileSource, SourceFileType, CsvSourceOptions, Stage};\n\n// Complete pipeline with defaults - version defaults to \"v2\" let pipeline = Aqueduct::builder() .sources(vec![ Source::File( FileSource::builder() .name(\"sales\".to_string()) .format(SourceFileType::Csv(CsvSourceOptions::default())) .location(\"./sales.csv\".try_into().unwrap()) .build() ) ]) .stages(vec![vec![ Stage::builder() .name(\"totals\".to_string()) .query(\"SELECT region, SUM(amount) as total FROM sales GROUP BY region\".to_string()) .build() ]]) .build(); ```",
   "type": "object",
   "required": [
     "sources",
     "stages"
   ],
   "properties": {
+    "version": {
+      "description": "Schema version for migration compatibility",
+      "default": "v2",
+      "type": "string"
+    },
     "sources": {
       "description": "Definition of the data sources for this pipeline",
       "type": "array",
@@ -39,7 +44,7 @@
   },
   "definitions": {
     "Source": {
-      "description": "A data source that can be either a `file`, a `directory` or an `odbc` connection",
+      "description": "A data source for aqueducts pipelines.\n\nSources define where data is read from and include various formats and storage systems. Each source type has specific configuration options for its format and location.\n\n# Examples\n\n``` use aqueducts_schemas::{Source, FileSource, SourceFileType, CsvSourceOptions};\n\n// CSV file source - storage_config defaults to empty HashMap let csv_source = Source::File( FileSource::builder() .name(\"sales_data\".to_string()) .format(SourceFileType::Csv(CsvSourceOptions::default())) .location(\"./data/sales.csv\".try_into().unwrap()) .build() ); ```",
       "oneOf": [
         {
           "description": "An in-memory source",
@@ -52,7 +57,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "InMemory"
+                "in_memory"
               ]
             },
             "name": {
@@ -65,7 +70,7 @@
           "description": "A file source",
           "type": "object",
           "required": [
-            "file_type",
+            "format",
             "location",
             "name",
             "type"
@@ -74,15 +79,15 @@
             "type": {
               "type": "string",
               "enum": [
-                "File"
+                "file"
               ]
             },
             "name": {
               "description": "Name of the file source, will be the registered table name in the SQL context",
               "type": "string"
             },
-            "file_type": {
-              "description": "File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
+            "format": {
+              "description": "File format of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
               "allOf": [
                 {
                   "$ref": "#/definitions/FileType"
@@ -91,11 +96,14 @@
             },
             "location": {
               "description": "A URL or Path to the location of the file Supports relative local paths",
-              "type": "string",
-              "format": "uri"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Location"
+                }
+              ]
             },
-            "storage_options": {
-              "description": "Storage options for the file Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+            "storage_config": {
+              "description": "Storage configuration for the file Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
               "default": {},
               "type": "object",
               "additionalProperties": {
@@ -108,7 +116,7 @@
           "description": "A directory source",
           "type": "object",
           "required": [
-            "file_type",
+            "format",
             "location",
             "name",
             "type"
@@ -117,33 +125,137 @@
             "type": {
               "type": "string",
               "enum": [
-                "Directory"
+                "directory"
               ]
             },
             "name": {
               "description": "Name of the directory source, will be the registered table name in the SQL context",
               "type": "string"
             },
-            "file_type": {
-              "description": "File type of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
+            "format": {
+              "description": "File format of the files to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
               "allOf": [
                 {
                   "$ref": "#/definitions/FileType"
                 }
               ]
             },
+            "partition_columns": {
+              "description": "Columns to partition the table by This is a list of key value tuples where the key is the column name and the value is a DataType",
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/DataType"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
             "location": {
               "description": "A URL or Path to the location of the directory Supports relative local paths",
-              "type": "string",
-              "format": "uri"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Location"
+                }
+              ]
             },
-            "storage_options": {
-              "description": "Storage options for the directory Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+            "storage_config": {
+              "description": "Storage configuration for the directory Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
               "default": {},
               "type": "object",
               "additionalProperties": {
                 "type": "string"
               }
+            }
+          }
+        },
+        {
+          "description": "An ODBC source",
+          "type": "object",
+          "required": [
+            "connection_string",
+            "load_query",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "odbc"
+              ]
+            },
+            "name": {
+              "description": "Name of the ODBC source, will be the registered table name in the SQL context",
+              "type": "string"
+            },
+            "load_query": {
+              "description": "Query to execute when fetching data from the ODBC connection This query will execute eagerly before the data is processed by the pipeline Size of data returned from the query cannot exceed work memory",
+              "type": "string"
+            },
+            "connection_string": {
+              "description": "ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "description": "A delta table source",
+          "type": "object",
+          "required": [
+            "location",
+            "name",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "delta"
+              ]
+            },
+            "name": {
+              "description": "Name of the delta source, will be the registered table name in the SQL context",
+              "type": "string"
+            },
+            "location": {
+              "description": "A URL or Path to the location of the delta table Supports relative local paths",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Location"
+                }
+              ]
+            },
+            "storage_config": {
+              "description": "Storage configuration for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "version": {
+              "description": "Delta table version to read from When unspecified, will read the latest version",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "timestamp": {
+              "description": "RFC3339 timestamp to read the delta table at When unspecified, will read the latest version",
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
             }
           }
         }
@@ -163,7 +275,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "Parquet"
+                "parquet"
               ]
             },
             "options": {
@@ -182,7 +294,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "Csv"
+                "csv"
               ]
             },
             "options": {
@@ -201,7 +313,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "Json"
+                "json"
               ]
             },
             "options": {
@@ -212,34 +324,428 @@
       ]
     },
     "ParquetSourceOptions": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "schema": {
+          "description": "schema to read this Parquet with Schema definition using universal Field types",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Field"
+          }
+        }
+      }
+    },
+    "Field": {
+      "description": "A field definition that can be used across all aqueducts backends.\n\nFields define the structure of data with a name, data type, nullable flag, and optional description.\n\n# Examples\n\n``` use aqueducts_schemas::{Field, DataType}; use std::str::FromStr;\n\n// Simple field using direct construction let field = Field { name: \"user_id\".to_string(), data_type: DataType::Int64, nullable: false, description: Some(\"Unique user identifier\".to_string()), };\n\n// Field with complex type from string let list_field = Field { name: \"tags\".to_string(), data_type: DataType::from_str(\"list<string>\").unwrap(), nullable: true, description: None, }; ```",
+      "type": "object",
+      "required": [
+        "data_type",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "The name of the field",
+          "type": "string"
+        },
+        "data_type": {
+          "description": "Data type specification. Examples: 'string', 'int64', 'bool', 'list<string>', 'struct<name:string,age:int32>', 'timestamp<millisecond,UTC>', 'decimal<10,2>'",
+          "type": "string"
+        },
+        "nullable": {
+          "description": "Whether the field can contain null values",
+          "default": true,
+          "type": "boolean"
+        },
+        "description": {
+          "description": "Optional description of what this field represents",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "CsvSourceOptions": {
       "type": "object",
       "properties": {
         "has_header": {
           "description": "set to `true` to treat first row of CSV as the header column names will be inferred from the header, if there is no header the column names are `column_1, column_2, ... column_x`",
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "default": true,
+          "type": "boolean"
         },
         "delimiter": {
           "description": "set a delimiter character to read this CSV with",
-          "type": [
-            "string",
-            "null"
-          ],
+          "default": ",",
+          "type": "string",
           "maxLength": 1,
           "minLength": 1
+        },
+        "schema": {
+          "description": "schema to read this CSV with Schema definition using universal Field types",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Field"
+          }
         }
       }
     },
     "JsonSourceOptions": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "schema": {
+          "description": "schema to read this JSON with Schema definition using universal Field types",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Field"
+          }
+        }
+      }
+    },
+    "Location": {
+      "description": "A file path or URL. File paths will be converted to file:// URLs. Examples: '/tmp/data.csv', './data.csv', 'https://example.com/data.csv', 's3://bucket/data.csv'",
+      "type": "string",
+      "format": "uri"
+    },
+    "DataType": {
+      "description": "Universal data type that can be converted to Arrow, Delta, and other formats.\n\nDataType supports all common data types and can be parsed from user-friendly string representations. This provides a unified schema definition that works across different backends.\n\n# Examples\n\n``` use aqueducts_schemas::DataType; use std::str::FromStr;\n\n// Parse basic types from strings let int_type = DataType::from_str(\"int32\").unwrap(); let string_type = DataType::from_str(\"string\").unwrap();\n\n// Parse complex types let list_type = DataType::from_str(\"list<int64>\").unwrap(); let struct_type = DataType::from_str(\"struct<name:string,age:int32>\").unwrap(); let decimal_type = DataType::from_str(\"decimal<10,2>\").unwrap(); let timestamp_type = DataType::from_str(\"timestamp<millisecond,UTC>\").unwrap(); ```",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Boolean",
+            "Int8",
+            "Int16",
+            "Int32",
+            "Int64",
+            "UInt8",
+            "UInt16",
+            "UInt32",
+            "UInt64",
+            "Float32",
+            "Float64",
+            "Utf8",
+            "LargeUtf8",
+            "Binary",
+            "LargeBinary",
+            "Date32",
+            "Date64"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "FixedSizeBinary"
+          ],
+          "properties": {
+            "FixedSizeBinary": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Time32"
+          ],
+          "properties": {
+            "Time32": {
+              "$ref": "#/definitions/TimeUnit"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Time64"
+          ],
+          "properties": {
+            "Time64": {
+              "$ref": "#/definitions/TimeUnit"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Timestamp"
+          ],
+          "properties": {
+            "Timestamp": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/TimeUnit"
+                },
+                {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Duration"
+          ],
+          "properties": {
+            "Duration": {
+              "$ref": "#/definitions/TimeUnit"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Interval"
+          ],
+          "properties": {
+            "Interval": {
+              "$ref": "#/definitions/IntervalUnit"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Decimal128"
+          ],
+          "properties": {
+            "Decimal128": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "integer",
+                  "format": "uint8",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "integer",
+                  "format": "int8"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Decimal256"
+          ],
+          "properties": {
+            "Decimal256": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "integer",
+                  "format": "uint8",
+                  "minimum": 0.0
+                },
+                {
+                  "type": "integer",
+                  "format": "int8"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "List"
+          ],
+          "properties": {
+            "List": {
+              "$ref": "#/definitions/Field"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "LargeList"
+          ],
+          "properties": {
+            "LargeList": {
+              "$ref": "#/definitions/Field"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "FixedSizeList"
+          ],
+          "properties": {
+            "FixedSizeList": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/Field"
+                },
+                {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Struct"
+          ],
+          "properties": {
+            "Struct": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Field"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Map"
+          ],
+          "properties": {
+            "Map": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/Field"
+                },
+                {
+                  "$ref": "#/definitions/Field"
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "maxItems": 3,
+              "minItems": 3
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Union"
+          ],
+          "properties": {
+            "Union": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer",
+                        "format": "int8"
+                      },
+                      {
+                        "$ref": "#/definitions/Field"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                {
+                  "$ref": "#/definitions/UnionMode"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Dictionary"
+          ],
+          "properties": {
+            "Dictionary": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/DataType"
+                },
+                {
+                  "$ref": "#/definitions/DataType"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "TimeUnit": {
+      "description": "Time unit for temporal types",
+      "type": "string",
+      "enum": [
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond"
+      ]
+    },
+    "IntervalUnit": {
+      "description": "Interval unit for interval types",
+      "type": "string",
+      "enum": [
+        "year_month",
+        "day_time",
+        "month_day_nano"
+      ]
+    },
+    "UnionMode": {
+      "description": "Union mode",
+      "type": "string",
+      "enum": [
+        "sparse",
+        "dense"
+      ]
     },
     "Stage": {
-      "description": "Definition for a processing stage in an Aqueduct Pipeline",
+      "description": "A processing stage in an aqueducts pipeline.\n\nStages execute SQL queries against the available data sources and previous stage results. Each stage creates a named table that can be referenced by subsequent stages.\n\n# Examples\n\n``` use aqueducts_schemas::Stage;\n\n// Basic stage - debug fields default to false, show defaults to None let stage = Stage::builder() .name(\"aggregated_sales\".to_string()) .query(\"SELECT region, SUM(amount) as total FROM sales GROUP BY region\".to_string()) .build();\n\n// Stage with output shown let debug_stage = Stage::builder() .name(\"debug_query\".to_string()) .query(\"SELECT * FROM source LIMIT 5\".to_string()) .show(10) .build(); ```",
       "type": "object",
       "required": [
         "name",
@@ -256,6 +762,7 @@
         },
         "show": {
           "description": "When set to a value of up to `usize`, will print the result of this stage to the stdout limited by the number Set value to 0 to not limit the outputs",
+          "default": null,
           "type": [
             "integer",
             "null"
@@ -281,7 +788,7 @@
       }
     },
     "Destination": {
-      "description": "Target output for the Aqueduct table",
+      "description": "Target output destination for aqueducts pipelines.\n\nDestinations define where processed data is written and include various formats and storage systems with their specific configuration options.\n\n# Examples\n\n``` use aqueducts_schemas::{Destination, FileDestination, DestinationFileType}; use std::collections::HashMap;\n\n// Simple CSV destination - single_file, partition_columns, storage_config use defaults let csv_dest = Destination::File( FileDestination::builder() .name(\"output\".to_string()) .location(\"./output.csv\".try_into().unwrap()) .format(DestinationFileType::Csv(Default::default())) .build() ); ```",
       "oneOf": [
         {
           "description": "An in-memory destination",
@@ -294,7 +801,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "InMemory"
+                "in_memory"
               ]
             },
             "name": {
@@ -307,7 +814,7 @@
           "description": "A file output destination",
           "type": "object",
           "required": [
-            "file_type",
+            "format",
             "location",
             "name",
             "type"
@@ -316,7 +823,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "File"
+                "file"
               ]
             },
             "name": {
@@ -325,11 +832,14 @@
             },
             "location": {
               "description": "Location of the file as a URL e.g. file:///tmp/output.csv, s3://bucket_name/prefix/output.parquet, s3:://bucket_name/prefix",
-              "type": "string",
-              "format": "uri"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Location"
+                }
+              ]
             },
-            "file_type": {
-              "description": "File type, supported types are Parquet and CSV",
+            "format": {
+              "description": "File format, supported types are Parquet and CSV",
               "allOf": [
                 {
                   "$ref": "#/definitions/FileType2"
@@ -338,10 +848,10 @@
             },
             "single_file": {
               "description": "Describes whether to write a single file (can be used to overwrite destination file)",
-              "default": false,
+              "default": true,
               "type": "boolean"
             },
-            "partition_cols": {
+            "partition_columns": {
               "description": "Columns to partition table by",
               "default": [],
               "type": "array",
@@ -349,12 +859,134 @@
                 "type": "string"
               }
             },
-            "storage_options": {
-              "description": "Object store storage options",
+            "storage_config": {
+              "description": "Object store storage configuration",
               "default": {},
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "An ODBC insert query to write to a DB table",
+          "type": "object",
+          "required": [
+            "connection_string",
+            "name",
+            "type",
+            "write_mode"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "odbc"
+              ]
+            },
+            "name": {
+              "description": "Name of the destination",
+              "type": "string"
+            },
+            "connection_string": {
+              "description": "ODBC connection string Please reference the respective database connection string syntax (e.g. <https://www.connectionstrings.com/postgresql-odbc-driver-psqlodbc/>)",
+              "type": "string"
+            },
+            "write_mode": {
+              "description": "Strategy for performing ODBC write operation",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/WriteMode"
+                }
+              ]
+            },
+            "batch_size": {
+              "description": "Batch size for inserts (defaults to 1000)",
+              "default": 1000,
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0.0
+            }
+          }
+        },
+        {
+          "description": "A delta table destination",
+          "type": "object",
+          "required": [
+            "location",
+            "name",
+            "type",
+            "write_mode"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "delta"
+              ]
+            },
+            "name": {
+              "description": "Name of the destination",
+              "type": "string"
+            },
+            "location": {
+              "description": "A URL or Path to the location of the delta table Supports relative local paths",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Location"
+                }
+              ]
+            },
+            "write_mode": {
+              "description": "Write mode for the delta destination",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/DeltaWriteMode"
+                }
+              ]
+            },
+            "storage_config": {
+              "description": "Storage configuration for the delta table Please reference the delta-rs github repo for more information on available keys (e.g. <https://github.com/delta-io/delta-rs/blob/main/crates/aws/src/storage.rs>) additionally also reference the `object_store` docs (e.g. <https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html>)",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "partition_columns": {
+              "description": "Partition columns for the delta table",
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "table_properties": {
+              "description": "DeltaTable table properties: <https://docs.delta.io/latest/table-properties.html>",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "metadata": {
+              "description": "Custom metadata to include with the table creation",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "schema": {
+              "description": "Table schema definition using universal Field types",
+              "default": [],
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Field"
               }
             }
           }
@@ -375,7 +1007,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "Parquet"
+                "parquet"
               ]
             },
             "options": {
@@ -397,7 +1029,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "Csv"
+                "csv"
               ]
             },
             "options": {
@@ -415,7 +1047,7 @@
             "type": {
               "type": "string",
               "enum": [
-                "Json"
+                "json"
               ]
             }
           }
@@ -428,16 +1060,13 @@
       "properties": {
         "has_header": {
           "description": "Set to `true` to include headers in CSV",
-          "default": false,
+          "default": true,
           "type": "boolean"
         },
         "delimiter": {
           "description": "Set delimiter character to write CSV with",
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ],
+          "default": ",",
+          "type": "string",
           "maxLength": 1,
           "minLength": 1
         },
@@ -448,6 +1077,147 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "WriteMode": {
+      "description": "Write modes for the `Destination` output.",
+      "oneOf": [
+        {
+          "description": "`Append`: appends data to the `Destination`",
+          "type": "object",
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "append"
+              ]
+            }
+          }
+        },
+        {
+          "description": "`Custom`: Inserts data with a prepared stament. Option to perform any number of (non-insert) preliminary statements",
+          "type": "object",
+          "required": [
+            "operation",
+            "transaction"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "custom"
+              ]
+            },
+            "transaction": {
+              "$ref": "#/definitions/CustomStatements"
+            }
+          }
+        }
+      ]
+    },
+    "CustomStatements": {
+      "description": "SQL statements for `Custom` write mode.",
+      "type": "object",
+      "required": [
+        "insert"
+      ],
+      "properties": {
+        "pre_insert": {
+          "description": "Optional (non-insert) preliminary statement",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "insert": {
+          "description": "Insert prepared statement",
+          "type": "string"
+        }
+      }
+    },
+    "DeltaWriteMode": {
+      "description": "Write mode for delta destinations",
+      "oneOf": [
+        {
+          "description": "Append data to the destination table",
+          "type": "object",
+          "required": [
+            "operation"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "append"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Upsert data using the specified merge columns for uniqueness",
+          "type": "object",
+          "required": [
+            "operation",
+            "params"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "upsert"
+              ]
+            },
+            "params": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "description": "Replace data matching the specified conditions",
+          "type": "object",
+          "required": [
+            "operation",
+            "params"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": [
+                "replace"
+              ]
+            },
+            "params": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReplaceCondition"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ReplaceCondition": {
+      "description": "Condition used to build a predicate for data replacement.",
+      "type": "object",
+      "required": [
+        "column",
+        "value"
+      ],
+      "properties": {
+        "column": {
+          "description": "Column name to match against",
+          "type": "string"
+        },
+        "value": {
+          "description": "Value to match for replacement",
+          "type": "string"
         }
       }
     }

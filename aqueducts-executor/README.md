@@ -160,4 +160,4 @@ Common issues and solutions:
    - Run `isql -v YOUR_DSN YOUR_USERNAME YOUR_PASSWORD` to test connections
    - Check that database-specific drivers are installed correctly
 
-For more information on architecture and advanced usage, see the [Aqueducts Architecture Documentation](../ARCHITECTURE.md).
+For more information on architecture and advanced usage, see the [Aqueducts Architecture Documentation](https://github.com/vigimite/aqueducts/blob/main/ARCHITECTURE.md).

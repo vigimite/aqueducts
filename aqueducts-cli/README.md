@@ -116,4 +116,4 @@ Common issues:
 4. **Executor busy**: Only one pipeline can run at a time on an executor
 5. **Missing features**: Make sure the CLI was compiled with the needed features
 
-For more information on architecture and advanced usage, see the [Aqueducts Architecture Documentation](../ARCHITECTURE.md).
+For more information on architecture and advanced usage, see the [Aqueducts Architecture Documentation](https://github.com/vigimite/aqueducts/blob/main/ARCHITECTURE.md).
