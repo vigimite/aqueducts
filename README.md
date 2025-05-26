@@ -27,7 +27,7 @@ Aqueducts is a framework to write and execute ETL data pipelines declaratively.
 
 Join our Discord community to get help, share your work, and connect with other Aqueducts users:
 
-[![Discord](https://img.shields.io/discord/1368541645255086120)](https://discord.gg/astQZM3wqy)
+[![Discord](https://img.shields.io/discord/1368541645255086120?label=Discord&logo=discord)](https://discord.gg/astQZM3wqy)
 
 ## Installation
 
