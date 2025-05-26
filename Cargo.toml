@@ -17,7 +17,7 @@ description = "Framework to build ETL data pipelines declaratively"
 homepage = "https://github.com/vigimite/aqueducts"
 repository = "https://github.com/vigimite/aqueducts"
 readme = "README.md"
-version = "0.10.0"
+version = "0.10.1"
 keywords = ["aqueducts", "ETL", "data", "pipeline"]
 categories = ["api-bindings"]
 license = "Apache-2.0"
@@ -27,11 +27,11 @@ github = { repository = "vigimite/aqueducts", workflow = "build.yml" }
 
 [workspace.dependencies]
 # Internal crates
-aqueducts = { path = "aqueducts/meta", version = "0.10.0" }
-aqueducts-schemas = { path = "aqueducts/schemas", version = "0.10.0" }
-aqueducts-core = { path = "aqueducts/core", version = "0.10.0" }
-aqueducts-delta = { path = "aqueducts/delta", version = "0.10.0" }
-aqueducts-odbc = { path = "aqueducts/odbc", version = "0.10.0" }
+aqueducts = { path = "aqueducts/meta", version = "0.10.1" }
+aqueducts-schemas = { path = "aqueducts/schemas", version = "0.10.1" }
+aqueducts-core = { path = "aqueducts/core", version = "0.10.1" }
+aqueducts-delta = { path = "aqueducts/delta", version = "0.10.1" }
+aqueducts-odbc = { path = "aqueducts/odbc", version = "0.10.1" }
 
 # Data processing libraries
 datafusion = "47"
