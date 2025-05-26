@@ -21,7 +21,7 @@ delta = ["dep:aqueducts-delta"]
 json = ["dep:serde_json"]
 yaml = ["dep:serde_yml"]
 toml = ["dep:toml"]
-custom_udfs = ["dep:datafusion-functions-json"]
+custom_udfs = ["dep:datafusion-functions-json", "dep:serde_json"]
 
 [dependencies]
 aqueducts-schemas.workspace = true
