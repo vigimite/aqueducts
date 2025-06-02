@@ -38,7 +38,7 @@ tracing-subscriber = { workspace = true, features = ["json"] }
 
 uuid.workspace = true
 itertools = "0.14.0"
-tower-http = { version = "0.6.4", features = ["trace"] }
+tower-http = { version = "0.6.5", features = ["trace"] }
 
 openssl.workspace = true
 
