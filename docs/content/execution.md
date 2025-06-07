@@ -60,7 +60,7 @@ Execute pipelines on remote executors deployed within your infrastructure, close
 Remote execution follows this flow:
 
 1. **CLI Client** submits pipeline to **Remote Executor**
-2. **Remote Executor** processes data from **Data Sources** 
+2. **Remote Executor** processes data from **Data Sources**
 3. **Remote Executor** writes results to **Destinations**
 4. **Remote Executor** sends status updates back to **CLI Client**
 
@@ -179,6 +179,7 @@ docker-compose --profile executor up --build
 ```
 
 The executor will be available at:
+
 - **API**: `http://localhost:3031`
 - **Health check**: `http://localhost:3031/api/health`
 - **WebSocket**: `ws://localhost:3031/ws/connect`
@@ -204,69 +205,326 @@ cargo install aqueducts-executor --features odbc
 
 ## ODBC Configuration
 
-For database connectivity, ODBC support requires additional system dependencies.
+For database connectivity, ODBC support requires the `odbc` feature flag during installation and proper system configuration.
 
-### System Requirements
+### Installation Requirements
+
+First, install Aqueducts with ODBC support:
+
+```bash
+# CLI with ODBC support
+cargo install aqueducts-cli --features odbc
+
+# Executor with ODBC support  
+cargo install aqueducts-executor --features odbc
+```
+
+### System Dependencies
 
 === "Ubuntu/Debian"
 
     ```bash
-    # Install UnixODBC and drivers
+    # Install UnixODBC development libraries
     sudo apt-get update
     sudo apt-get install unixodbc-dev
 
-    # Database-specific drivers
-    sudo apt-get install odbc-postgresql  # PostgreSQL
-    sudo apt-get install libmyodbc        # MySQL
+    # PostgreSQL driver
+    sudo apt-get install odbc-postgresql
+
+    # MySQL driver
+    sudo apt-get install libmyodbc
+
+    # SQL Server driver (optional)
+    curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+    curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+    sudo apt-get update
+    sudo apt-get install msodbcsql17
     ```
 
 === "Fedora/RHEL/CentOS"
 
     ```bash
-    # Install UnixODBC and drivers
+    # Install UnixODBC development libraries
     sudo dnf install unixODBC-devel
 
-    # Database-specific drivers
-    sudo dnf install postgresql-odbc      # PostgreSQL
-    sudo dnf install mysql-connector-odbc # MySQL
+    # PostgreSQL driver
+    sudo dnf install postgresql-odbc
+
+    # MySQL driver
+    sudo dnf install mysql-connector-odbc
+
+    # SQL Server driver (optional)
+    sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
+    sudo dnf install msodbcsql17
     ```
 
 === "macOS"
 
     ```bash
-    # Install via Homebrew
+    # Install UnixODBC via Homebrew
     brew install unixodbc
 
-    # Database drivers
-    brew install psqlodbc              # PostgreSQL
-    brew install mysql-connector-c++   # MySQL
+    # PostgreSQL driver
+    brew install psqlodbc
+
+    # MySQL driver
+    brew install mysql-connector-c++
+
+    # SQL Server driver (optional)
+    brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+    brew install msodbcsql17
     ```
 
-### Testing ODBC Connections
+### Driver Configuration
 
-Verify your ODBC setup before using in pipelines:
+=== "PostgreSQL"
+
+    Edit `/etc/odbcinst.ini` (system) or `~/.odbcinst.ini` (user):
+
+    **Linux:**
+    ```ini
+    [PostgreSQL]
+    Description=PostgreSQL ODBC driver
+    Driver=/usr/lib/x86_64-linux-gnu/odbc/psqlodbcw.so
+    Setup=/usr/lib/x86_64-linux-gnu/odbc/libodbcpsqlS.so
+    FileUsage=1
+    ```
+
+    **macOS:**
+    ```ini
+    [PostgreSQL]
+    Description=PostgreSQL ODBC driver
+    Driver=/opt/homebrew/lib/psqlodbcw.so
+    Setup=/opt/homebrew/lib/libodbcpsqlS.so
+    FileUsage=1
+    ```
+
+=== "MySQL"
+
+    Edit `/etc/odbcinst.ini` (system) or `~/.odbcinst.ini` (user):
+
+    **Linux:**
+    ```ini
+    [MySQL]
+    Description=MySQL ODBC driver
+    Driver=/usr/lib/x86_64-linux-gnu/odbc/libmyodbc8w.so
+    FileUsage=1
+    ```
+
+    **macOS:**
+    ```ini
+    [MySQL]
+    Description=MySQL ODBC driver
+    Driver=/opt/homebrew/lib/libmyodbc8w.so
+    FileUsage=1
+    ```
+
+### Data Source Configuration
+
+Configure database connections in `/etc/odbc.ini` (system) or `~/.odbc.ini` (user):
+
+=== "PostgreSQL DSN"
+
+    ```ini
+    [PostgreSQL-Local]
+    Description=Local PostgreSQL Database
+    Driver=PostgreSQL
+    Server=localhost
+    Port=5432
+    Database=mydb
+    UserName=myuser
+    Password=mypass
+    ReadOnly=no
+    ServerType=postgres
+    ConnSettings=
+    ```
+
+=== "MySQL DSN"
+
+    ```ini
+    [MySQL-Local]
+    Description=Local MySQL Database  
+    Driver=MySQL
+    Server=localhost
+    Port=3306
+    Database=mydb
+    User=myuser
+    Password=mypass
+    ```
+
+### Connection String Examples
+
+=== "PostgreSQL"
+
+    ```yaml
+    # Using DSN
+    sources:
+      - type: odbc
+        name: postgres_data
+        connection_string: "DSN=PostgreSQL-Local"
+        load_query: "SELECT * FROM users WHERE created_at > '2024-01-01'"
+
+    # Direct connection string
+    sources:
+      - type: odbc
+        name: postgres_data
+        connection_string: "Driver={PostgreSQL};Server=localhost;Database=mydb;UID=user;PWD=pass;"
+        load_query: "SELECT * FROM users LIMIT 1000"
+    ```
+
+=== "MySQL"
+
+    ```yaml
+    # Using DSN
+    sources:
+      - type: odbc
+        name: mysql_data
+        connection_string: "DSN=MySQL-Local"
+        load_query: "SELECT * FROM products WHERE price > 100"
+
+    # Direct connection string
+    sources:
+      - type: odbc
+        name: mysql_data
+        connection_string: "Driver={MySQL};Server=localhost;Database=mydb;User=user;Password=pass;"
+        load_query: "SELECT * FROM orders WHERE date >= '2024-01-01'"
+    ```
+
+### Testing Your Setup
+
+#### 1. Test ODBC Installation
 
 ```bash
-# Test connection with isql
-isql -v YOUR_DSN YOUR_USERNAME YOUR_PASSWORD
+# Check installed drivers
+odbcinst -q -d
+
+# Check configured data sources
+odbcinst -q -s
 ```
+
+#### 2. Test Database Connection
+
+```bash
+# Test with isql (interactive SQL)
+isql -v PostgreSQL-Local username password
+
+# Test MySQL connection
+isql -v MySQL-Local username password
+```
+
+#### 3. Test with Aqueducts
+
+Create a minimal test pipeline:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/vigimite/aqueducts/main/json_schema/aqueducts.schema.json
+
+version: "v2"
+sources:
+  - type: odbc
+    name: test_connection
+    connection_string: "DSN=PostgreSQL-Local"
+    load_query: "SELECT 1 as test_column"
+
+stages:
+  - - name: verify
+      query: "SELECT * FROM test_connection"
+      show: 1
+```
+
+Run the test:
+
+```bash
+aqueducts run --file test-odbc.yml
+```
+
+### Common Driver Paths
+
+=== "Linux"
+
+    ```bash
+    # PostgreSQL
+    /usr/lib/x86_64-linux-gnu/odbc/psqlodbcw.so
+
+    # MySQL  
+    /usr/lib/x86_64-linux-gnu/odbc/libmyodbc8w.so
+
+    # Find drivers
+    find /usr -name "*odbc*.so" 2>/dev/null
+    ```
+
+=== "macOS"
+
+    ```bash
+    # PostgreSQL
+    /opt/homebrew/lib/psqlodbcw.so
+
+    # MySQL
+    /opt/homebrew/lib/libmyodbc8w.so
+
+    # Find drivers  
+    find /opt/homebrew -name "*odbc*.so" 2>/dev/null
+    ```
+
+### Performance Considerations
+
+!!! tip "Optimization Tips"
+    - **Limit query results**: Use `LIMIT` clauses to avoid memory issues
+    - **Filter early**: Apply `WHERE` conditions in your `load_query`
+    - **Use indexes**: Ensure your database queries use appropriate indexes
+    - **Memory management**: Set executor `--max-memory` limits appropriately
+
+### ODBC Troubleshooting
+
+#### Driver Loading Issues
+
+```bash
+# Check if drivers are registered
+odbcinst -q -d
+
+# Test driver loading
+ldd /path/to/driver.so  # Linux
+otool -L /path/to/driver.so  # macOS
+```
+
+#### Connection Issues
+
+```bash
+# Enable ODBC tracing for debugging
+export ODBCSYSINI=/tmp
+export ODBCINSTINI=/etc/odbcinst.ini
+export ODBCINI=/etc/odbc.ini
+
+# Test with verbose output
+isql -v DSN_NAME username password
+```
+
+#### Common Error Solutions
+
+- **Driver not found**: Verify driver paths in `odbcinst.ini`
+- **DSN not found**: Check `odbc.ini` configuration
+- **Permission denied**: Ensure ODBC files are readable
+- **Library loading**: Install missing system dependencies
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Local Execution:**
+
 - **Pipeline validation errors**: Check YAML syntax and schema compliance
 - **Missing features**: Ensure CLI was compiled with required feature flags
 - **File not found**: Verify file paths and permissions
 
 **Remote Execution:**
+
 - **Connection timeouts**: Check network connectivity and firewall rules
 - **Authentication failures**: Verify API key configuration
 - **Executor busy**: Only one pipeline runs at a time per executor
 - **Memory errors**: Increase `--max-memory` or optimize pipeline queries
 
 **ODBC Issues:**
+
 - **Driver not found**: Install database-specific ODBC drivers
 - **Connection failures**: Verify DSN configuration in `odbc.ini`
 - **Permission errors**: Check database credentials and network access
@@ -283,3 +541,4 @@ isql -v YOUR_DSN YOUR_USERNAME YOUR_PASSWORD
     - Deploy executors close to data sources
     - Use cloud storage in the same region as executors
     - Minimize data movement between stages
+

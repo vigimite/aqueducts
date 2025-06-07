@@ -90,8 +90,8 @@ sources:
 
 ### ODBC Sources
 
-!!! warning "Experimental Feature"
-    ODBC support is experimental and requires the `odbc` feature flag during installation.
+!!! note "Feature Flag Required"
+    ODBC support requires the `odbc` feature flag during installation.
 
 ```yaml
 sources:
