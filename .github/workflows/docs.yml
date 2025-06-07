@@ -45,8 +45,11 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install Python dependencies
-        run: uv pip install --system -r docs/requirements.txt
+        run: |
+          uv venv
+          uv pip install -r docs/requirements.txt
 
       - name: Build and deploy documentation
         run: |
+          source .venv/bin/activate
           mkdocs gh-deploy --force --config-file docs/mkdocs.yml --remote-branch gh-pages
