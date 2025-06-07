@@ -18,7 +18,7 @@ async fn test_csv_source_to_memory_destination() {
         .sources(vec![Source::File(
             FileSource::builder()
                 .name("test_data".to_string())
-                .format(sources::FileType::Csv(CsvSourceOptions::default()))
+                .format(sources::SourceFileType::Csv(CsvSourceOptions::default()))
                 .location(dataset.csv_url.clone().into())
                 .build(),
         )])
@@ -60,7 +60,9 @@ async fn test_parquet_source_to_csv_destination() {
         .sources(vec![Source::File(
             FileSource::builder()
                 .name("parquet_data".to_string())
-                .format(sources::FileType::Parquet(ParquetSourceOptions::default()))
+                .format(sources::SourceFileType::Parquet(
+                    ParquetSourceOptions::default(),
+                ))
                 .location(dataset.parquet_url.clone().into())
                 .build(),
         )])
@@ -71,7 +73,9 @@ async fn test_parquet_source_to_csv_destination() {
         .destination(Destination::File(
             FileDestination::builder()
                 .name("csv_output".to_string())
-                .format(destinations::FileType::Csv(CsvDestinationOptions::default()))
+                .format(destinations::DestinationFileType::Csv(
+                    CsvDestinationOptions::default(),
+                ))
                 .location(output_url.clone().into())
                 .build(),
         ))
@@ -97,7 +101,7 @@ async fn test_pipeline_without_destination() {
         .sources(vec![Source::File(
             FileSource::builder()
                 .name("test_source".to_string())
-                .format(sources::FileType::Csv(CsvSourceOptions::default()))
+                .format(sources::SourceFileType::Csv(CsvSourceOptions::default()))
                 .location(dataset.csv_url.clone().into())
                 .build(),
         )])

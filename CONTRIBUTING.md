@@ -13,11 +13,12 @@ Join our Discord community to connect with other contributors, get help, and dis
 1. [Development Environment Setup](#development-environment-setup)
 2. [Crate Structure](#crate-structure)
 3. [Running the Components](#running-the-components)
-4. [Testing](#testing)
-5. [Commit Guidelines](#commit-guidelines)
-6. [Changelog Generation](#changelog-generation)
-7. [Pull Request Process](#pull-request-process)
-8. [Special Configurations](#special-configurations)
+4. [Documentation](#documentation)
+5. [Testing](#testing)
+6. [Commit Guidelines](#commit-guidelines)
+7. [Changelog Generation](#changelog-generation)
+8. [Pull Request Process](#pull-request-process)
+9. [Special Configurations](#special-configurations)
 
 ## Development Environment Setup
 
@@ -150,6 +151,29 @@ To test the complete pipeline execution flow locally (with remote execution), yo
    ```
 
 This setup simulates a real-world deployment scenario where the executor runs close to the data sources and the CLI interfaces with it remotely.
+
+## Documentation
+
+The project uses MkDocs with auto-generated JSON schema references. Requires [just](https://github.com/casey/just) and [uv](https://docs.astral.sh/uv/).
+
+### Setup
+
+```bash
+# Create virtual environment and install dependencies (run once)
+uv venv
+source .venv/bin/activate  # or .venv/Scripts/activate on Windows
+uv pip install -r requirements.txt
+```
+
+### Commands
+
+```bash
+# Serve docs locally with hot reload
+just docs-serve
+
+# Build docs for deployment
+just docs-build
+```
 
 ## Testing
 

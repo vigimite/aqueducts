@@ -85,7 +85,7 @@ pub struct FileSource {
     /// File format of the file to be ingested
     /// Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
     #[serde(alias = "file_type")]
-    pub format: FileType,
+    pub format: SourceFileType,
 
     /// A URL or Path to the location of the file
     /// Supports relative local paths
@@ -110,7 +110,7 @@ pub struct DirSource {
     /// File format of the files to be ingested
     /// Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files
     #[serde(alias = "file_type")]
-    pub format: FileType,
+    pub format: SourceFileType,
 
     /// Columns to partition the table by
     /// This is a list of key value tuples where the key is the column name and the value is a DataType
@@ -158,7 +158,7 @@ pub struct OdbcSource {
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type", content = "options")]
 #[serde(rename_all = "snake_case")]
-pub enum FileType {
+pub enum SourceFileType {
     /// Parquet source options
     #[serde(alias = "parquet", alias = "Parquet")]
     Parquet(ParquetSourceOptions),

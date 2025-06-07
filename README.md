@@ -125,6 +125,8 @@ aqueducts run --file examples/aqueduct_pipeline_example.yml \
 Here's a simple example pipeline in YAML format ([full example](examples/aqueduct_pipeline_simple.yml)):
 
 ```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/vigimite/aqueducts/main/json_schema/aqueducts.schema.json
+
 version: "v2"
 sources:
   # Register a local file source containing temperature readings for various cities
@@ -191,6 +193,8 @@ destination:
     options: {}
   location: ./examples/output_${month}_${year}.parquet
 ```
+
+**Editor Support:** Add the `yaml-language-server` comment (shown above) to enable autocompletion, validation, and inline documentation in VS Code, Neovim, and other editors with YAML Language Server support.
 
 ## Library Usage
 

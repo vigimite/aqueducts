@@ -6,7 +6,8 @@ members = [
   "aqueducts/odbc",
   "aqueducts/delta",
   "aqueducts-cli",
-  "aqueducts-executor"
+  "aqueducts-executor",
+  "tools/schema-generator"
 ]
 resolver = "2"
 

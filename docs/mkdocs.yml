@@ -2,20 +2,17 @@ site_name: Aqueducts Documentation
 site_url: https://vigimite.github.io/aqueducts
 repo_url: https://github.com/vigimite/aqueducts
 repo_name: vigimite/aqueducts
+edit_uri: edit/main/docs/content/
 copyright: Copyright &copy; 2024 Michele Vigilante
-docs_dir: "docs/"
-
-hooks:
-  - json_schema/generate_schema_reference.py
+docs_dir: "content/"
+site_dir: "build/"
 
 nav:
   - Home: index.md
-  - Usage: usage.md
-  - Storage Configuration: storage.md
+  - Getting Started: getting-started.md
+  - Writing Pipelines: pipelines.md
+  - Execution: execution.md
   - Schema Reference: schema_reference.md
-  - Architecture: architecture.md
-  - Aqueducts CLI: cli.md
-  - About: about.md
 
 theme:
   language: en
@@ -49,6 +46,9 @@ theme:
 
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
     - navigation.instant
     - navigation.instant.prefetch
     - navigation.tracking
@@ -59,9 +59,13 @@ theme:
     - toc.follow
 
     - search.suggest
+    - search.highlight
+    - search.share
 
     - content.code.copy
     - content.code.annotate
+    - content.action.edit
+    - content.action.view
 
 extra_css:
   - stylesheets/extra.css
@@ -74,16 +78,30 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/vigimite
 
+hooks:
+  - generate_schema_docs.py
+
 plugins: 
   - search
   - social
+  - git-revision-date-localized:
+      enable_creation_date: false
+      type: timeago
+      fallback_to_build_date: true
+      exclude:
+        - schema_reference.md
+        - includes/abbreviations.md
 
 markdown_extensions:
   - toc:
       toc_depth: 5
+      permalink: true
   - tables
   - admonition
   - attr_list
+  - md_in_html
+  - footnotes
+  - abbr
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -92,8 +110,21 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.details
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path: 
+        - "content"
+      auto_append:
+        - includes/abbreviations.md

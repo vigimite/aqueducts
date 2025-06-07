@@ -1,4 +1,4 @@
-use aqueducts_schemas::{destinations::FileType as DestinationFileType, FileDestination};
+use aqueducts_schemas::{destinations::DestinationFileType, FileDestination};
 use datafusion::config::{ConfigField, CsvOptions, TableParquetOptions};
 use datafusion::dataframe::DataFrameWriteOptions;
 use datafusion::prelude::*;
@@ -56,7 +56,7 @@ mod tests {
     use std::{collections::HashMap, path::Path, sync::Arc};
 
     use super::*;
-    use aqueducts_schemas::destinations::{CsvDestinationOptions, FileType};
+    use aqueducts_schemas::destinations::{CsvDestinationOptions, DestinationFileType};
     use aqueducts_schemas::Location;
 
     fn create_test_record_batch() -> RecordBatch {
@@ -94,7 +94,7 @@ mod tests {
         let definition = FileDestination::builder()
             .name("write".to_string())
             .location(Location(path.clone()))
-            .format(FileType::Csv(CsvDestinationOptions::default()))
+            .format(DestinationFileType::Csv(CsvDestinationOptions::default()))
             .single_file(true)
             .build();
 
@@ -137,7 +137,7 @@ mod tests {
         let definition = FileDestination::builder()
             .name("write".to_string())
             .location(Location(path.clone()))
-            .format(FileType::Parquet(HashMap::default()))
+            .format(DestinationFileType::Parquet(HashMap::default()))
             .single_file(true)
             .build();
 
@@ -182,7 +182,7 @@ mod tests {
         let definition = FileDestination::builder()
             .name("write".into())
             .location(Location(path.clone()))
-            .format(FileType::Parquet(HashMap::default()))
+            .format(DestinationFileType::Parquet(HashMap::default()))
             .single_file(false)
             .partition_columns(vec!["year".into()])
             .storage_config(HashMap::default())

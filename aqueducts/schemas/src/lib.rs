@@ -22,8 +22,8 @@ pub mod protocol;
 // Re-export the main types for convenience
 pub use data_types::{DataType, Field, IntervalUnit, TimeUnit, UnionMode};
 pub use destinations::{
-    CsvDestinationOptions, CsvDestinationOptionsBuilder, DeltaWriteMode,
-    FileType as DestinationFileType, ReplaceCondition,
+    CsvDestinationOptions, CsvDestinationOptionsBuilder, DeltaWriteMode, DestinationFileType,
+    ReplaceCondition,
 };
 pub use destinations::{
     DeltaDestination, Destination, FileDestination, InMemoryDestination, OdbcDestination,
@@ -33,9 +33,7 @@ pub use destinations::{
     OdbcDestinationBuilder,
 };
 pub use location::Location;
-pub use sources::{
-    CsvSourceOptions, FileType as SourceFileType, JsonSourceOptions, ParquetSourceOptions,
-};
+pub use sources::{CsvSourceOptions, JsonSourceOptions, ParquetSourceOptions, SourceFileType};
 pub use sources::{CsvSourceOptionsBuilder, JsonSourceOptionsBuilder, ParquetSourceOptionsBuilder};
 pub use sources::{DeltaSource, DirSource, FileSource, InMemorySource, OdbcSource, Source};
 pub use sources::{

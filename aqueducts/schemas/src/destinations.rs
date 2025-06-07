@@ -70,7 +70,7 @@ pub struct FileDestination {
 
     /// File format, supported types are Parquet and CSV
     #[serde(alias = "file_type")]
-    pub format: FileType,
+    pub format: DestinationFileType,
 
     /// Describes whether to write a single file (can be used to overwrite destination file)
     #[serde(default = "default_true")]
@@ -93,8 +93,8 @@ pub struct FileDestination {
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
 #[serde(tag = "type", content = "options")]
 #[serde(rename_all = "snake_case")]
-pub enum FileType {
-    /// Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options
+pub enum DestinationFileType {
+    /// Parquet options map, please refer to [TableParquetOptions](https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html) for possible options
     #[serde(alias = "parquet", alias = "Parquet")]
     Parquet(#[serde(default)] HashMap<String, String>),
 

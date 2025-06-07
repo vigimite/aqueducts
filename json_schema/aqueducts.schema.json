@@ -90,7 +90,7 @@
               "description": "File format of the file to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
               "allOf": [
                 {
-                  "$ref": "#/definitions/FileType"
+                  "$ref": "#/definitions/SourceFileType"
                 }
               ]
             },
@@ -136,7 +136,7 @@
               "description": "File format of the files to be ingested Supports `Parquet` for parquet files, `Csv` for CSV files and `Json` for JSON files",
               "allOf": [
                 {
-                  "$ref": "#/definitions/FileType"
+                  "$ref": "#/definitions/SourceFileType"
                 }
               ]
             },
@@ -261,7 +261,7 @@
         }
       ]
     },
-    "FileType": {
+    "SourceFileType": {
       "description": "File type of the source file, supports `Parquet`, `Csv` or `Json`",
       "oneOf": [
         {
@@ -410,7 +410,7 @@
       "format": "uri"
     },
     "DataType": {
-      "description": "Universal data type that can be converted to Arrow, Delta, and other formats.\n\nDataType supports all common data types and can be parsed from user-friendly string representations. This provides a unified schema definition that works across different backends.\n\n# Examples\n\n``` use aqueducts_schemas::DataType; use std::str::FromStr;\n\n// Parse basic types from strings let int_type = DataType::from_str(\"int32\").unwrap(); let string_type = DataType::from_str(\"string\").unwrap();\n\n// Parse complex types let list_type = DataType::from_str(\"list<int64>\").unwrap(); let struct_type = DataType::from_str(\"struct<name:string,age:int32>\").unwrap(); let decimal_type = DataType::from_str(\"decimal<10,2>\").unwrap(); let timestamp_type = DataType::from_str(\"timestamp<millisecond,UTC>\").unwrap(); ```",
+      "description": "Universal data type that can be converted to Arrow, Delta, and other formats.\n\nDataType supports all common data types and can be parsed from user-friendly string representations. This provides a unified schema definition that works across different backends.\n\nWhen used in YAML/JSON configurations, data types are specified as strings that are automatically parsed into the appropriate DataType variant.\n\n# String Format Examples\n\n## Basic Types - `\"string\"` or `\"utf8\"` - UTF-8 string - `\"int32\"`, `\"int\"`, or `\"integer\"` - 32-bit signed integer - `\"int64\"` or `\"long\"` - 64-bit signed integer - `\"float32\"` or `\"float\"` - 32-bit floating point - `\"float64\"` or `\"double\"` - 64-bit floating point - `\"bool\"` or `\"boolean\"` - Boolean value - `\"date32\"` or `\"date\"` - Date as days since epoch\n\n## Complex Types - `\"list<string>\"` - List of strings - `\"struct<name:string,age:int32>\"` - Struct with name and age fields - `\"decimal<10,2>\"` - Decimal with precision 10, scale 2 - `\"timestamp<millisecond,UTC>\"` - Timestamp with time unit and timezone - `\"map<string,int32>\"` - Map from string keys to int32 values\n\n# YAML Configuration Example ```yaml schema: - name: user_id data_type: int64 nullable: false - name: email data_type: string nullable: true - name: scores data_type: \"list<float64>\" nullable: true - name: profile data_type: \"struct<name:string,age:int32>\" nullable: true ```",
       "oneOf": [
         {
           "type": "string",
@@ -842,7 +842,7 @@
               "description": "File format, supported types are Parquet and CSV",
               "allOf": [
                 {
-                  "$ref": "#/definitions/FileType2"
+                  "$ref": "#/definitions/DestinationFileType"
                 }
               ]
             },
@@ -993,11 +993,11 @@
         }
       ]
     },
-    "FileType2": {
+    "DestinationFileType": {
       "description": "File type and options for destinations",
       "oneOf": [
         {
-          "description": "Parquet options map, please refer to <https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html> for possible options",
+          "description": "Parquet options map, please refer to [TableParquetOptions](https://docs.rs/datafusion-common/latest/datafusion_common/config/struct.TableParquetOptions.html) for possible options",
           "type": "object",
           "required": [
             "options",

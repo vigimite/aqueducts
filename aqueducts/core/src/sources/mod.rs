@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use aqueducts_schemas::{
-    sources::FileType, CsvSourceOptions, DirSource, FileSource, JsonSourceOptions,
+    sources::SourceFileType, CsvSourceOptions, DirSource, FileSource, JsonSourceOptions,
     ParquetSourceOptions, Source,
 };
 use datafusion::{
@@ -108,7 +108,7 @@ async fn register_file_source(
     )?;
 
     match file_source.format {
-        FileType::Parquet(ParquetSourceOptions { schema }) => {
+        SourceFileType::Parquet(ParquetSourceOptions { schema }) => {
             if !schema.is_empty() {
                 let arrow_schema = fields_to_arrow_schema(&schema)?;
                 let options = ParquetReadOptions::default().schema(&arrow_schema);
@@ -129,7 +129,7 @@ async fn register_file_source(
             }
         }
 
-        FileType::Csv(CsvSourceOptions {
+        SourceFileType::Csv(CsvSourceOptions {
             has_header,
             delimiter,
             schema,
@@ -157,7 +157,7 @@ async fn register_file_source(
             }
         }
 
-        FileType::Json(JsonSourceOptions { schema }) => {
+        SourceFileType::Json(JsonSourceOptions { schema }) => {
             if !schema.is_empty() {
                 let arrow_schema = fields_to_arrow_schema(&schema)?;
                 ctx.register_json(
@@ -195,7 +195,7 @@ async fn register_dir_source(
 
     let listing_table_url = ListingTableUrl::parse(dir_source.location.as_str())?;
     let listing_config = match dir_source.format {
-        FileType::Parquet(ParquetSourceOptions { schema }) => {
+        SourceFileType::Parquet(ParquetSourceOptions { schema }) => {
             let partition_cols: std::result::Result<Vec<_>, _> = dir_source
                 .partition_columns
                 .iter()
@@ -216,7 +216,7 @@ async fn register_dir_source(
                 .with_listing_options(listing_options)
                 .with_schema(schema)
         }
-        FileType::Csv(CsvSourceOptions {
+        SourceFileType::Csv(CsvSourceOptions {
             has_header,
             delimiter,
             schema,
@@ -246,7 +246,7 @@ async fn register_dir_source(
                 .with_schema(schema)
         }
 
-        FileType::Json(JsonSourceOptions { schema }) => {
+        SourceFileType::Json(JsonSourceOptions { schema }) => {
             let format = JsonFormat::default();
 
             let partition_cols: std::result::Result<Vec<_>, _> = dir_source
