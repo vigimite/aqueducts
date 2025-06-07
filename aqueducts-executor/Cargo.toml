@@ -11,6 +11,9 @@ keywords = ["aqueducts", "ETL", "data", "pipeline"]
 categories = ["command-line-utilities"]
 license = "Apache-2.0"
 
+[package.metadata.dist]
+dist = false
+
 [features]
 default = []
 odbc = ["aqueducts/odbc"]

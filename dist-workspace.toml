@@ -21,6 +21,10 @@ publish-jobs = ["homebrew"]
 install-updater = false
 # Only build these specific binaries
 bins = ["aqueducts"]
+# System dependencies needed for building
+system-dependencies = { homebrew = "unixodbc", apt = "unixodbc-dev" }
+# Features to enable for release builds
+features = ["odbc"]
 
 # Homebrew-specific configuration
 [dist.homebrew]
