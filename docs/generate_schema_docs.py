@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 MkDocs hook to generate schema documentation.
-This is a simpler alternative to a full plugin.
 """
 
 import json

@@ -138,7 +138,7 @@ jobs:
           export CONTAINER_ID=$(docker ps --filter "name=postgres" --format "{{.ID}}")
           docker cp ./examples/temp_readings_jan_2024.csv $CONTAINER_ID:/opt/
           docker cp ./examples/temp_readings_feb_2024.csv $CONTAINER_ID:/opt/
-          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -f ./db/init.sql
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -f ./docker/db/init.sql
 
       - name: Run tests
         run: cargo test --workspace --all-features
