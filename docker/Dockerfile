@@ -13,6 +13,7 @@ WORKDIR /app
 
 COPY Cargo.toml Cargo.lock ./
 COPY aqueducts/ ./aqueducts/
+COPY tools/ ./tools/
 COPY aqueducts-cli/ ./aqueducts-cli/
 COPY aqueducts-executor/ ./aqueducts-executor/
 
