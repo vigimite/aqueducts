@@ -3,19 +3,15 @@ site_url: https://vigimite.github.io/aqueducts
 repo_url: https://github.com/vigimite/aqueducts
 repo_name: vigimite/aqueducts
 copyright: Copyright &copy; 2024 Michele Vigilante
-docs_dir: "docs/"
-
-hooks:
-  - json_schema/generate_schema_reference.py
+docs_dir: "content/"
+site_dir: "build/"
 
 nav:
   - Home: index.md
-  - Usage: usage.md
-  - Storage Configuration: storage.md
+  - Getting Started: getting-started.md
+  - Writing Pipelines: pipelines.md
+  - Execution: execution.md
   - Schema Reference: schema_reference.md
-  - Architecture: architecture.md
-  - Aqueducts CLI: cli.md
-  - About: about.md
 
 theme:
   language: en
@@ -73,6 +69,9 @@ extra:
       link: https://fosstodon.org/@kato
     - icon: fontawesome/brands/github
       link: https://github.com/vigimite
+
+hooks:
+  - generate_schema_docs.py
 
 plugins: 
   - search

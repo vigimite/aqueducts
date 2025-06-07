@@ -5,6 +5,11 @@
 /aqueducts/core/tests/output/**
 /aqueducts/delta/tests/output/**
 .venv
+
+# Documentation build artifacts
 site/
+docs/build/
+docs/content/schema_reference.md
 .cache/
 __pycache__
+*.pyc

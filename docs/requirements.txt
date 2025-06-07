@@ -1,0 +1,3 @@
+# MkDocs documentation dependencies
+mkdocs-material[imaging]>=9.6.14
+jinja2>=3.1.0

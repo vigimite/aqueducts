@@ -69,21 +69,42 @@ pub struct Field {
 /// DataType supports all common data types and can be parsed from user-friendly string representations.
 /// This provides a unified schema definition that works across different backends.
 ///
-/// # Examples
+/// When used in YAML/JSON configurations, data types are specified as strings that are automatically
+/// parsed into the appropriate DataType variant.
 ///
-/// ```
-/// use aqueducts_schemas::DataType;
-/// use std::str::FromStr;
+/// # String Format Examples
 ///
-/// // Parse basic types from strings
-/// let int_type = DataType::from_str("int32").unwrap();
-/// let string_type = DataType::from_str("string").unwrap();
+/// ## Basic Types
+/// - `"string"` or `"utf8"` - UTF-8 string
+/// - `"int32"`, `"int"`, or `"integer"` - 32-bit signed integer  
+/// - `"int64"` or `"long"` - 64-bit signed integer
+/// - `"float32"` or `"float"` - 32-bit floating point
+/// - `"float64"` or `"double"` - 64-bit floating point
+/// - `"bool"` or `"boolean"` - Boolean value
+/// - `"date32"` or `"date"` - Date as days since epoch
 ///
-/// // Parse complex types
-/// let list_type = DataType::from_str("list<int64>").unwrap();
-/// let struct_type = DataType::from_str("struct<name:string,age:int32>").unwrap();
-/// let decimal_type = DataType::from_str("decimal<10,2>").unwrap();
-/// let timestamp_type = DataType::from_str("timestamp<millisecond,UTC>").unwrap();
+/// ## Complex Types
+/// - `"list<string>"` - List of strings
+/// - `"struct<name:string,age:int32>"` - Struct with name and age fields
+/// - `"decimal<10,2>"` - Decimal with precision 10, scale 2
+/// - `"timestamp<millisecond,UTC>"` - Timestamp with time unit and timezone
+/// - `"map<string,int32>"` - Map from string keys to int32 values
+///
+/// # YAML Configuration Example
+/// ```yaml
+/// schema:
+///   - name: user_id
+///     data_type: int64
+///     nullable: false
+///   - name: email
+///     data_type: string
+///     nullable: true
+///   - name: scores
+///     data_type: "list<float64>"
+///     nullable: true
+///   - name: profile
+///     data_type: "struct<name:string,age:int32>"
+///     nullable: true
 /// ```
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[cfg_attr(feature = "schema_gen", derive(schemars::JsonSchema))]
