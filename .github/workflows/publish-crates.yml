@@ -21,6 +21,8 @@ jobs:
         with:
           # Fetch full history for cargo-release
           fetch-depth: 0
+          # Checkout the actual branch, not detached HEAD
+          ref: main
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -44,7 +46,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
           echo "Publishing crates to crates.io..."
-          cargo release --no-confirm
+          cargo release --execute --no-confirm
 
       - name: Create summary
         if: always()
