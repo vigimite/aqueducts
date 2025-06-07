@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2025-06-07
+### Details
+#### Changed
+- Build aqueducts-cli binary with odbc feature flag + exclude aqueducts-executor from cargo dist release by @vigimite
+- Refactor docs 
+
+* refactor(docs): completely rework hosted documentation
+
+- Publish crates via ci by @vigimite
+- Bump clap from 4.5.38 to 4.5.39 by @dependabot[bot] in [#98](https://github.com/vigimite/aqueducts/pull/98)
+- Bump openssl from 0.10.72 to 0.10.73 by @dependabot[bot] in [#99](https://github.com/vigimite/aqueducts/pull/99)
+- Bump tower-http from 0.6.4 to 0.6.5 by @dependabot[bot] in [#100](https://github.com/vigimite/aqueducts/pull/100)
+
+#### Fixed
+- Use venv for uv on ci run by @vigimite
+
 ## [0.10.1] - 2025-05-26
 ### Details
 #### Added
@@ -297,6 +313,7 @@ feat: add odbc support for source by @vigimite in [#2](https://github.com/vigimi
 - Add release workflow by @vigimite
 - Cleaned up workflows by @vigimite
 
+[0.11.0]: https://github.com/vigimite/aqueducts/compare/v0.10.1..v0.11.0
 [0.10.1]: https://github.com/vigimite/aqueducts/compare/v0.10.0..v0.10.1
 [0.10.0]: https://github.com/vigimite/aqueducts/compare/v0.9.0..v0.10.0
 [0.9.0]: https://github.com/vigimite/aqueducts/compare/v0.8.0..v0.9.0
