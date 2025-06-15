@@ -66,22 +66,42 @@ Remote execution follows this flow:
 
 ### Setting Up Remote Execution
 
-1. **Deploy an Executor**:
+The executor supports two operation modes:
+
+#### Standalone Mode (Direct CLI Connection)
+
+1. **Deploy a Standalone Executor**:
 
     ```bash
-    # Start executor with API key
-    aqueducts-executor --api-key your_secret_key --max-memory 4
+    # Start executor in standalone mode (default)
+    aqueducts-executor --mode standalone --api-key your_secret_key --max-memory 4
     ```
 
 2. **Submit Pipeline from CLI**:
 
     ```bash
-    # Execute remotely
+    # Execute remotely via direct connection
     aqueducts run --file pipeline.yml \
       --executor executor-host:3031 \
       --api-key your_secret_key \
       --param environment=prod
     ```
+
+#### Managed Mode (Orchestrator-Managed)
+
+1. **Deploy a Managed Executor**:
+
+    ```bash
+    # Start executor in managed mode
+    aqueducts-executor --mode managed \
+      --orchestrator-url ws://orchestrator:3000/ws/executor/register \
+      --api-key orchestrator_shared_secret --max-memory 4
+    ```
+
+2. **Submit Pipeline via Orchestrator**:
+    - Use the orchestrator web interface
+    - Or submit via orchestrator API endpoints
+    - CLI connects to orchestrator, not directly to executor
 
 ### Remote Execution Benefits
 
@@ -127,12 +147,20 @@ The Docker image includes ODBC support with PostgreSQL drivers pre-installed:
 # Pull from GitHub Container Registry
 docker pull ghcr.io/vigimite/aqueducts/aqueducts-executor:latest
 
-# Run with command line arguments
+# Run in standalone mode (default)
 docker run -d \
   --name aqueducts-executor \
   -p 3031:3031 \
   ghcr.io/vigimite/aqueducts/aqueducts-executor:latest \
-  --api-key your_secret_key --max-memory 4
+  --mode standalone --api-key your_secret_key --max-memory 4
+
+# Run in managed mode
+docker run -d \
+  --name aqueducts-executor \
+  ghcr.io/vigimite/aqueducts/aqueducts-executor:latest \
+  --mode managed \
+  --orchestrator-url ws://orchestrator:3000/ws/executor/register \
+  --api-key orchestrator_shared_secret --max-memory 4
 ```
 
 ### Environment Variables
@@ -140,28 +168,81 @@ docker run -d \
 Configure the executor using environment variables:
 
 ```bash
+# Standalone mode
 docker run -d \
   --name aqueducts-executor \
   -p 3031:3031 \
+  -e EXECUTOR_MODE=standalone \
   -e AQUEDUCTS_API_KEY=your_secret_key \
   -e AQUEDUCTS_HOST=0.0.0.0 \
   -e AQUEDUCTS_PORT=3031 \
   -e AQUEDUCTS_MAX_MEMORY=4 \
   -e AQUEDUCTS_LOG_LEVEL=info \
   ghcr.io/vigimite/aqueducts/aqueducts-executor:latest
+
+# Managed mode
+docker run -d \
+  --name aqueducts-executor \
+  -e EXECUTOR_MODE=managed \
+  -e ORCHESTRATOR_URL=ws://orchestrator:3000/ws/executor/register \
+  -e AQUEDUCTS_API_KEY=orchestrator_shared_secret \
+  -e AQUEDUCTS_MAX_MEMORY=4 \
+  -e AQUEDUCTS_LOG_LEVEL=info \
+  ghcr.io/vigimite/aqueducts/aqueducts-executor:latest
 ```
+
+### Executor Operation Modes
+
+#### Standalone Mode
+
+```bash
+# Start in standalone mode (default)
+aqueducts-executor --mode standalone --api-key your_secret_key
+
+# Environment variables
+EXECUTOR_MODE=standalone \
+AQUEDUCTS_API_KEY=your_secret_key \
+aqueducts-executor
+```
+
+**Use Cases:**
+- Direct CLI-to-executor connections
+- Development and testing environments
+- Simple remote execution setups
+
+#### Managed Mode
+
+```bash
+# Start in managed mode
+aqueducts-executor --mode managed \
+  --orchestrator-url ws://orchestrator:3000/ws/executor/register \
+  --api-key orchestrator_shared_secret
+
+# Environment variables
+EXECUTOR_MODE=managed \
+ORCHESTRATOR_URL=ws://orchestrator:3000/ws/executor/register \
+AQUEDUCTS_API_KEY=orchestrator_shared_secret \
+aqueducts-executor
+```
+
+**Use Cases:**
+- Production deployments with centralized management
+- Auto-scaling executor pools
+- Scheduled and event-driven pipeline execution
+- Enterprise environments requiring centralized control
 
 ### Configuration Options
 
-| Option          | Description                                         | Default        | Environment Variable    |
-|-----------------|-----------------------------------------------------|----------------|-------------------------|
-| `--api-key`     | API key for authentication                          | -              | `AQUEDUCTS_API_KEY`     |
-| `--host`        | Host address to bind to                             | 0.0.0.0        | `AQUEDUCTS_HOST`        |
-| `--port`        | Port to listen on                                   | 8080           | `AQUEDUCTS_PORT`        |
-| `--max-memory`  | Maximum memory usage in GB (0 for unlimited)        | 0              | `AQUEDUCTS_MAX_MEMORY`  |
-| `--server-url`  | URL of Aqueducts server for registration (optional) | -              | `AQUEDUCTS_SERVER_URL`  |
-| `--executor-id` | Unique identifier for this executor                 | auto-generated | `AQUEDUCTS_EXECUTOR_ID` |
-| `--log-level`   | Logging level (info, debug, trace)                  | info           | `AQUEDUCTS_LOG_LEVEL`   |
+| Option              | Description                                         | Default     | Environment Variable       |
+|---------------------|-----------------------------------------------------|-------------|----------------------------|
+| `--mode`            | Operation mode (standalone or managed)             | standalone  | `EXECUTOR_MODE`            |
+| `--api-key`         | API key (executor's own or orchestrator's)         | -           | `AQUEDUCTS_API_KEY`        |
+| `--orchestrator-url`| Orchestrator WebSocket URL (managed mode only)     | -           | `ORCHESTRATOR_URL`         |
+| `--host`            | Host address to bind to                             | 0.0.0.0     | `AQUEDUCTS_HOST`           |
+| `--port`            | Port to listen on                                   | 3031        | `AQUEDUCTS_PORT`           |
+| `--max-memory`      | Maximum memory usage in GB (0 for unlimited)       | 0           | `AQUEDUCTS_MAX_MEMORY`     |
+| `--executor-id`     | Unique identifier for this executor                 | auto-gen    | `AQUEDUCTS_EXECUTOR_ID`    |
+| `--log-level`       | Logging level (info, debug, trace)                  | info        | `AQUEDUCTS_LOG_LEVEL`      |
 
 ### Docker Compose Setup
 

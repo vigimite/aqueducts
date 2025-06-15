@@ -17,17 +17,15 @@ use tower_http::trace::{DefaultOnFailure, TraceLayer};
 use tracing::{debug, error, info, instrument, Instrument, Level};
 
 use crate::{
-    executor::{execute_pipeline, ExecutionManager},
+    execution::{execute_pipeline, ExecutionManager},
     ApiContextRef,
 };
-
-mod auth;
 
 pub fn router(context: ApiContextRef) -> Router<ApiContextRef> {
     let public_routes = Router::new().route("/api/health", get(health_check));
 
     let protected_routes = Router::new().route("/ws/connect", any(ws_handler)).layer(
-        axum::middleware::from_fn_with_state(context, auth::require_api_key),
+        axum::middleware::from_fn_with_state(context, crate::coordination::auth::require_api_key),
     );
 
     Router::new()
@@ -41,6 +39,7 @@ struct HealthCheckResponse {
     status: String,
 }
 
+
 async fn health_check() -> Json<HealthCheckResponse> {
     let response = HealthCheckResponse {
         status: "OK".to_string(),
@@ -48,6 +47,7 @@ async fn health_check() -> Json<HealthCheckResponse> {
 
     Json(response)
 }
+
 
 #[instrument(skip(ws, context), fields(executor_id = %context.config.executor_id))]
 async fn ws_handler(
@@ -164,6 +164,17 @@ async fn handle_socket(
                         "Received cancellation request"
                     );
                     manager.cancel(execution_id).await;
+                }
+                Ok(ClientMessage::RegistrationResponse { success, message }) => {
+                    // This should not happen in standalone mode, but handle gracefully
+                    if success {
+                        debug!("Received unexpected registration response (success) in standalone mode");
+                    } else {
+                        debug!(
+                            "Received unexpected registration response (failure) in standalone mode: {}",
+                            message.unwrap_or_else(|| "No reason provided".to_string())
+                        );
+                    }
                 }
                 Err(e) => {
                     error!(

@@ -2,53 +2,54 @@ use std::{net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
 
 use axum::Router;
 use clap::Parser;
-use config::Config;
-use executor::ExecutionManager;
+use config::{Config, ExecutorMode};
+use coordination::OrchestratorHandler;
+use execution::ExecutionManager;
 use tokio::signal;
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info, Level};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use uuid::Uuid;
 
-mod api;
 mod config;
+mod coordination;
 mod error;
-mod executor;
+mod execution;
 
 /// Remote executor for Aqueducts data pipeline framework
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    /// API key for authentication
-    #[arg(long, env = "AQUEDUCTS_API_KEY")]
-    api_key: String,
+    /// Server bind address
+    #[arg(long, env = "BIND_ADDRESS", default_value = "0.0.0.0:3031")]
+    bind_address: String,
 
-    /// Host address to bind to
-    #[arg(long, env = "AQUEDUCTS_HOST", default_value = "0.0.0.0")]
-    host: String,
+    /// Executor operation mode (standalone or managed)
+    #[arg(long, env = "EXECUTOR_MODE", default_value = "standalone")]
+    mode: ExecutorMode,
 
-    /// Port to listen on
-    #[arg(long, env = "AQUEDUCTS_PORT", default_value = "3031")]
-    port: u16,
+    /// Orchestrator URL for managed mode
+    #[arg(long, env = "ORCHESTRATOR_URL")]
+    orchestrator_url: Option<String>,
+
+    /// API key - for standalone mode: executor's own key, for managed mode: orchestrator's key
+    #[arg(long, env = "API_KEY")]
+    api_key: Option<String>,
 
     /// Maximum memory usage in GB (optional)
-    #[arg(long, env = "AQUEDUCTS_MAX_MEMORY")]
+    #[arg(long, env = "MAX_MEMORY")]
     max_memory: Option<usize>,
 
-    /// URL of Aqueducts server for registration (optional)
-    #[arg(long, env = "AQUEDUCTS_SERVER_URL")]
-    server_url: Option<String>,
-
     /// Unique identifier for this executor (optional)
-    #[arg(long, env = "AQUEDUCTS_EXECUTOR_ID")]
+    #[arg(long, env = "EXECUTOR_ID")]
     executor_id: Option<Uuid>,
 
     /// Logging level (info, debug, trace)
-    #[arg(long, env = "AQUEDUCTS_LOG_LEVEL", default_value = "info")]
+    #[arg(long, env = "RUST_LOG", default_value = "info")]
     log_level: String,
 }
 
-type ApiContextRef = Arc<ApiContext>;
+pub type ApiContextRef = Arc<ApiContext>;
 
 pub struct ApiContext {
     pub config: Config,
@@ -87,7 +88,13 @@ async fn main() {
         "Starting Aqueducts Executor"
     );
 
-    let config = match Config::try_new(cli.api_key, executor_id, cli.max_memory) {
+    let config = match Config::try_new(
+        executor_id,
+        cli.mode,
+        cli.max_memory,
+        cli.orchestrator_url,
+        cli.api_key,
+    ) {
         Ok(config) => config,
         Err(e) => {
             error!("Configuration error: {}", e);
@@ -98,6 +105,7 @@ async fn main() {
     info!(
         executor_id = %config.executor_id,
         max_memory_gb = ?config.max_memory_gb,
+        mode = ?config.mode,
         "Configuration validated successfully"
     );
 
@@ -120,35 +128,55 @@ async fn main() {
         })
     };
 
-    let app = Router::new()
-        .merge(api::router(Arc::clone(&context)))
-        .with_state(context);
+    match context.config.mode {
+        ExecutorMode::Standalone => {
+            let app = Router::new()
+                .merge(coordination::standalone::router(Arc::clone(&context)))
+                .with_state(context);
 
-    let addr: SocketAddr = match format!("{}:{}", cli.host, cli.port).parse() {
-        Ok(addr) => addr,
-        Err(e) => {
-            error!("Failed to parse socket address: {}", e);
-            std::process::exit(1);
+            let addr: SocketAddr = match cli.bind_address.parse() {
+                Ok(addr) => addr,
+                Err(e) => {
+                    error!("Failed to parse bind address '{}': {}", cli.bind_address, e);
+                    std::process::exit(1);
+                }
+            };
+
+            info!(addr = %addr, "Starting standalone executor server");
+            let listener = match tokio::net::TcpListener::bind(addr).await {
+                Ok(listener) => listener,
+                Err(e) => {
+                    error!("Failed to bind to address {}: {}", addr, e);
+                    std::process::exit(1);
+                }
+            };
+
+            info!("Server started, press Ctrl+C to stop");
+            let server_handle = axum::serve(listener, app)
+                .with_graceful_shutdown(shutdown_signal_handler(shutdown_token))
+                .await;
+
+            match server_handle {
+                Ok(_) => info!("Server shut down gracefully"),
+                Err(e) => error!(error = %e, "Server error during shutdown"),
+            }
         }
-    };
+        ExecutorMode::Managed => {
+            info!("Starting managed executor, connecting to orchestrator");
 
-    info!(addr = %addr, "Listening for connections");
-    let listener = match tokio::net::TcpListener::bind(addr).await {
-        Ok(listener) => listener,
-        Err(e) => {
-            error!("Failed to bind to address {}: {}", addr, e);
-            std::process::exit(1);
+            let orchestrator_client =
+                OrchestratorHandler::new(context.config.clone(), context.manager.clone());
+
+            // Run orchestrator client until shutdown
+            tokio::select! {
+                _ = orchestrator_client.start() => {
+                    info!("Orchestrator client stopped");
+                },
+                _ = shutdown_signal_handler(shutdown_token) => {
+                    info!("Received shutdown signal, stopping orchestrator client");
+                }
+            }
         }
-    };
-
-    info!("Server started, press Ctrl+C to stop");
-    let server_handle = axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal_handler(shutdown_token))
-        .await;
-
-    match server_handle {
-        Ok(_) => info!("Server shut down gracefully"),
-        Err(e) => error!(error = %e, "Server error during shutdown"),
     }
 
     info!("Forcing shutdown of the execution manager");

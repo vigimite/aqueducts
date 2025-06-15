@@ -33,11 +33,10 @@ docker run -d \
 docker run -d \
   --name aqueducts-executor \
   -p 3031:3031 \
-  -e AQUEDUCTS_API_KEY=your_secret_key \
-  -e AQUEDUCTS_HOST=0.0.0.0 \
-  -e AQUEDUCTS_PORT=3031 \
-  -e AQUEDUCTS_MAX_MEMORY=4 \
-  -e AQUEDUCTS_LOG_LEVEL=info \
+  -e API_KEY=your_secret_key \
+  -e BIND_ADDRESS=0.0.0.0:3031 \
+  -e MAX_MEMORY=4 \
+  -e RUST_LOG=info \
   ghcr.io/vigimite/aqueducts/aqueducts-executor:latest
 ```
 
@@ -73,24 +72,78 @@ cargo install aqueducts-executor
 cargo install aqueducts-executor --features odbc
 ```
 
+## Operation Modes
+
+### Standalone Mode
+
+In standalone mode, the executor accepts direct connections from CLI clients:
+
+```bash
+# Start in standalone mode (default)
+aqueducts-executor --mode standalone --api-key your_secret_key
+
+# Or using environment variables
+EXECUTOR_MODE=standalone \
+API_KEY=your_secret_key \
+aqueducts-executor
+```
+
+**Use Cases:**
+- Direct CLI-to-executor connections
+- Development and testing environments
+- Simple remote execution setups
+
+### Managed Mode
+
+In managed mode, the executor connects to an orchestrator and is fully managed:
+
+```bash
+# Start in managed mode
+aqueducts-executor --mode managed \
+  --orchestrator-url ws://orchestrator:3000/ws/executor/register \
+  --api-key orchestrator_shared_secret
+
+# Or using environment variables
+EXECUTOR_MODE=managed \
+ORCHESTRATOR_URL=ws://orchestrator:3000/ws/executor/register \
+API_KEY=orchestrator_shared_secret \
+aqueducts-executor
+```
+
+**Use Cases:**
+- Production deployments with centralized management
+- Auto-scaling executor pools
+- Scheduled and event-driven pipeline execution
+- Enterprise environments requiring centralized control
+
 ## Configuration Options
 
-| Option          | Description                                         | Default        | Environment Variable    |
-|-----------------|-----------------------------------------------------|----------------|-------------------------|
-| `--api-key`     | API key for authentication                          | -              | `AQUEDUCTS_API_KEY`     |
-| `--host`        | Host address to bind to                             | 0.0.0.0        | `AQUEDUCTS_HOST`        |
-| `--port`        | Port to listen on                                   | 8080           | `AQUEDUCTS_PORT`        |
-| `--max-memory`  | Maximum memory usage in GB (0 for unlimited)        | 0              | `AQUEDUCTS_MAX_MEMORY`  |
-| `--server-url`  | URL of Aqueducts server for registration (optional) | -              | `AQUEDUCTS_SERVER_URL`  |
-| `--executor-id` | Unique identifier for this executor                 | auto-generated | `AQUEDUCTS_EXECUTOR_ID` |
-| `--log-level`   | Logging level (info, debug, trace)                  | info           | `AQUEDUCTS_LOG_LEVEL`   |
+| Option              | Description                                    | Default      | Environment Variable |
+|---------------------|------------------------------------------------|--------------|----------------------|
+| `--mode`            | Operation mode (standalone or managed)         | standalone   | `EXECUTOR_MODE`      |
+| `--api-key`         | API key (executor's own or orchestrator's)     | -            | `API_KEY`            |
+| `--orchestrator-url`| Orchestrator WebSocket URL (managed mode only) | -            | `ORCHESTRATOR_URL`   |
+| `--bind-address`    | Server bind address                            | 0.0.0.0:3031 | `BIND_ADDRESS`       |
+| `--max-memory`      | Maximum memory usage in GB (0 for unlimited)   | 0            | `MAX_MEMORY`         |
+| `--executor-id`     | Unique identifier for this executor            | auto-gen     | `EXECUTOR_ID`        |
+| `--log-level`       | Logging level (info, debug, trace)             | info         | `RUST_LOG`           |
 
 ## API Endpoints
+
+### Standalone Mode
 
 | Endpoint       | Method | Auth | Description                                        |
 |----------------|--------|------|----------------------------------------------------|
 | `/api/health`  | GET    | No   | Basic health check                                 |
-| `/ws/connect`  | GET    | Yes  | WebSocket endpoint for bidirectional communication |
+| `/ws/connect`  | GET    | Yes  | WebSocket endpoint for CLI client connections      |
+
+### Managed Mode
+
+| Endpoint       | Method | Auth | Description                                        |
+|----------------|--------|------|----------------------------------------------------|
+| `/api/health`  | GET    | No   | Basic health check (for orchestrator monitoring)   |
+
+*Note: In managed mode, the executor does not accept direct client connections. All execution requests come through the orchestrator via persistent WebSocket connection.*
 
 ## ODBC Configuration Requirements
 

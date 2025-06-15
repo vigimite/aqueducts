@@ -76,6 +76,19 @@ cargo install aqueducts-executor --locked
 cargo install aqueducts-executor --locked --features odbc
 ```
 
+### Orchestrator
+
+The Orchestrator provides a web-based management interface for pipelines with scheduling, monitoring, and execution capabilities:
+
+```bash
+# Build and run the orchestrator
+cargo build --workspace
+cargo run -p aqueducts-orchestrator --bin aqueducts-orchestrator
+
+# Or build with specific features
+cargo build -p aqueducts-orchestrator --features "json,yaml"
+```
+
 ### Library
 
 Add Aqueducts to your Rust project:
@@ -104,11 +117,15 @@ aqueducts run --file examples/aqueduct_pipeline_example.yml --param year=2024 --
 
 ### Remote Execution
 
-1. Start a remote executor:
+The executor supports two operation modes:
+
+#### Standalone Mode (Direct CLI Connection)
+
+1. Start a standalone executor:
 
 ```bash
-# Run the executor with an API key
-aqueducts-executor --api-key your_secret_key --max-memory 4
+# Run the executor with an API key for direct CLI access
+aqueducts-executor --mode standalone --api-key your_secret_key --max-memory 4
 ```
 
 2. Execute a pipeline remotely:
@@ -118,6 +135,58 @@ aqueducts run --file examples/aqueduct_pipeline_example.yml \
   --param year=2024 --param month=jan \
   --executor http://executor-host:3031 \
   --api-key your_secret_key
+```
+
+#### Managed Mode (Orchestrator-Managed)
+
+1. Start a managed executor (connects to orchestrator):
+
+```bash
+# Run executor in managed mode - no direct CLI access
+aqueducts-executor --mode managed \
+  --orchestrator-url ws://orchestrator:3000/ws/executor/register \
+  --api-key orchestrator_shared_secret
+```
+
+2. Execute pipelines through the orchestrator web interface or API
+
+### Orchestrator Web Interface
+
+The Orchestrator provides a modern web interface for managing and monitoring your data pipelines:
+
+1. **Start the Orchestrator server**:
+
+```bash
+# Build and run the orchestrator
+cargo run -p aqueducts-orchestrator --bin aqueducts-orchestrator
+
+# Server will start on http://localhost:3030 by default
+```
+
+2. **Access the Web Interface**:
+   - **Dashboard**: http://localhost:3030/ - Overview of pipeline metrics and system status
+   - **Pipelines**: http://localhost:3030/pipelines - Manage and execute pipelines
+   - **Executions**: http://localhost:3030/executions - Monitor pipeline execution history
+   - **Executors**: http://localhost:3030/executors - View registered executor nodes
+
+3. **Features**:
+   - 📊 **Real-time Dashboard**: Live metrics and system health monitoring
+   - ⚙️ **Pipeline Management**: Create, edit, and configure data pipelines
+   - 🔄 **Execution Monitoring**: Track pipeline runs with detailed logs
+   - 📅 **Scheduling**: Cron-based pipeline scheduling and event triggers
+   - 🔧 **Executor Management**: Monitor remote executor nodes and resources
+   - 🎨 **Modern UI**: Built with HTMX, Alpine.js, and TailwindCSS for responsive interactions
+
+4. **Environment Configuration**:
+
+```bash
+# Configure server settings via environment variables
+export DATABASE_URL="sqlite:orchestrator.db"  # SQLite database path
+export SERVER_HOST="0.0.0.0"                 # Bind to all interfaces
+export SERVER_PORT="3030"                    # Server port
+export LOG_LEVEL="info"                      # Logging level
+
+cargo run -p aqueducts-orchestrator --bin aqueducts-orchestrator
 ```
 
 ## Example Pipeline
@@ -235,6 +304,7 @@ Aqueducts consists of several components:
 - **Provider Libraries**: Delta Lake (`aqueducts-delta`) and ODBC (`aqueducts-odbc`) integrations
 - **CLI**: Command-line interface to run pipelines locally or connect to remote executors
 - **Executor**: Server component for running pipelines remotely, closer to data sources
+- **Orchestrator**: Web-based management interface for pipeline scheduling, monitoring, and execution
 
 For component-specific details, see the respective README files:
 - [CLI README](https://github.com/vigimite/aqueducts/blob/main/aqueducts-cli/README.md)
@@ -269,6 +339,6 @@ Please see the [Contributing Guide](https://github.com/vigimite/aqueducts/blob/m
 - [x] Parallel processing of stages
 - [x] Remote execution
 - [x] Memory management
-- [ ] Web server for pipeline management and orchestration
+- [x] Web server for pipeline management and orchestration
 - [ ] Apache Iceberg support
 - [ ] Data catalog implementation for deltalake and apache iceberg

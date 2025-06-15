@@ -22,9 +22,11 @@ pub async fn require_api_key(
         .and_then(|value| value.to_str().ok());
 
     if let Some(provided) = api_key {
-        if provided == context.config.api_key {
-            debug!("API key authentication successful via X-API-Key header");
-            return Ok(next.run(req).await);
+        if let Some(expected) = &context.config.api_key {
+            if provided == expected {
+                debug!("API key authentication successful via X-API-Key header");
+                return Ok(next.run(req).await);
+            }
         }
     }
 

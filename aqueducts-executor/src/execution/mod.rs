@@ -8,10 +8,10 @@ use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 pub use manager::ExecutionManager;
-pub use progress_tracker::ExecutorProgressTracker;
+pub use progress::ExecutorProgressTracker;
 
 mod manager;
-mod progress_tracker;
+mod progress;
 mod queue;
 
 /// Broadcast when queue positions change
