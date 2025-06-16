@@ -70,7 +70,7 @@ thiserror = "2"
 anyhow = "1.0.98"
 
 # CLI utilities
-clap = { version = "4.5.39", features = ["derive", "env"] }
+clap = { version = "4.5.40", features = ["derive", "env"] }
 
 # General utilities
 bon = "3.6.3"
