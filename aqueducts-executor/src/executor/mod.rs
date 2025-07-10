@@ -59,7 +59,7 @@ pub async fn execute_pipeline(
                 let _ = client_tx
                     .send(ExecutorMessage::ExecutionError {
                         execution_id,
-                        message: format!("Failed to build runtime environment: {}", e),
+                        message: format!("Failed to build runtime environment: {e}"),
                     })
                     .await;
                 return;

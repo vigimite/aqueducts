@@ -49,10 +49,10 @@ impl TryFrom<&str> for Location {
         } else {
             // For relative paths, resolve against current directory
             let current_dir = std::env::current_dir()
-                .map_err(|e| format!("Cannot get current directory: {}", e))?;
+                .map_err(|e| format!("Cannot get current directory: {e}"))?;
             Url::from_file_path(current_dir.join(path))
         }
-        .map_err(|_| format!("Invalid path: {}", s))?;
+        .map_err(|_| format!("Invalid path: {s}"))?;
 
         Ok(Location(url))
     }
@@ -196,8 +196,7 @@ mod tests {
             assert_eq!(
                 location.scheme(),
                 expected_scheme,
-                "Failed for input: {}",
-                input
+                "Failed for input: {input}"
             );
         }
     }

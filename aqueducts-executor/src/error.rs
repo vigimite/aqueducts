@@ -28,7 +28,7 @@ impl IntoResponse for ExecutorError {
         };
 
         let body = serde_json::to_string(&error_response)
-            .unwrap_or_else(|_| format!("{{\"error\": \"{}\"}}", self));
+            .unwrap_or_else(|_| format!("{{\"error\": \"{self}\"}}"));
 
         let mut response = Response::new(body.into());
         *response.status_mut() = status;

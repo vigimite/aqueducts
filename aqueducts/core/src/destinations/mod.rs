@@ -31,7 +31,7 @@ pub async fn register_destination(
             .map_err(|e| {
                 AqueductsError::destination(
                     &odbc_dest.name,
-                    format!("ODBC destination error: {}", e),
+                    format!("ODBC destination error: {e}"),
                 )
             })?;
             Ok(())
@@ -45,7 +45,7 @@ pub async fn register_destination(
                 .iter()
                 .map(|field| {
                     crate::schema_transform::field_to_arrow(field).map_err(|e| {
-                        AqueductsError::schema_validation(format!("Schema conversion error: {}", e))
+                        AqueductsError::schema_validation(format!("Schema conversion error: {e}"))
                     })
                 })
                 .collect();
@@ -63,7 +63,7 @@ pub async fn register_destination(
             .map_err(|e| {
                 AqueductsError::destination(
                     &delta_dest.name,
-                    format!("Delta destination error: {}", e),
+                    format!("Delta destination error: {e}"),
                 )
             })?;
             Ok(())
@@ -125,7 +125,7 @@ pub async fn write_to_destination(
             .map_err(|e| {
                 AqueductsError::destination(
                     &odbc_dest.name,
-                    format!("ODBC destination error: {}", e),
+                    format!("ODBC destination error: {e}"),
                 )
             })?;
             Ok(())
@@ -144,7 +144,7 @@ pub async fn write_to_destination(
             .map_err(|e| {
                 AqueductsError::destination(
                     &delta_dest.name,
-                    format!("Delta destination error: {}", e),
+                    format!("Delta destination error: {e}"),
                 )
             })?;
             Ok(())

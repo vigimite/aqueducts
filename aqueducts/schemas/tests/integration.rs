@@ -112,20 +112,20 @@ fn test_example_pipeline_files() {
         }
 
         let content =
-            fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to read file: {:?}", path));
+            fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to read file: {path:?}"));
 
         // Test deserialization based on file extension
         let _pipeline: Aqueduct =
             if path.extension().unwrap() == "yml" || path.extension().unwrap() == "yaml" {
                 serde_yml::from_str(&content)
-                    .unwrap_or_else(|e| panic!("Failed to parse YAML file {}: {}", file_name, e))
+                    .unwrap_or_else(|e| panic!("Failed to parse YAML file {file_name}: {e}"))
             } else if path.extension().unwrap() == "json" {
                 serde_json::from_str(&content)
-                    .unwrap_or_else(|e| panic!("Failed to parse JSON file {}: {}", file_name, e))
+                    .unwrap_or_else(|e| panic!("Failed to parse JSON file {file_name}: {e}"))
             } else {
                 continue; // Skip non-YAML/JSON files
             };
 
-        println!("Successfully parsed: {}", file_name);
+        println!("Successfully parsed: {file_name}");
     }
 }

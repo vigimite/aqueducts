@@ -61,7 +61,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> crate:
             .map_err(|e| {
                 crate::error::AqueductsError::source(
                     &odbc_source.name,
-                    format!("ODBC source error: {}", e),
+                    format!("ODBC source error: {e}"),
                 )
             })?;
         }
@@ -80,7 +80,7 @@ pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> crate:
                 .map_err(|e| {
                     crate::error::AqueductsError::source(
                         &delta_source.name,
-                        format!("Delta source error: {}", e),
+                        format!("Delta source error: {e}"),
                     )
                 })?;
         }

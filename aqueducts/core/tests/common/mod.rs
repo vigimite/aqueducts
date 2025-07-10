@@ -86,7 +86,7 @@ pub fn generate_test_jsonl<P: AsRef<Path>>(
             r#"{{"id":{},"name":"{}","value":{},"active":{}}}"#,
             record.id, record.name, record.value, record.active
         );
-        writeln!(file, "{}", json_line)?;
+        writeln!(file, "{json_line}")?;
     }
 
     file.flush()?;
@@ -204,7 +204,7 @@ pub fn generate_large_dataset(size: usize) -> Vec<TestRecord> {
         .map(|i| {
             TestRecord::new(
                 i as i32,
-                &format!("user_{}", i),
+                &format!("user_{i}"),
                 (i as f64) * 1.5,
                 i % 2 == 0,
             )

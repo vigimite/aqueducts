@@ -38,7 +38,7 @@ where
 
     // Deserialize as a string
     let s = String::deserialize(deserializer)?;
-    DataType::from_str(&s).map_err(|e| D::Error::custom(format!("Invalid data type: {}", e)))
+    DataType::from_str(&s).map_err(|e| D::Error::custom(format!("Invalid data type: {e}")))
 }
 
 /// Custom deserializer for partition columns that handles both tuple and object formats
@@ -64,7 +64,7 @@ where
         .map(|col| match col {
             PartitionColumn::Tuple(name, type_str) => {
                 let data_type = DataType::from_str(&type_str).map_err(|e| {
-                    D::Error::custom(format!("Invalid data type in partition column: {}", e))
+                    D::Error::custom(format!("Invalid data type in partition column: {e}"))
                 })?;
                 Ok((name, data_type))
             }
@@ -73,7 +73,7 @@ where
                 data_type: type_str,
             } => {
                 let data_type = DataType::from_str(&type_str).map_err(|e| {
-                    D::Error::custom(format!("Invalid data type in partition column: {}", e))
+                    D::Error::custom(format!("Invalid data type in partition column: {e}"))
                 })?;
                 Ok((name, data_type))
             }

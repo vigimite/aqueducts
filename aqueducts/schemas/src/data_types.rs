@@ -222,7 +222,7 @@ impl fmt::Display for DataType {
             DataType::LargeUtf8 => write!(f, "large_string"),
             DataType::Binary => write!(f, "binary"),
             DataType::LargeBinary => write!(f, "large_binary"),
-            DataType::FixedSizeBinary(size) => write!(f, "fixed_binary<{}>", size),
+            DataType::FixedSizeBinary(size) => write!(f, "fixed_binary<{size}>"),
             DataType::Date32 => write!(f, "date32"),
             DataType::Date64 => write!(f, "date64"),
             DataType::Time32(unit) => write!(f, "time32<{}>", unit_to_string(unit)),
@@ -236,9 +236,9 @@ impl fmt::Display for DataType {
             }
             DataType::Duration(unit) => write!(f, "duration<{}>", unit_to_string(unit)),
             DataType::Interval(unit) => write!(f, "interval<{}>", interval_unit_to_string(unit)),
-            DataType::Decimal128(precision, scale) => write!(f, "decimal<{},{}>", precision, scale),
+            DataType::Decimal128(precision, scale) => write!(f, "decimal<{precision},{scale}>"),
             DataType::Decimal256(precision, scale) => {
-                write!(f, "decimal256<{},{}>", precision, scale)
+                write!(f, "decimal256<{precision},{scale}>")
             }
             DataType::List(field) => write!(f, "list<{}>", field.data_type),
             DataType::LargeList(field) => write!(f, "large_list<{}>", field.data_type),
@@ -270,7 +270,7 @@ impl fmt::Display for DataType {
                 }
                 write!(f, ">")
             }
-            DataType::Dictionary(key, value) => write!(f, "dictionary<{},{}>", key, value),
+            DataType::Dictionary(key, value) => write!(f, "dictionary<{key},{value}>"),
         }
     }
 }
@@ -499,10 +499,10 @@ impl FromStr for DataType {
                         false,
                     ))
                 }
-                _ => Err(format!("Unknown parameterized type: {}", type_name)),
+                _ => Err(format!("Unknown parameterized type: {type_name}")),
             }
         } else {
-            Err(format!("Unknown data type: {}", s))
+            Err(format!("Unknown data type: {s}"))
         }
     }
 }
@@ -513,7 +513,7 @@ fn parse_time_unit(s: &str) -> Result<TimeUnit, String> {
         "millisecond" | "ms" => Ok(TimeUnit::Millisecond),
         "microsecond" | "us" => Ok(TimeUnit::Microsecond),
         "nanosecond" | "ns" => Ok(TimeUnit::Nanosecond),
-        _ => Err(format!("Unknown time unit: {}", s)),
+        _ => Err(format!("Unknown time unit: {s}")),
     }
 }
 
@@ -555,8 +555,7 @@ fn parse_struct_field(field_def: &str) -> Result<Field, String> {
     let parts: Vec<&str> = field_def.splitn(2, ':').collect();
     if parts.len() != 2 {
         return Err(format!(
-            "Invalid struct field definition: {}. Expected format: name:type",
-            field_def
+            "Invalid struct field definition: {field_def}. Expected format: name:type"
         ));
     }
 

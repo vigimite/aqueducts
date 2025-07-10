@@ -133,8 +133,7 @@ pub trait TemplateLoader {
 
         if !missing_params.is_empty() {
             let error = AqueductsError::template(format!(
-                "Missing template parameters: {:?}",
-                missing_params
+                "Missing template parameters: {missing_params:?}"
             ));
 
             error!("{error}");
@@ -149,7 +148,7 @@ impl TemplateLoader for Aqueduct {
     fn from_file<T: AsRef<Path>>(path: T, params: HashMap<String, String>) -> Result<Aqueduct> {
         let path = path.as_ref();
         let ext = path.extension().and_then(|s| s.to_str()).ok_or_else(|| {
-            AqueductsError::template(format!("Missing file extension for: {:?}", path))
+            AqueductsError::template(format!("Missing file extension for: {path:?}"))
         })?;
 
         debug!("Parsing file with extension: {}", ext);
@@ -223,7 +222,7 @@ impl TemplateLoader for Aqueduct {
                     Err(AqueductsError::unsupported("template format", format!("{:?} support is not enabled in this build. Enable the corresponding feature flag", format)))
                 }
             }
-            fmt @ TemplateFormat::Unknown(_) => Err(AqueductsError::unsupported("template format", format!("{:?} support is not enabled in this build. Enable the corresponding feature flag", fmt))),
+            fmt @ TemplateFormat::Unknown(_) => Err(AqueductsError::unsupported("template format", format!("{fmt:?} support is not enabled in this build. Enable the corresponding feature flag"))),
         }
     }
 }

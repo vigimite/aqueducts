@@ -37,8 +37,7 @@ fn unnest_json_array_udf() -> datafusion::logical_expr::ScalarUDF {
                         builder.append(true);
                     } else {
                         return Err(DataFusionError::Execution(format!(
-                            "unnest_json_array: expected JSON array, got {}",
-                            v
+                            "unnest_json_array: expected JSON array, got {v}"
                         )));
                     }
                 }
@@ -83,8 +82,7 @@ mod tests {
         let df = ctx
             .sql(&format!(
                 "SELECT unnest_json_array(c) AS arr \
-                 FROM (VALUES ('{}')) AS t(c)",
-                json
+                 FROM (VALUES ('{json}')) AS t(c)"
             ))
             .await
             .unwrap();

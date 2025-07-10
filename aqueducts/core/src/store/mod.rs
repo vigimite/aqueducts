@@ -172,7 +172,7 @@ impl ObjectStoreProvider for LocalFileProvider {
             "memory" => Ok(Arc::new(object_store::memory::InMemory::new())),
             scheme => Err(AqueductsError::unsupported(
                 "URL scheme",
-                format!("Unsupported URL scheme: {}", scheme),
+                format!("Unsupported URL scheme: {scheme}"),
             )),
         }
     }
@@ -273,8 +273,7 @@ mod tests {
         let error = result.unwrap_err();
         assert!(
             error.to_string().contains("http"),
-            "Expected error message to contain 'http', got: {}",
-            error
+            "Expected error message to contain 'http', got: {error}"
         );
     }
 
@@ -299,8 +298,7 @@ mod tests {
         let error = result.unwrap_err();
         assert!(
             error.to_string().contains("ftp"),
-            "Expected error message to contain 'ftp', got: {}",
-            error
+            "Expected error message to contain 'ftp', got: {error}"
         );
     }
 

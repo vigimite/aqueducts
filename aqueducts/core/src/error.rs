@@ -191,7 +191,7 @@ impl From<object_store::Error> for AqueductsError {
 impl From<regex::Error> for AqueductsError {
     fn from(err: regex::Error) -> Self {
         Self::Parse {
-            message: format!("Regex error: {}", err),
+            message: format!("Regex error: {err}"),
         }
     }
 }
@@ -200,7 +200,7 @@ impl From<regex::Error> for AqueductsError {
 impl From<serde_json::Error> for AqueductsError {
     fn from(err: serde_json::Error) -> Self {
         Self::Parse {
-            message: format!("JSON error: {}", err),
+            message: format!("JSON error: {err}"),
         }
     }
 }
@@ -209,7 +209,7 @@ impl From<serde_json::Error> for AqueductsError {
 impl From<toml::de::Error> for AqueductsError {
     fn from(err: toml::de::Error) -> Self {
         Self::Parse {
-            message: format!("TOML deserialization error: {}", err),
+            message: format!("TOML deserialization error: {err}"),
         }
     }
 }
@@ -218,7 +218,7 @@ impl From<toml::de::Error> for AqueductsError {
 impl From<toml::ser::Error> for AqueductsError {
     fn from(err: toml::ser::Error) -> Self {
         Self::Parse {
-            message: format!("TOML serialization error: {}", err),
+            message: format!("TOML serialization error: {err}"),
         }
     }
 }
@@ -227,7 +227,7 @@ impl From<toml::ser::Error> for AqueductsError {
 impl From<serde_yml::Error> for AqueductsError {
     fn from(err: serde_yml::Error) -> Self {
         Self::Parse {
-            message: format!("YAML error: {}", err),
+            message: format!("YAML error: {err}"),
         }
     }
 }
@@ -237,7 +237,7 @@ impl From<serde_yml::Error> for AqueductsError {
 impl From<HashSet<String>> for AqueductsError {
     fn from(missing_params: HashSet<String>) -> Self {
         Self::Template {
-            message: format!("Missing template parameters: {:?}", missing_params),
+            message: format!("Missing template parameters: {missing_params:?}"),
         }
     }
 }
@@ -245,7 +245,7 @@ impl From<HashSet<String>> for AqueductsError {
 impl From<(PathBuf, &'static str)> for AqueductsError {
     fn from((path, context): (PathBuf, &'static str)) -> Self {
         Self::Template {
-            message: format!("{}: {:?}", context, path),
+            message: format!("{context}: {path:?}"),
         }
     }
 }
@@ -255,8 +255,7 @@ impl From<TemplateFormat> for AqueductsError {
         Self::Unsupported {
             operation: "template format".to_string(),
             context: format!(
-                "{:?} support is not enabled in this build. Enable the corresponding feature flag",
-                format
+                "{format:?} support is not enabled in this build. Enable the corresponding feature flag"
             ),
         }
     }
