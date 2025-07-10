@@ -1,0 +1,51 @@
+# Build artifacts
+target/
+**/target/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation build artifacts
+site/
+docs/site/
+
+# Local environment files
+.env
+.env.local
+
+# Rust
+**/*.rs.bk
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Claude AI
+.claude/
+
+# GitHub
+.github/
+
+# Examples and test data (optional - uncomment if not needed in build)
+# examples/
+# **/tests/

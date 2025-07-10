@@ -1,4 +1,6 @@
-FROM rust:1.86-slim AS builder
+# syntax=docker/dockerfile:1
+FROM lukemathwalker/cargo-chef:latest-rust-1.86-slim AS chef
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     pkg-config \
@@ -9,15 +11,22 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-COPY Cargo.toml Cargo.lock ./
-COPY aqueducts/ ./aqueducts/
-COPY tools/ ./tools/
-COPY aqueducts-cli/ ./aqueducts-cli/
-COPY aqueducts-executor/ ./aqueducts-executor/
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo chef cook --release --features odbc -p aqueducts-executor --recipe-path recipe.json
 
-RUN cargo build --release --features odbc -p aqueducts-executor
+COPY . .
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release --features odbc -p aqueducts-executor && \
+    cp target/release/aqueducts-executor /tmp/aqueducts-executor
 
 FROM debian:bookworm-slim
 
@@ -30,9 +39,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN useradd --create-home --shell /bin/bash aqueducts
 
-COPY --from=builder /app/target/release/aqueducts-executor /usr/local/bin/aqueducts-executor
+COPY --from=builder /tmp/aqueducts-executor /usr/local/bin/aqueducts-executor
 
-# Copy ODBC configuration files
 COPY docker/odbcinst.ini /etc/odbcinst.ini
 COPY docker/odbc.ini /etc/odbc.ini
 
