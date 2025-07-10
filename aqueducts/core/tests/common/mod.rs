@@ -201,14 +201,7 @@ impl TestDataSet {
 #[allow(dead_code)]
 pub fn generate_large_dataset(size: usize) -> Vec<TestRecord> {
     (0..size)
-        .map(|i| {
-            TestRecord::new(
-                i as i32,
-                &format!("user_{i}"),
-                (i as f64) * 1.5,
-                i % 2 == 0,
-            )
-        })
+        .map(|i| TestRecord::new(i as i32, &format!("user_{i}"), (i as f64) * 1.5, i % 2 == 0))
         .collect()
 }
 

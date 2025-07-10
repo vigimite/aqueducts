@@ -29,10 +29,7 @@ pub async fn register_destination(
             )
             .await
             .map_err(|e| {
-                AqueductsError::destination(
-                    &odbc_dest.name,
-                    format!("ODBC destination error: {e}"),
-                )
+                AqueductsError::destination(&odbc_dest.name, format!("ODBC destination error: {e}"))
             })?;
             Ok(())
         }
@@ -123,10 +120,7 @@ pub async fn write_to_destination(
             )
             .await
             .map_err(|e| {
-                AqueductsError::destination(
-                    &odbc_dest.name,
-                    format!("ODBC destination error: {e}"),
-                )
+                AqueductsError::destination(&odbc_dest.name, format!("ODBC destination error: {e}"))
             })?;
             Ok(())
         }
