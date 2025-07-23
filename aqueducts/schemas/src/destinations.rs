@@ -165,7 +165,7 @@ pub enum WriteMode {
     #[serde(alias = "append", alias = "Append")]
     Append,
 
-    /// `Custom`: Inserts data with a prepared stament. Option to perform any number of (non-insert) preliminary statements
+    /// `Custom`: Inserts data with a prepared statement. Option to perform any number of (non-insert) preliminary statements
     #[serde(alias = "custom", alias = "Custom")]
     Custom(CustomStatements),
 }

@@ -1,4 +1,5 @@
 use aqueducts_schemas::Destination;
+use datafusion::arrow::datatypes::Schema;
 use datafusion::{dataframe::DataFrame, datasource::MemTable, execution::context::SessionContext};
 use std::sync::Arc;
 use tracing::{debug, instrument};
@@ -127,9 +128,22 @@ pub async fn write_to_destination(
         #[cfg(feature = "delta")]
         Destination::Delta(delta_dest) => {
             debug!("Writing data to Delta destination '{}'", delta_dest.name);
+
+            let arrow_fields: Result<Vec<_>> = delta_dest
+                .schema
+                .iter()
+                .map(|field| {
+                    crate::schema_transform::field_to_arrow(field).map_err(|e| {
+                        AqueductsError::schema_validation(format!("Schema conversion error: {e}"))
+                    })
+                })
+                .collect();
+            let arrow_schema = Schema::new(arrow_fields?);
+
             aqueducts_delta::write_to_delta_destination(
                 &delta_dest.name,
                 delta_dest.location.as_str(),
+                &arrow_schema,
                 &delta_dest.storage_config,
                 &delta_dest.write_mode,
                 data,

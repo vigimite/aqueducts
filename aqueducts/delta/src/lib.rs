@@ -113,6 +113,7 @@ pub async fn prepare_delta_destination(
 pub async fn write_to_delta_destination(
     name: &str,
     location: &str,
+    schema: &Schema,
     storage_config: &std::collections::HashMap<String, String>,
     write_mode: &DeltaWriteMode,
     data: DataFrame,
@@ -126,7 +127,7 @@ pub async fn write_to_delta_destination(
         location
     );
 
-    write_delta_table(location, storage_config, write_mode, data).await?;
+    write_delta_table(location, schema, storage_config, write_mode, data).await?;
 
     tracing::debug!("Successfully wrote data to delta destination '{}'", name);
 
@@ -162,20 +163,23 @@ async fn create_delta_table(
 
 async fn write_delta_table(
     location: &str,
+    table_schema: &Schema,
     storage_config: &std::collections::HashMap<String, String>,
     write_mode: &DeltaWriteMode,
     data: DataFrame,
 ) -> std::result::Result<DeltaTable, DeltaError> {
-    // Get the table schema for validation and merge operations
     let data_schema = data.schema().as_arrow().clone();
-    let validated_data = validate_schema(data_schema.clone(), data)?;
+    let validated_data = validate_schema(table_schema, data)?;
 
     let ops = DeltaOps::try_from_uri_with_storage_options(location, storage_config.clone()).await?;
 
     let table = match write_mode {
         DeltaWriteMode::Append => {
             let batches = validated_data.collect().await?;
-            ops.write(batches).with_save_mode(SaveMode::Append).await?
+            ops.write(batches)
+                .with_schema_mode(deltalake::operations::write::SchemaMode::Overwrite)
+                .with_save_mode(SaveMode::Append)
+                .await?
         }
         DeltaWriteMode::Upsert(merge_cols) => {
             merge(ops, data_schema, merge_cols.clone(), validated_data).await?
@@ -189,6 +193,7 @@ async fn write_delta_table(
             ops.write(batches)
                 .with_save_mode(SaveMode::Overwrite)
                 .with_replace_where(replace_predicate)
+                .with_schema_mode(deltalake::operations::write::SchemaMode::Overwrite)
                 .await?
         }
     };
@@ -290,7 +295,7 @@ async fn merge(
 }
 
 /// Validate if the table schema matches the data that is about to be written (casts the dataframe to the output schema)
-fn validate_schema(schema: Schema, data: DataFrame) -> Result<DataFrame, DeltaError> {
+fn validate_schema(schema: &Schema, data: DataFrame) -> Result<DataFrame, DeltaError> {
     use datafusion::arrow::datatypes::DataType;
     use datafusion::prelude::{cast, col, Expr};
 

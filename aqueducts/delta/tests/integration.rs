@@ -69,6 +69,7 @@ async fn test_delta_source_register_ok() {
     write_to_delta_destination(
         "test_table",
         location.as_str(),
+        &datafusion::arrow::datatypes::Schema::new(arrow_schema),
         &storage_config,
         &DeltaWriteMode::Append,
         df,
@@ -144,6 +145,7 @@ async fn test_delta_destination_append_ok() {
     write_to_delta_destination(
         "test_table",
         location.as_str(),
+        &datafusion::arrow::datatypes::Schema::new(arrow_schema),
         &storage_config,
         &DeltaWriteMode::Append,
         df,
@@ -218,6 +220,7 @@ async fn test_delta_destination_upsert_ok() {
     write_to_delta_destination(
         "test_table",
         location.as_str(),
+        &datafusion::arrow::datatypes::Schema::new(arrow_schema.clone()),
         &storage_config,
         &DeltaWriteMode::Upsert(vec!["col_1".to_string()]),
         df,
@@ -238,6 +241,7 @@ async fn test_delta_destination_upsert_ok() {
     write_to_delta_destination(
         "test_table",
         location.as_str(),
+        &datafusion::arrow::datatypes::Schema::new(arrow_schema),
         &storage_config,
         &DeltaWriteMode::Upsert(vec!["col_1".to_string()]),
         df_update,
@@ -301,6 +305,7 @@ async fn test_delta_destination_replace_ok() {
     write_to_delta_destination(
         "test_table",
         location.as_str(),
+        &datafusion::arrow::datatypes::Schema::new(arrow_schema),
         &storage_config,
         &DeltaWriteMode::Replace(vec![ReplaceCondition {
             column: "col_1".to_string(),
