@@ -176,6 +176,14 @@ async fn write_delta_table(
     let table = match write_mode {
         DeltaWriteMode::Append => {
             let batches = validated_data.collect().await?;
+            let batches = batches
+                .into_iter()
+                .map(|b| b.with_schema(Arc::new(table_schema.clone())))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| {
+                    DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(e, None))
+                })?;
+
             ops.write(batches).with_save_mode(SaveMode::Append).await?
         }
         DeltaWriteMode::Upsert(merge_cols) => {
@@ -183,14 +191,21 @@ async fn write_delta_table(
         }
         DeltaWriteMode::Replace(conditions) => {
             let batches = validated_data.collect().await?;
+            let batches = batches
+                .into_iter()
+                .map(|b| b.with_schema(Arc::new(table_schema.clone())))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| {
+                    DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(e, None))
+                })?;
 
             // Build replace predicate from conditions
             let replace_predicate = build_replace_predicate(conditions);
 
             ops.write(batches)
+                .with_schema_mode(deltalake::operations::write::SchemaMode::Overwrite)
                 .with_save_mode(SaveMode::Overwrite)
                 .with_replace_where(replace_predicate)
-                .with_schema_mode(deltalake::operations::write::SchemaMode::Overwrite)
                 .await?
         }
     };
