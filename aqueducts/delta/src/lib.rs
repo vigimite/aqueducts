@@ -176,10 +176,7 @@ async fn write_delta_table(
     let table = match write_mode {
         DeltaWriteMode::Append => {
             let batches = validated_data.collect().await?;
-            ops.write(batches)
-                .with_schema_mode(deltalake::operations::write::SchemaMode::Overwrite)
-                .with_save_mode(SaveMode::Append)
-                .await?
+            ops.write(batches).with_save_mode(SaveMode::Append).await?
         }
         DeltaWriteMode::Upsert(merge_cols) => {
             merge(ops, data_schema, merge_cols.clone(), validated_data).await?

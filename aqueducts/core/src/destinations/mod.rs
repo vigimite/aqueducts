@@ -1,5 +1,4 @@
 use aqueducts_schemas::Destination;
-use datafusion::arrow::datatypes::Schema;
 use datafusion::{dataframe::DataFrame, datasource::MemTable, execution::context::SessionContext};
 use std::sync::Arc;
 use tracing::{debug, instrument};
@@ -138,7 +137,7 @@ pub async fn write_to_destination(
                     })
                 })
                 .collect();
-            let arrow_schema = Schema::new(arrow_fields?);
+            let arrow_schema = datafusion::arrow::datatypes::Schema::new(arrow_fields?);
 
             aqueducts_delta::write_to_delta_destination(
                 &delta_dest.name,
