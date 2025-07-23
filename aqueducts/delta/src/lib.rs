@@ -320,7 +320,7 @@ fn validate_schema(schema: &Schema, data: DataFrame) -> Result<DataFrame, DeltaE
         .collect::<Vec<Expr>>();
 
     let result = data.select(columns)?;
-    assert!(result.schema().matches_arrow_schema(&schema));
+    assert!(result.schema().matches_arrow_schema(schema));
 
     Ok(result)
 }
