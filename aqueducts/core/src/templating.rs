@@ -187,7 +187,7 @@ impl TemplateLoader for Aqueduct {
                 }
                 #[cfg(not(feature = "toml"))]
                 {
-                    Err(AqueductsError::unsupported("template format", format!("{:?} support is not enabled in this build. Enable the corresponding feature flag", format)))
+                    Err(AqueductsError::unsupported("template format", format!("{format:?} support is not enabled in this build. Enable the corresponding feature flag")))
                 }
             }
             TemplateFormat::Json => {

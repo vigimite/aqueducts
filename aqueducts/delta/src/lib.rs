@@ -178,7 +178,14 @@ async fn write_delta_table(
             let batches = validated_data.collect().await?;
             let batches = batches
                 .into_iter()
-                .map(|b| b.with_schema(Arc::new(table_schema.clone())))
+                .map(|b| {
+                    b.schema()
+                        .fields()
+                        .iter()
+                        .map(|f| table_schema.field_with_name(f.name()).cloned())
+                        .collect::<Result<Vec<_>, _>>()
+                        .and_then(|fields| b.with_schema(Arc::new(Schema::new(fields))))
+                })
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| {
                     DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(e, None))
@@ -193,7 +200,14 @@ async fn write_delta_table(
             let batches = validated_data.collect().await?;
             let batches = batches
                 .into_iter()
-                .map(|b| b.with_schema(Arc::new(table_schema.clone())))
+                .map(|b| {
+                    b.schema()
+                        .fields()
+                        .iter()
+                        .map(|f| table_schema.field_with_name(f.name()).cloned())
+                        .collect::<Result<Vec<_>, _>>()
+                        .and_then(|fields| b.with_schema(Arc::new(Schema::new(fields))))
+                })
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| {
                     DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(e, None))
