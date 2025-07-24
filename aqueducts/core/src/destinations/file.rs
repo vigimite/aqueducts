@@ -177,7 +177,7 @@ mod tests {
         // Setup
         let ctx = SessionContext::new();
 
-        let suffix = format!("partitioned/{}/", rand::random::<usize>());
+        let suffix = format!("partitioned/{}/", rand::random::<u64>());
         let path = generate_test_file_path(suffix.as_str());
         let definition = FileDestination::builder()
             .name("write".into())
