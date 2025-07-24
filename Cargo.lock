@@ -5005,7 +5005,7 @@ dependencies = [
 
 [[package]]
 name = "schema-generator"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "aqueducts-schemas",
  "schemars",

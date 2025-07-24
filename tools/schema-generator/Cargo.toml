@@ -1,6 +1,6 @@
 [package]
 name = "schema-generator"
-version = "0.11.0"
+version = "0.11.1"
 edition = "2021"
 description = "Tool to generate JSON schema for Aqueducts configuration"
 publish = false
