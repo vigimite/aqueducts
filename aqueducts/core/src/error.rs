@@ -3,10 +3,10 @@ use crate::{
     templating::TemplateError,
 };
 
-pub type Result<T> = core::result::Result<T, AqueductsError>;
+pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
-pub enum AqueductsError {
+pub enum Error {
     #[error(transparent)]
     Template(#[from] TemplateError),
 

@@ -42,7 +42,7 @@ use stages::process_stage;
 /// # Example
 ///
 /// ```rust,no_run
-/// use aqueducts_core::{run_pipeline, progress_tracker::LoggingProgressTracker, templating::TemplateLoader};
+/// use aqueducts_core::{run_pipeline, progress_tracker::LoggingProgressTracker, templating::TemplateLoader, templating::TemplateFormat};
 /// use aqueducts_schemas::Aqueduct;
 /// use datafusion::prelude::SessionContext;
 /// use std::sync::Arc;
@@ -50,7 +50,7 @@ use stages::process_stage;
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     // Load pipeline configuration
-///     let pipeline = Aqueduct::from_file("pipeline.yml", Default::default())?;
+///     let pipeline = Aqueduct::from_file("pipeline.yml", TemplateFormat::Yaml, Default::default())?;
 ///     
 ///     // Create DataFusion context
 ///     let ctx = Arc::new(SessionContext::new());
