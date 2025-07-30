@@ -1,4 +1,7 @@
-use crate::{destinations::DestinationError, sources::SourceError, stages::StageError, templating::TemplateError};
+use crate::{
+    destinations::DestinationError, sources::SourceError, stages::StageError,
+    templating::TemplateError,
+};
 
 use miette::Diagnostic;
 

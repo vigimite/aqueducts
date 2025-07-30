@@ -18,8 +18,7 @@ pub async fn run_local(file: PathBuf, params: HashMap<String, String>) -> Result
     let progress_tracker = Arc::new(LoggingProgressTracker);
 
     debug!("Starting pipeline execution");
-    run_pipeline(Arc::new(ctx), aqueduct, Some(progress_tracker))
-        .await?;
+    run_pipeline(Arc::new(ctx), aqueduct, Some(progress_tracker)).await?;
 
     debug!("Pipeline execution completed successfully");
     Ok(())
