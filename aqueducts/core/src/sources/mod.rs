@@ -228,7 +228,7 @@ async fn register_file_source(
     match &file_source.format {
         SourceFileType::Parquet(ParquetSourceOptions { schema }) => {
             if !schema.is_empty() {
-                let arrow_schema = fields_to_arrow_schema(&schema);
+                let arrow_schema = fields_to_arrow_schema(schema);
                 let options = ParquetReadOptions::default().schema(&arrow_schema);
                 ctx.register_parquet(
                     file_source.name.as_str(),
@@ -253,7 +253,7 @@ async fn register_file_source(
             schema,
         }) => {
             if !schema.is_empty() {
-                let arrow_schema = fields_to_arrow_schema(&schema);
+                let arrow_schema = fields_to_arrow_schema(schema);
                 ctx.register_csv(
                     file_source.name.as_str(),
                     file_source.location.as_str(),
@@ -277,7 +277,7 @@ async fn register_file_source(
 
         SourceFileType::Json(JsonSourceOptions { schema }) => {
             if !schema.is_empty() {
-                let arrow_schema = fields_to_arrow_schema(&schema);
+                let arrow_schema = fields_to_arrow_schema(schema);
                 ctx.register_json(
                     file_source.name.as_str(),
                     file_source.location.as_str(),
@@ -318,7 +318,7 @@ async fn register_dir_source(
                 .with_table_partition_cols(partition_cols);
 
             let schema = if !schema.is_empty() {
-                Arc::new(fields_to_arrow_schema(&schema))
+                Arc::new(fields_to_arrow_schema(schema))
             } else {
                 listing_options
                     .infer_schema(&session_state, &listing_table_url)
@@ -347,7 +347,7 @@ async fn register_dir_source(
                 ListingOptions::new(Arc::new(format)).with_table_partition_cols(partition_cols);
 
             let schema = if !schema.is_empty() {
-                Arc::new(fields_to_arrow_schema(&schema))
+                Arc::new(fields_to_arrow_schema(schema))
             } else {
                 listing_options
                     .infer_schema(&session_state, &listing_table_url)
@@ -371,7 +371,7 @@ async fn register_dir_source(
                 ListingOptions::new(Arc::new(format)).with_table_partition_cols(partition_cols);
 
             let schema = if !schema.is_empty() {
-                Arc::new(fields_to_arrow_schema(&schema))
+                Arc::new(fields_to_arrow_schema(schema))
             } else {
                 listing_options
                     .infer_schema(&session_state, &listing_table_url)

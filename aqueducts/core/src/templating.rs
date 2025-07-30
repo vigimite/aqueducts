@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 use std::{collections::HashMap, path::Path};
 
 use datafusion::sql::sqlparser::parser::ParserError;
@@ -58,7 +58,7 @@ pub enum TemplateError {
     #[diagnostic(code(aqueducts::template::json_parse_error))]
     ParseJson {
         #[source_code]
-        source_code: NamedSource<String>,
+        source_code: Arc<NamedSource<String>>,
         #[label("{}", error)]
         span: SourceSpan,
         #[source]
@@ -70,7 +70,7 @@ pub enum TemplateError {
     #[diagnostic(code(aqueducts::template::yaml_parse_error))]
     ParseYaml {
         #[source_code]
-        source_code: NamedSource<String>,
+        source_code: Arc<NamedSource<String>>,
         #[label("{}", error)]
         span: SourceSpan,
         #[source]
@@ -87,7 +87,7 @@ pub enum TemplateError {
     #[diagnostic(code(aqueducts::template::toml_parse_error))]
     ParseDeToml {
         #[source_code]
-        source_code: NamedSource<String>,
+        source_code: Arc<NamedSource<String>>,
         #[label("{}", error)]
         span: SourceSpan,
         #[source]
@@ -104,7 +104,7 @@ pub enum TemplateError {
     )]
     SqlValidation {
         #[source_code]
-        source_code: NamedSource<String>,
+        source_code: Arc<NamedSource<String>>,
         #[source]
         error: ParserError,
         #[label("syntax error in stage '{name}'")]
@@ -315,11 +315,11 @@ pub trait TemplateLoader {
                     };
 
                     TemplateError::SqlValidation {
-                        source_code: NamedSource::new(
-                            format!("{}", stage.name),
+                        source_code: Arc::new(NamedSource::new(
+                            &stage.name,
                             stage.query.clone(),
                         )
-                        .with_language("SQL"),
+                        .with_language("SQL")),
                         error,
                         span,
                         name: stage.name.clone(),
@@ -384,7 +384,7 @@ impl TemplateLoader for Aqueduct {
                             SourceOffset::from(0)
                         };
                         TemplateError::ParseDeToml {
-                            source_code: NamedSource::new("pipeline.toml", contents.to_string()),
+                            source_code: Arc::new(NamedSource::new("pipeline.toml", contents.to_string())),
                             span: SourceSpan::new(offset, 1),
                             error,
                         }
@@ -401,7 +401,7 @@ impl TemplateLoader for Aqueduct {
                             SourceOffset::from(0)
                         };
                         TemplateError::ParseDeToml {
-                            source_code: NamedSource::new("pipeline.toml", definition.clone()),
+                            source_code: Arc::new(NamedSource::new("pipeline.toml", definition.clone())),
                             span: SourceSpan::new(offset, 1),
                             error,
                         }
@@ -421,17 +421,17 @@ impl TemplateLoader for Aqueduct {
                             let offset =
                                 SourceOffset::from_location(contents, error.line(), error.column());
                             TemplateError::ParseJson {
-                                source_code: NamedSource::new(
+                                source_code: Arc::new(NamedSource::new(
                                     "pipeline.json",
                                     contents.to_string(),
-                                ),
+                                )),
                                 span: SourceSpan::new(offset, 1),
                                 error,
                             }
                         })?;
                     let parsed = serde_json::to_string(&parsed).map_err(|error| {
                         TemplateError::ParseJson {
-                            source_code: NamedSource::new("pipeline.json", contents.to_string()),
+                            source_code: Arc::new(NamedSource::new("pipeline.json", contents.to_string())),
                             span: SourceSpan::new(0.into(), contents.len()),
                             error,
                         }
@@ -441,7 +441,7 @@ impl TemplateLoader for Aqueduct {
                         let offset =
                             SourceOffset::from_location(&definition, error.line(), error.column());
                         TemplateError::ParseJson {
-                            source_code: NamedSource::new("pipeline.json", definition.clone()),
+                            source_code: Arc::new(NamedSource::new("pipeline.json", definition.clone())),
                             span: SourceSpan::new(offset, 1),
                             error,
                         }
@@ -469,17 +469,17 @@ impl TemplateLoader for Aqueduct {
                                 SourceOffset::from(0)
                             };
                             TemplateError::ParseYaml {
-                                source_code: NamedSource::new(
+                                source_code: Arc::new(NamedSource::new(
                                     "pipeline.yaml",
                                     contents.to_string(),
-                                ),
+                                )),
                                 span: SourceSpan::new(offset, 1),
                                 error,
                             }
                         })?;
                     let parsed = serde_yml::to_string(&parsed).map_err(|error| {
                         TemplateError::ParseYaml {
-                            source_code: NamedSource::new("pipeline.yaml", contents.to_string()),
+                            source_code: Arc::new(NamedSource::new("pipeline.yaml", contents.to_string())),
                             span: SourceSpan::new(0.into(), contents.len()),
                             error,
                         }
@@ -496,7 +496,7 @@ impl TemplateLoader for Aqueduct {
                             SourceOffset::from(0)
                         };
                         TemplateError::ParseYaml {
-                            source_code: NamedSource::new("pipeline.yaml", definition.clone()),
+                            source_code: Arc::new(NamedSource::new("pipeline.yaml", definition.clone())),
                             span: SourceSpan::new(offset, 1),
                             error,
                         }
@@ -524,7 +524,7 @@ pub fn format_from_path<P: AsRef<Path>>(path: P) -> TemplateFormat {
         Some("toml") => TemplateFormat::Toml,
         Some("json") => TemplateFormat::Json,
         Some("yml") | Some("yaml") => TemplateFormat::Yaml,
-        ext => TemplateFormat::Unknown(ext.unwrap_or_else(|| "unknown_ext").to_string()),
+        ext => TemplateFormat::Unknown(ext.unwrap_or("unknown_ext").to_string()),
     }
 }
 

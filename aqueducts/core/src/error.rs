@@ -11,17 +11,41 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     #[diagnostic(transparent)]
-    Source(#[from] SourceError),
+    Source(Box<SourceError>),
 
     #[error(transparent)]
     #[diagnostic(transparent)]
-    Stage(#[from] StageError),
+    Stage(Box<StageError>),
 
     #[error(transparent)]
     #[diagnostic(transparent)]
-    Destination(#[from] DestinationError),
+    Destination(Box<DestinationError>),
 
     #[error(transparent)]
     #[diagnostic(transparent)]
-    Template(#[from] TemplateError),
+    Template(Box<TemplateError>),
+}
+
+impl From<SourceError> for Error {
+    fn from(error: SourceError) -> Self {
+        Error::Source(Box::new(error))
+    }
+}
+
+impl From<StageError> for Error {
+    fn from(error: StageError) -> Self {
+        Error::Stage(Box::new(error))
+    }
+}
+
+impl From<DestinationError> for Error {
+    fn from(error: DestinationError) -> Self {
+        Error::Destination(Box::new(error))
+    }
+}
+
+impl From<TemplateError> for Error {
+    fn from(error: TemplateError) -> Self {
+        Error::Template(Box::new(error))
+    }
 }

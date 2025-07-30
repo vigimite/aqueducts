@@ -227,7 +227,7 @@ pub async fn register_destination(
             let arrow_fields = delta_dest
                 .schema
                 .iter()
-                .map(|field| crate::schema_transform::field_to_arrow(field))
+                .map(crate::schema_transform::field_to_arrow)
                 .collect::<Vec<_>>();
 
             aqueducts_delta::prepare_delta_destination(
@@ -324,7 +324,7 @@ pub async fn write_to_destination(
             let arrow_fields = delta_dest
                 .schema
                 .iter()
-                .map(|field| crate::schema_transform::field_to_arrow(field))
+                .map(crate::schema_transform::field_to_arrow)
                 .collect::<Vec<_>>();
             let arrow_schema = datafusion::arrow::datatypes::Schema::new(arrow_fields);
 
