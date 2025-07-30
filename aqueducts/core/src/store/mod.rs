@@ -108,8 +108,6 @@ impl ObjectStoreRegistry {
         #[cfg(feature = "azure")]
         providers.push(Box::new(AzureProvider));
 
-        providers.push(Box::new(LocalFileProvider));
-
         Self { providers }
     }
 
@@ -147,34 +145,6 @@ impl ObjectStoreRegistry {
 impl Default for ObjectStoreRegistry {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-/// Provider for local file system and in-memory storage.
-///
-/// This provider supports:
-/// - `file://` URLs for local file system access
-/// - `memory://` URLs for in-memory storage (useful for testing)
-pub struct LocalFileProvider;
-
-impl ObjectStoreProvider for LocalFileProvider {
-    fn supports_scheme(&self, scheme: &str) -> bool {
-        matches!(scheme, "file" | "memory")
-    }
-
-    fn create_store(
-        &self,
-        location: &Url,
-        _options: &HashMap<String, String>,
-    ) -> crate::error::Result<Arc<dyn object_store::ObjectStore>> {
-        match location.scheme() {
-            "file" => Ok(Arc::new(object_store::local::LocalFileSystem::new())),
-            "memory" => Ok(Arc::new(object_store::memory::InMemory::new())),
-            scheme => Err(AqueductsError::unsupported(
-                "URL scheme",
-                format!("Unsupported URL scheme: {scheme}"),
-            )),
-        }
     }
 }
 
@@ -231,61 +201,6 @@ pub fn register_object_store(
 mod tests {
     use super::*;
     use std::collections::HashMap;
-
-    #[test]
-    fn test_local_file_provider_supports_schemes() {
-        let provider = LocalFileProvider;
-        assert!(provider.supports_scheme("file"));
-        assert!(provider.supports_scheme("memory"));
-        assert!(!provider.supports_scheme("s3"));
-        assert!(!provider.supports_scheme("gs"));
-        assert!(!provider.supports_scheme("azure"));
-    }
-
-    #[test]
-    fn test_local_file_provider_creates_file_store() {
-        let provider = LocalFileProvider;
-        let url = Url::parse("file:///tmp/test").unwrap();
-        let options = HashMap::new();
-
-        let result = provider.create_store(&url, &options);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_local_file_provider_creates_memory_store() {
-        let provider = LocalFileProvider;
-        let url = Url::parse("memory://test").unwrap();
-        let options = HashMap::new();
-
-        let result = provider.create_store(&url, &options);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_local_file_provider_rejects_unsupported_scheme() {
-        let provider = LocalFileProvider;
-        let url = Url::parse("http://example.com").unwrap();
-        let options = HashMap::new();
-
-        let result = provider.create_store(&url, &options);
-        assert!(result.is_err());
-        let error = result.unwrap_err();
-        assert!(
-            error.to_string().contains("http"),
-            "Expected error message to contain 'http', got: {error}"
-        );
-    }
-
-    #[test]
-    fn test_registry_includes_local_provider() {
-        let registry = ObjectStoreRegistry::new();
-        let url = Url::parse("file:///tmp/test").unwrap();
-        let options = HashMap::new();
-
-        let result = registry.create_store(&url, &options);
-        assert!(result.is_ok());
-    }
 
     #[test]
     fn test_registry_rejects_unsupported_scheme() {
