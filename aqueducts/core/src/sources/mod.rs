@@ -11,6 +11,7 @@ use datafusion::{
     },
     prelude::*,
 };
+use miette::Diagnostic;
 use tracing::debug;
 use tracing::instrument;
 
@@ -20,41 +21,104 @@ use crate::{
     store::StoreError,
 };
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Diagnostic)]
 pub enum SourceError {
-    #[error("Source {0} not found in context")]
+    #[error("Source '{0}' not found in context")]
+    #[diagnostic(
+        code(aqueducts::source::not_found),
+        help("Make sure the source is included in the SessionContext that is being passed to aqueducts.\n\
+              Check for typos in the source name.")
+    )]
     NotFound(String),
 
-    #[error("Object store error {name}: {error}")]
-    Store { name: String, error: StoreError },
+    #[error("Object store error for source '{name}'")]
+    #[diagnostic(
+        code(aqueducts::source::store_error),
+        help(
+            "Check your storage configuration and credentials.\n\
+              Common issues:\n\
+              • Missing or incorrect credentials\n\
+              • Network connectivity problems\n\
+              • Incorrect bucket/container names"
+        )
+    )]
+    Store {
+        name: String,
+        #[source]
+        error: StoreError,
+    },
 
-    #[error("Failed to register file based source {name}: {error}")]
+    #[error("Failed to register file source '{name}'")]
+    #[diagnostic(
+        code(aqueducts::source::register_file),
+        help(
+            "Check that the file exists and is accessible.\n\
+              Supported formats: Parquet (.parquet), CSV (.csv), JSON (.json)\n\
+              \n\
+              Common issues:\n\
+              • File doesn't exist at the specified location\n\
+              • Incorrect file permissions\n\
+              • Unsupported file format"
+        )
+    )]
     RegisterFile {
         name: String,
+        #[source]
         error: datafusion::error::DataFusionError,
     },
 
     #[cfg(feature = "odbc")]
-    #[error("Failed to register ODBC source {name}: {error}")]
+    #[error("Failed to register ODBC source '{name}'")]
+    #[diagnostic(
+        code(aqueducts::source::register_odbc),
+        help(
+            "Check your ODBC connection:\n\
+              • Verify the connection string format\n\
+              • Ensure the ODBC driver is installed\n\
+              • Check ODBC configuration: odbcinst -j\n\
+              • Check database permissions for the query"
+        )
+    )]
     RegisterOdbc {
         name: String,
+        #[source]
         error: aqueducts_odbc::error::OdbcError,
     },
 
     #[cfg(feature = "delta")]
-    #[error("Failed to register Delta source {name}: {error}")]
+    #[error("Failed to register Delta source '{name}'")]
+    #[diagnostic(
+        code(aqueducts::source::register_delta),
+        help(
+            "Delta Lake source issues:\n\
+              • Verify the table path exists\n\
+              • Check you have read permissions\n\
+              • For S3/GCS/Azure, ensure credentials are configured\n\
+              • Verify Delta table version compatibility"
+        )
+    )]
     RegisterDelta {
         name: String,
+        #[source]
         error: aqueducts_delta::error::DeltaError,
     },
 
-    #[error("Source {name} of type {tpe} is unsupported")]
+    #[error("Source '{name}' of type '{tpe}' is unsupported")]
+    #[diagnostic(
+        code(aqueducts::source::unsupported),
+        help(
+            "The '{tpe}' source type requires enabling the '{tpe}' feature.\n\
+              \n\
+              Install CLI using the corresponding feature flag:\n\
+              cargo install aqueducts-cli --features {tpe}"
+        )
+    )]
     Unsupported { name: String, tpe: String },
 }
 
 /// Register an Aqueduct source
 /// Supports Delta tables, Parquet files, Csv Files and Json Files
-#[instrument(skip(ctx, source), err)]
+#[instrument(skip(ctx, source))]
 pub async fn register_source(ctx: Arc<SessionContext>, source: Source) -> Result<(), SourceError> {
     match source {
         Source::InMemory(memory_source) => {

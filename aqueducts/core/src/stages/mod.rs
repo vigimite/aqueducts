@@ -3,20 +3,39 @@ use datafusion::{
     datasource::MemTable,
     execution::context::{SQLOptions, SessionContext},
 };
+use miette::Diagnostic;
 use std::sync::Arc;
 use tracing::instrument;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Diagnostic)]
 pub enum StageError {
-    #[error("Failed to parse SQL of stage {name}: {error}")]
+    #[error("Failed to parse SQL in stage '{name}': {error}")]
+    #[diagnostic(
+        code(aqueducts::stage::sql_parse_error),
+        help(
+            "Check your SQL syntax in '{name}' query:\n\
+              • Official docs: https://datafusion.apache.org/user-guide/sql/index.html"
+        )
+    )]
     Sql {
         name: String,
+        #[source]
         error: datafusion::error::DataFusionError,
     },
 
-    #[error("Failed execution of stage {name}: {error}")]
+    #[error("Failed to execute stage '{name}': {error}")]
+    #[diagnostic(
+        code(aqueducts::stage::execution_error),
+        help(
+            "Stage execution failed. Common issues:\n\
+              • Referenced table/source doesn't exist\n\
+              • Column names don't match\n\
+              • Data type incompatibilities"
+        )
+    )]
     Execution {
         name: String,
+        #[source]
         error: datafusion::error::DataFusionError,
     },
 }
@@ -25,7 +44,7 @@ pub enum StageError {
 /// The result of the operation will be registered within the `SessionContext` as an
 /// in-memory table using the stages name as the table name
 /// Does not allow for ddl/dml queries or SQL statements (e.g. SET VARIABLE, CREATE TABLE, etc.)
-#[instrument(skip_all, err)]
+#[instrument(skip_all)]
 pub async fn process_stage(
     ctx: Arc<SessionContext>,
     stage: Stage,

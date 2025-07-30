@@ -35,7 +35,7 @@ tracing-subscriber.workspace = true
 tokio = { workspace = true, features = ["full"] }
 futures-util.workspace = true
 
-anyhow.workspace = true
+miette = { workspace = true, features = ["fancy", "serde", "syntect-highlighter"] }
 uuid.workspace = true
 url.workspace = true
 
