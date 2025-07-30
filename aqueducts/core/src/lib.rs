@@ -82,7 +82,7 @@ pub async fn run_pipeline(
     if let Some(destination) = &aqueduct.destination {
         let time = Instant::now();
 
-        register_destination(destination).await?;
+        register_destination(ctx.clone(), destination).await?;
 
         debug!(
             "Created destination ... Elapsed time: {:.2?}",

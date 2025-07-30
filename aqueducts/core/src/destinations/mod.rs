@@ -4,15 +4,22 @@ use std::sync::Arc;
 use tracing::{debug, instrument};
 
 use crate::error::{AqueductsError, Result};
+use crate::store::register_object_store;
 
 pub mod file;
 
 /// Creates a `Destination`
-#[instrument(skip(destination), err)]
-pub async fn register_destination(destination: &Destination) -> Result<()> {
+#[instrument(skip(ctx, destination), err)]
+pub async fn register_destination(
+    ctx: Arc<SessionContext>,
+    destination: &Destination,
+) -> Result<()> {
     match destination {
         Destination::InMemory(_) => Ok(()),
-        Destination::File(_) => Ok(()),
+        Destination::File(file_def) => {
+            register_object_store(ctx, &file_def.location, &file_def.storage_config)?;
+            Ok(())
+        }
         #[cfg(feature = "odbc")]
         Destination::Odbc(odbc_dest) => {
             debug!("Preparing ODBC destination '{}'", odbc_dest.name);
