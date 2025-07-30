@@ -19,7 +19,8 @@ pub async fn run_remote(
     api_key: String,
 ) -> anyhow::Result<()> {
     info!("Parsing pipeline from file: {}", file.display());
-    let aqueduct = Aqueduct::from_file(&file, params)?;
+    let format = format_from_path(&file);
+    let aqueduct = Aqueduct::from_file(&file, format, params)?;
 
     let client = WebSocketClient::try_new(executor_url, api_key)
         .context("failed to build websocket client")?;

@@ -44,7 +44,14 @@ pub use gcs::GcsProvider;
 #[cfg(feature = "azure")]
 pub use azure::AzureProvider;
 
-use crate::error::AqueductsError;
+#[derive(Debug, thiserror::Error)]
+pub enum StoreError {
+    #[error("Unsupported URL scheme: {0}")]
+    Unsupported(String),
+
+    #[error("{0}")]
+    ObjectStore(#[from] object_store::Error),
+}
 
 /// Trait for object storage providers.
 ///
@@ -70,7 +77,7 @@ pub trait ObjectStoreProvider: Send + Sync {
         &self,
         location: &Url,
         options: &HashMap<String, String>,
-    ) -> crate::error::Result<Arc<dyn object_store::ObjectStore>>;
+    ) -> Result<Arc<dyn object_store::ObjectStore>, StoreError>;
 }
 
 /// Registry for object storage providers.
@@ -128,17 +135,14 @@ impl ObjectStoreRegistry {
         &self,
         location: &Url,
         options: &HashMap<String, String>,
-    ) -> crate::error::Result<Arc<dyn object_store::ObjectStore>> {
+    ) -> Result<Arc<dyn object_store::ObjectStore>, StoreError> {
         for provider in &self.providers {
             if provider.supports_scheme(location.scheme()) {
                 return provider.create_store(location, options);
             }
         }
 
-        Err(AqueductsError::unsupported(
-            "URL scheme",
-            format!("Unsupported URL scheme: {}", location.scheme()),
-        ))
+        Err(StoreError::Unsupported(location.scheme().to_string()))
     }
 }
 
@@ -184,7 +188,7 @@ pub fn register_object_store(
     ctx: Arc<datafusion::prelude::SessionContext>,
     location: &Url,
     storage_options: &HashMap<String, String>,
-) -> crate::error::Result<()> {
+) -> Result<(), StoreError> {
     // Skip local schemes as DataFusion handles them natively
     if matches!(location.scheme(), "file" | "memory") {
         return Ok(());

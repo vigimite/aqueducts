@@ -3,11 +3,37 @@ use std::sync::OnceLock;
 use std::{collections::HashMap, path::Path};
 
 use regex::Regex;
-use tracing::{debug, error};
+use tracing::debug;
 
-use crate::error::AqueductsError;
-use crate::error::Result;
 use crate::Aqueduct;
+
+#[derive(Debug, thiserror::Error)]
+pub enum TemplateError {
+    #[error("Cannot determine Aqueducts template format or format is not enabled in this build. Install aqueducts with corresponding feature flag: {0}")]
+    UnknownFormat(TemplateFormat),
+
+    #[error("Failed to parse aqueducts template:\n  {0}")]
+    TemplateParse(String),
+
+    #[error("Missing template parameters: {0:?}")]
+    MissingParams(HashSet<String>),
+
+    #[cfg(feature = "json")]
+    #[error(transparent)]
+    ParseJson(#[from] serde_json::Error),
+
+    #[cfg(feature = "yaml")]
+    #[error(transparent)]
+    ParseYaml(#[from] serde_yml::Error),
+
+    #[cfg(feature = "toml")]
+    #[error(transparent)]
+    ParseSerToml(#[from] toml::ser::Error),
+
+    #[cfg(feature = "toml")]
+    #[error(transparent)]
+    ParseDeToml(#[from] toml::de::Error),
+}
 
 /// Serialization format of the Aqueduct pipeline configuration.
 ///
@@ -24,6 +50,17 @@ pub enum TemplateFormat {
     Yaml,
     /// Unknown or unsupported format
     Unknown(String),
+}
+
+impl std::fmt::Display for TemplateFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TemplateFormat::Json => write!(f, "json"),
+            TemplateFormat::Toml => write!(f, "toml"),
+            TemplateFormat::Yaml => write!(f, "yaml"),
+            TemplateFormat::Unknown(format) => write!(f, "{format}"),
+        }
+    }
 }
 
 /// A trait for loading Aqueduct pipeline configurations from various sources with parameter substitution.
@@ -59,7 +96,11 @@ pub trait TemplateLoader {
     /// - Invalid file format or syntax
     /// - Missing required template parameters
     /// - Unsupported file extension
-    fn from_file<T: AsRef<Path>>(path: T, params: HashMap<String, String>) -> Result<Aqueduct>;
+    fn from_file<P: AsRef<Path>>(
+        path: P,
+        format: TemplateFormat,
+        params: HashMap<String, String>,
+    ) -> Result<Aqueduct, TemplateError>;
 
     /// Load an Aqueduct pipeline configuration from a string.
     ///
@@ -82,7 +123,7 @@ pub trait TemplateLoader {
         value: T,
         format: TemplateFormat,
         params: HashMap<String, String>,
-    ) -> Result<Aqueduct>;
+    ) -> Result<Aqueduct, TemplateError>;
 
     /// Substitute template parameters in a configuration string.
     ///
@@ -107,7 +148,10 @@ pub trait TemplateLoader {
     ///
     /// Template parameters use the syntax `${parameter_name}` where `parameter_name`
     /// can contain letters, numbers, and underscores.
-    fn substitute_params(raw: &str, params: HashMap<String, String>) -> Result<String> {
+    fn substitute_params(
+        raw: &str,
+        params: HashMap<String, String>,
+    ) -> Result<String, TemplateError> {
         static PARAM_REGEX: OnceLock<Regex> = OnceLock::new();
         let mut definition = raw.to_string();
 
@@ -132,12 +176,7 @@ pub trait TemplateLoader {
             .collect::<HashSet<String>>();
 
         if !missing_params.is_empty() {
-            let error = AqueductsError::template(format!(
-                "Missing template parameters: {missing_params:?}"
-            ));
-
-            error!("{error}");
-            return Err(error);
+            return Err(TemplateError::MissingParams(missing_params));
         }
 
         Ok(definition)
@@ -145,22 +184,13 @@ pub trait TemplateLoader {
 }
 
 impl TemplateLoader for Aqueduct {
-    fn from_file<T: AsRef<Path>>(path: T, params: HashMap<String, String>) -> Result<Aqueduct> {
+    fn from_file<T: AsRef<Path>>(
+        path: T,
+        format: TemplateFormat,
+        params: HashMap<String, String>,
+    ) -> Result<Aqueduct, TemplateError> {
         let path = path.as_ref();
-        let ext = path.extension().and_then(|s| s.to_str()).ok_or_else(|| {
-            AqueductsError::template(format!("Missing file extension for: {path:?}"))
-        })?;
-
-        debug!("Parsing file with extension: {}", ext);
-
-        let format = match ext {
-            "toml" => TemplateFormat::Toml,
-            "json" => TemplateFormat::Json,
-            "yml" | "yaml" => TemplateFormat::Yaml,
-            ext => TemplateFormat::Unknown(ext.to_string()),
-        };
-
-        let contents = std::fs::read_to_string(path)?;
+        let contents = std::fs::read_to_string(path).expect("error reading aqueducts file");
         Self::from_str(contents, format, params)
     }
 
@@ -168,7 +198,7 @@ impl TemplateLoader for Aqueduct {
         value: T,
         format: TemplateFormat,
         params: HashMap<String, String>,
-    ) -> Result<Aqueduct> {
+    ) -> Result<Aqueduct, TemplateError> {
         let contents = value.as_ref();
 
         debug!("Parsing template with format: {format:?}");
@@ -187,7 +217,7 @@ impl TemplateLoader for Aqueduct {
                 }
                 #[cfg(not(feature = "toml"))]
                 {
-                    Err(AqueductsError::unsupported("template format", format!("{format:?} support is not enabled in this build. Enable the corresponding feature flag")))
+                    Err(TemplateError::UnknownFormat(TemplateFormat::Toml))
                 }
             }
             TemplateFormat::Json => {
@@ -203,7 +233,7 @@ impl TemplateLoader for Aqueduct {
                 }
                 #[cfg(not(feature = "json"))]
                 {
-                    Err(AqueductsError::unsupported("template format", format!("{:?} support is not enabled in this build. Enable the corresponding feature flag", format)))
+                    Err(TemplateError::UnknownFormat(TemplateFormat::Json))
                 }
             }
             TemplateFormat::Yaml => {
@@ -219,10 +249,22 @@ impl TemplateLoader for Aqueduct {
                 }
                 #[cfg(not(feature = "yaml"))]
                 {
-                    Err(AqueductsError::unsupported("template format", format!("{:?} support is not enabled in this build. Enable the corresponding feature flag", format)))
+                    Err(TemplateError::UnknownFormat(TemplateFormat::Yaml))
                 }
             }
-            fmt @ TemplateFormat::Unknown(_) => Err(AqueductsError::unsupported("template format", format!("{fmt:?} support is not enabled in this build. Enable the corresponding feature flag"))),
+            fmt @ TemplateFormat::Unknown(_) => Err(TemplateError::UnknownFormat(fmt)),
         }
+    }
+}
+
+pub fn format_from_path<P: AsRef<Path>>(path: P) -> TemplateFormat {
+    let path = path.as_ref();
+    let ext = path.extension().and_then(|s| s.to_str());
+
+    match ext {
+        Some("toml") => TemplateFormat::Toml,
+        Some("json") => TemplateFormat::Json,
+        Some("yml") | Some("yaml") => TemplateFormat::Yaml,
+        ext => TemplateFormat::Unknown(ext.unwrap_or_else(|| "unknown_ext").to_string()),
     }
 }

@@ -7,7 +7,8 @@ use tracing::{debug, info};
 pub async fn run_local(file: PathBuf, params: HashMap<String, String>) -> anyhow::Result<()> {
     info!("Running pipeline locally from file: {}", file.display());
 
-    let aqueduct = Aqueduct::from_file(&file, params)?;
+    let format = format_from_path(&file);
+    let aqueduct = Aqueduct::from_file(&file, format, params)?;
 
     debug!("Creating SessionContext");
     let mut ctx = datafusion::prelude::SessionContext::new();

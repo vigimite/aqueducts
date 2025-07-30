@@ -180,10 +180,14 @@ pub async fn run_pipeline(
     ) {
         let time = Instant::now();
 
-        let df = ctx.table(last_stage.name.as_str()).await?;
+        let df = ctx
+            .table(last_stage.name.as_str())
+            .await
+            .expect("failed to fetch table from memory");
         write_to_destination(ctx.clone(), destination, df).await?;
 
-        ctx.deregister_table(last_stage.name.as_str())?;
+        ctx.deregister_table(last_stage.name.as_str())
+            .expect("failed to deregister table");
 
         let elapsed = time.elapsed();
         debug!(
@@ -223,7 +227,7 @@ fn calculate_ttl<'a>(
     stages: &[Vec<Stage>],
 ) -> error::Result<()> {
     let stage_name_r = format!("\\s{stage_name}(\\s|\\;|\\n|\\)|\\.|$)");
-    let regex = Regex::new(stage_name_r.as_str())?;
+    let regex = Regex::new(stage_name_r.as_str()).unwrap();
 
     let ttl = stages
         .iter()
@@ -255,14 +259,16 @@ fn deregister_stages(
     ttls: &HashMap<String, usize>,
     current_pos: usize,
 ) -> error::Result<()> {
-    ttls.iter().try_for_each(|(table, ttl)| {
-        if *ttl == current_pos {
-            debug!("Deregistering table {table}, current_pos {current_pos}, ttl {ttl}");
-            ctx.deregister_table(table).map(|_| ())
-        } else {
-            Ok(())
-        }
-    })?;
+    ttls.iter()
+        .try_for_each(|(table, ttl)| {
+            if *ttl == current_pos {
+                debug!("Deregistering table {table}, current_pos {current_pos}, ttl {ttl}");
+                ctx.deregister_table(table).map(|_| ())
+            } else {
+                Ok(())
+            }
+        })
+        .expect("failed to deregister table");
 
     Ok(())
 }

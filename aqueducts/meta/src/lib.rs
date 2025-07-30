@@ -247,14 +247,6 @@
 //! }
 //! ```
 
-// Core functionality re-exports
-pub use aqueducts_core::{
-    error::{AqueductsError, Result},
-    progress_tracker::{LoggingProgressTracker, ProgressTracker},
-    run_pipeline,
-    templating::{TemplateFormat, TemplateLoader},
-};
-
 // Optional crate re-exports
 #[cfg(feature = "custom_udfs")]
 pub use aqueducts_core::custom_udfs;
@@ -274,14 +266,16 @@ pub use aqueducts_delta as delta;
 /// ```
 pub mod prelude {
     // Core pipeline functionality
-    pub use crate::{run_pipeline, AqueductsError, Result};
+    pub use aqueducts_core::{error::AqueductsError, error::Result, run_pipeline};
 
     // Progress tracking
-    pub use crate::{LoggingProgressTracker, ProgressTracker};
+    pub use aqueducts_core::{
+        progress_tracker::LoggingProgressTracker, progress_tracker::ProgressTracker,
+    };
     pub use aqueducts_schemas::{OutputType, ProgressEvent};
 
     // Template loading
-    pub use crate::{TemplateFormat, TemplateLoader};
+    pub use aqueducts_core::templating::{format_from_path, TemplateFormat, TemplateLoader};
 
     // Schema types - all pipeline configuration types
     pub use aqueducts_schemas::*;

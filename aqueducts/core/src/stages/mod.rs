@@ -6,7 +6,20 @@ use datafusion::{
 use std::sync::Arc;
 use tracing::instrument;
 
-use crate::error::{AqueductsError, Result};
+#[derive(Debug, thiserror::Error)]
+pub enum StageError {
+    #[error("Failed to parse SQL of stage {name}: {error}")]
+    Sql {
+        name: String,
+        error: datafusion::error::DataFusionError,
+    },
+
+    #[error("Failed execution of stage {name}: {error}")]
+    Execution {
+        name: String,
+        error: datafusion::error::DataFusionError,
+    },
+}
 
 /// Process a stage in the Aqueduct pipeline
 /// The result of the operation will be registered within the `SessionContext` as an
@@ -17,7 +30,7 @@ pub async fn process_stage(
     ctx: Arc<SessionContext>,
     stage: Stage,
     progress_tracker: Option<Arc<dyn crate::ProgressTracker>>,
-) -> Result<()> {
+) -> Result<(), StageError> {
     let options = SQLOptions::new()
         .with_allow_ddl(false)
         .with_allow_dml(false)
@@ -25,14 +38,16 @@ pub async fn process_stage(
 
     let result = ctx
         .sql_with_options(stage.query.as_str(), options)
-        .await?
+        .await
+        .map_err(|error| StageError::Sql {
+            name: stage.name.clone(),
+            error,
+        })?
         .cache()
         .await
-        .map_err(|e| {
-            AqueductsError::stage(
-                &stage.name,
-                format!("Error occured during stage execution: {e}"),
-            )
+        .map_err(|error| StageError::Execution {
+            name: stage.name.clone(),
+            error,
         })?;
     let schema = result.schema().clone();
 
@@ -43,8 +58,21 @@ pub async fn process_stage(
             OutputType::Explain
         };
 
-        let explain = result.clone().explain(false, stage.explain_analyze)?;
-        let batches = explain.collect().await?;
+        let explain = result
+            .clone()
+            .explain(false, stage.explain_analyze)
+            .map_err(|error| StageError::Execution {
+                name: stage.name.clone(),
+                error,
+            })?;
+
+        let batches = explain
+            .collect()
+            .await
+            .map_err(|error| StageError::Execution {
+                name: stage.name.clone(),
+                error,
+            })?;
 
         if let Some(tracker) = &progress_tracker {
             tracker.on_output(&stage.name, output_type, &schema, &batches);
@@ -53,13 +81,35 @@ pub async fn process_stage(
 
     match stage.show {
         Some(0) => {
-            let batches = result.clone().collect().await?;
+            let batches =
+                result
+                    .clone()
+                    .collect()
+                    .await
+                    .map_err(|error| StageError::Execution {
+                        name: stage.name.clone(),
+                        error,
+                    })?;
+
             if let Some(tracker) = &progress_tracker {
                 tracker.on_output(&stage.name, OutputType::Show, &schema, &batches);
             }
         }
         Some(limit) => {
-            let batches = result.clone().limit(0, Some(limit))?.collect().await?;
+            let batches = result
+                .clone()
+                .limit(0, Some(limit))
+                .map_err(|error| StageError::Execution {
+                    name: stage.name.clone(),
+                    error,
+                })?
+                .collect()
+                .await
+                .map_err(|error| StageError::Execution {
+                    name: stage.name.clone(),
+                    error,
+                })?;
+
             if let Some(tracker) = &progress_tracker {
                 tracker.on_output(&stage.name, OutputType::ShowLimit, &schema, &batches);
             }
@@ -74,10 +124,28 @@ pub async fn process_stage(
         }
     }
 
-    let partitioned = result.collect_partitioned().await?;
-    let table = MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned)?;
+    let partitioned =
+        result
+            .collect_partitioned()
+            .await
+            .map_err(|error| StageError::Execution {
+                name: stage.name.clone(),
+                error,
+            })?;
 
-    ctx.register_table(stage.name.as_str(), Arc::new(table))?;
+    let table =
+        MemTable::try_new(Arc::new(schema.as_arrow().clone()), partitioned).map_err(|error| {
+            StageError::Execution {
+                name: stage.name.clone(),
+                error,
+            }
+        })?;
+
+    ctx.register_table(stage.name.as_str(), Arc::new(table))
+        .map_err(|error| StageError::Execution {
+            name: stage.name.clone(),
+            error,
+        })?;
 
     Ok(())
 }

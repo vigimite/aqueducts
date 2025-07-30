@@ -3,8 +3,8 @@
 //! This module provides an S3 implementation of the `ObjectStoreProvider` trait
 //! using the `object_store` crate's AWS S3 backend.
 
-use super::ObjectStoreProvider;
-use crate::error::{AqueductsError, Result};
+use super::{ObjectStoreProvider, StoreError};
+
 use object_store::aws::AmazonS3Builder;
 use std::{collections::HashMap, sync::Arc};
 use tracing::warn;
@@ -56,7 +56,7 @@ impl ObjectStoreProvider for S3Provider {
         &self,
         location: &Url,
         options: &HashMap<String, String>,
-    ) -> Result<Arc<dyn object_store::ObjectStore>> {
+    ) -> Result<Arc<dyn object_store::ObjectStore>, StoreError> {
         let mut builder = AmazonS3Builder::from_env();
 
         if let Some(bucket) = location.host_str() {
@@ -105,9 +105,10 @@ impl ObjectStoreProvider for S3Provider {
             };
         }
 
-        builder
+        let result = builder
             .build()
-            .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)
-            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))
+            .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)?;
+
+        Ok(result)
     }
 }
