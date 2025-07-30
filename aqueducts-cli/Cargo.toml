@@ -49,3 +49,7 @@ openssl.workspace = true
 [[bin]]
 name = "aqueducts"
 path = "src/main.rs"
+
+[[bin]]
+name = "aq"
+path = "src/main.rs"
