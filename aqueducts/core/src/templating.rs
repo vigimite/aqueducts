@@ -106,7 +106,7 @@ pub enum TemplateError {
         #[source_code]
         source_code: Arc<NamedSource<String>>,
         #[source]
-        error: DataFusionError,
+        error: Arc<DataFusionError>,
         #[label("syntax error in stage '{name}'")]
         span: SourceSpan,
         name: String,
@@ -318,7 +318,7 @@ pub trait TemplateLoader {
                         source_code: Arc::new(
                             NamedSource::new(&stage.name, stage.query.clone()).with_language("SQL"),
                         ),
-                        error,
+                        error: error.into(),
                         span,
                         name: stage.name.clone(),
                     }
