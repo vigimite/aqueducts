@@ -35,7 +35,7 @@
 //! #[tokio::main]
 //! async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 //!     // Load pipeline configuration
-//!     let pipeline = Aqueduct::from_file("pipeline.yml", Default::default())?;
+//!     let pipeline = Aqueduct::from_file("pipeline.yml", TemplateFormat::Yaml, Default::default())?;
 //!     
 //!     // Create DataFusion context
 //!     let ctx = Arc::new(SessionContext::new());
@@ -164,7 +164,7 @@
 //!     params.insert("output_path".to_string(), "s3://results/us-sales.parquet".to_string());
 //!     
 //!     // Load templated pipeline
-//!     let pipeline = Aqueduct::from_file("pipeline-template.yml", params)?;
+//!     let pipeline = Aqueduct::from_file("pipeline-template.yml", TemplateFormat::Yaml, params)?;
 //!     let ctx = std::sync::Arc::new(datafusion::prelude::SessionContext::new());
 //!     
 //!     run_pipeline(ctx, pipeline, None).await?;
@@ -219,41 +219,6 @@
 //! # Full-featured setup with all storage providers and formats
 //! aqueducts = { version = "0.10", features = ["json", "toml", "yaml", "s3", "gcs", "azure", "odbc", "delta"] }
 //! ```
-//!
-//! ## Error Handling
-//!
-//! All operations return semantic errors through the unified [`AqueductsError`] type:
-//!
-//! ```rust
-//! use aqueducts::prelude::*;
-//! use datafusion::prelude::SessionContext;
-//! use std::sync::Arc;
-//!
-//! async fn example() -> Result<()> {
-//!     let pipeline = Aqueduct::from_file("pipeline.yml", Default::default())?;
-//!     let ctx = Arc::new(SessionContext::new());
-//!     
-//!     match run_pipeline(ctx, pipeline, None).await {
-//!         Ok(result) => println!("Pipeline executed successfully"),
-//!         Err(AqueductsError::Source { name, message }) => {
-//!             eprintln!("Source '{}' failed: {}", name, message);
-//!         }
-//!         Err(AqueductsError::SchemaValidation { message }) => {
-//!             eprintln!("Schema validation error: {}", message);
-//!         }
-//!         Err(err) => eprintln!("Pipeline error: {}", err),
-//!     }
-//!     Ok(())
-//! }
-//! ```
-
-// Core functionality re-exports
-pub use aqueducts_core::{
-    error::{AqueductsError, Result},
-    progress_tracker::{LoggingProgressTracker, ProgressTracker},
-    run_pipeline,
-    templating::{TemplateFormat, TemplateLoader},
-};
 
 // Optional crate re-exports
 #[cfg(feature = "custom_udfs")]
@@ -274,14 +239,16 @@ pub use aqueducts_delta as delta;
 /// ```
 pub mod prelude {
     // Core pipeline functionality
-    pub use crate::{run_pipeline, AqueductsError, Result};
+    pub use aqueducts_core::{error::Error, error::Result, run_pipeline};
 
     // Progress tracking
-    pub use crate::{LoggingProgressTracker, ProgressTracker};
+    pub use aqueducts_core::{
+        progress_tracker::LoggingProgressTracker, progress_tracker::ProgressTracker,
+    };
     pub use aqueducts_schemas::{OutputType, ProgressEvent};
 
     // Template loading
-    pub use crate::{TemplateFormat, TemplateLoader};
+    pub use aqueducts_core::templating::{format_from_path, TemplateFormat, TemplateLoader};
 
     // Schema types - all pipeline configuration types
     pub use aqueducts_schemas::*;

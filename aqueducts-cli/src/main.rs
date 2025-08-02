@@ -1,5 +1,5 @@
-use anyhow::anyhow;
 use clap::{Parser, Subcommand};
+use miette::{miette, IntoDiagnostic, Result};
 use std::{collections::HashMap, error::Error, path::PathBuf};
 use tracing::info;
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
@@ -70,7 +70,41 @@ where
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
+    miette::set_hook(Box::new(|_| {
+        Box::new(
+            miette::MietteHandlerOpts::new()
+                .terminal_links(true)
+                .unicode(true)
+                .context_lines(3)
+                .with_cause_chain()
+                .build(),
+        )
+    }))
+    .into_diagnostic()?;
+
+    miette::set_panic_hook();
+
+    let default_panic = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
+        default_panic(panic_info);
+
+        eprintln!(
+            "\n{}",
+            miette::Report::msg(
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\
+             🐛 This might be a bug in Aqueducts!\n\n\
+             Please help us fix this by reporting it:\n\
+             • GitHub: https://github.com/vigimite/aqueducts/issues\n\
+             • Include the error details above\n\
+             • Describe what you were doing when this happened\n\
+             • Include your pipeline configuration if possible\n\
+             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            )
+            .with_source_code("")
+        );
+    }));
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::fmt::layer()
@@ -93,7 +127,7 @@ async fn main() -> anyhow::Result<()> {
             api_key,
         } => {
             let api_key =
-                api_key.ok_or_else(|| anyhow!("API key is required for remote execution"))?;
+                api_key.ok_or_else(|| miette!("API key is required for remote execution"))?;
 
             info!("Executing pipeline on remote executor: {}", executor_url);
             let params = HashMap::from_iter(params.unwrap_or_default());
@@ -114,7 +148,7 @@ async fn main() -> anyhow::Result<()> {
             api_key,
         } => {
             let execution_id = Uuid::parse_str(&execution_id)
-                .map_err(|e| anyhow!("Invalid execution ID: {}. Must be a valid UUID.", e))?;
+                .map_err(|e| miette!("Invalid execution ID: {}. Must be a valid UUID.", e))?;
 
             info!(
                 "Cancelling execution {} on executor: {}",

@@ -3,9 +3,12 @@ use datafusion::config::{ConfigField, CsvOptions, TableParquetOptions};
 use datafusion::dataframe::DataFrameWriteOptions;
 use datafusion::prelude::*;
 
-use crate::error::Result;
+use super::DestinationError;
 
-pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result<()> {
+pub(super) async fn write(
+    file_def: &FileDestination,
+    data: DataFrame,
+) -> Result<(), DestinationError> {
     let write_options = DataFrameWriteOptions::default()
         .with_partition_by(file_def.partition_columns.clone())
         .with_single_file_output(file_def.single_file);
@@ -16,14 +19,19 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
 
             options
                 .iter()
-                .try_for_each(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))?;
+                .try_for_each(|(k, v)| parquet_options.set(k.as_str(), v.as_str()))
+                .expect("failed to set parquet options");
 
             data.write_parquet(
                 file_def.location.as_str(),
                 write_options,
                 Some(parquet_options),
             )
-            .await?
+            .await
+            .map_err(|error| DestinationError::WriteFile {
+                name: file_def.name.clone(),
+                error,
+            })?
         }
         DestinationFileType::Csv(csv_options) => {
             let csv_options = CsvOptions::default()
@@ -31,12 +39,19 @@ pub(super) async fn write(file_def: &FileDestination, data: DataFrame) -> Result
                 .with_delimiter(csv_options.delimiter as u8);
 
             data.write_csv(file_def.location.as_str(), write_options, Some(csv_options))
-                .await?
+                .await
+                .map_err(|error| DestinationError::WriteFile {
+                    name: file_def.name.clone(),
+                    error,
+                })?
         }
-        DestinationFileType::Json => {
-            data.write_json(file_def.location.as_str(), write_options, None)
-                .await?
-        }
+        DestinationFileType::Json => data
+            .write_json(file_def.location.as_str(), write_options, None)
+            .await
+            .map_err(|error| DestinationError::WriteFile {
+                name: file_def.name.clone(),
+                error,
+            })?,
     };
 
     Ok(())

@@ -1,6 +1,6 @@
-use anyhow::anyhow;
 use aqueducts::prelude::*;
 use futures_util::{SinkExt, StreamExt};
+use miette::{miette, IntoDiagnostic, Result};
 use std::{str::FromStr, sync::Arc};
 use tokio::sync::{mpsc, Mutex};
 use tokio_tungstenite::{
@@ -23,8 +23,9 @@ pub struct WebSocketClient {
 
 impl WebSocketClient {
     /// Create a new client
-    pub fn try_new(executor_url: String, api_key: String) -> anyhow::Result<Self> {
-        let executor_url = Url::parse(&format!("ws://{executor_url}/ws/connect"))?;
+    pub fn try_new(executor_url: String, api_key: String) -> Result<Self> {
+        let executor_url =
+            Url::parse(&format!("ws://{executor_url}/ws/connect")).into_diagnostic()?;
         Ok(Self {
             executor_url,
             api_key,
@@ -33,7 +34,7 @@ impl WebSocketClient {
     }
 
     /// Connect to the executor and set up message handling
-    pub async fn connect(&self) -> anyhow::Result<mpsc::Receiver<ExecutorMessage>> {
+    pub async fn connect(&self) -> Result<mpsc::Receiver<ExecutorMessage>> {
         info!("Connecting to executor at: {}", self.executor_url);
 
         // Set up channels for message passing
@@ -41,11 +42,13 @@ impl WebSocketClient {
         let (incoming_tx, incoming_rx) = mpsc::channel::<ExecutorMessage>(32);
 
         debug!("Connecting with API key authentication");
-        let request = ClientRequestBuilder::new(Uri::from_str(self.executor_url.as_str())?)
-            .with_header(X_API_KEY_HEADER, &self.api_key)
-            .into_client_request()?;
+        let request =
+            ClientRequestBuilder::new(Uri::from_str(self.executor_url.as_str()).into_diagnostic()?)
+                .with_header(X_API_KEY_HEADER, &self.api_key)
+                .into_client_request()
+                .into_diagnostic()?;
 
-        let (ws_stream, _) = connect_async(request).await?;
+        let (ws_stream, _) = connect_async(request).await.into_diagnostic()?;
         debug!("WebSocket connection established");
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
@@ -110,7 +113,7 @@ impl WebSocketClient {
     }
 
     /// Submit a pipeline for execution
-    pub async fn execute_pipeline(&self, pipeline: Aqueduct) -> anyhow::Result<()> {
+    pub async fn execute_pipeline(&self, pipeline: Aqueduct) -> Result<()> {
         // Send execution request
         self.send_message(ClientMessage::ExecutionRequest { pipeline })
             .await?;
@@ -119,20 +122,20 @@ impl WebSocketClient {
     }
 
     /// Cancel an execution
-    pub async fn cancel_execution(&self, execution_id: Uuid) -> anyhow::Result<()> {
+    pub async fn cancel_execution(&self, execution_id: Uuid) -> Result<()> {
         self.send_message(ClientMessage::CancelRequest { execution_id })
             .await
     }
 
     /// Send a message to the executor
-    async fn send_message(&self, message: ClientMessage) -> anyhow::Result<()> {
+    async fn send_message(&self, message: ClientMessage) -> Result<()> {
         let sender = self.sender.lock().await;
         match &*sender {
             Some(tx) => {
-                tx.send(message).await?;
+                tx.send(message).await.into_diagnostic()?;
                 Ok(())
             }
-            None => Err(anyhow!("Connection Closed")),
+            None => Err(miette!("Connection Closed")),
         }
     }
 }

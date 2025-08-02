@@ -111,13 +111,13 @@ pub trait ProgressTracker: Send + Sync {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use aqueducts_core::{run_pipeline, progress_tracker::LoggingProgressTracker, templating::TemplateLoader};
+/// use aqueducts_core::{run_pipeline, progress_tracker::LoggingProgressTracker, templating::TemplateLoader, templating::TemplateFormat};
 /// use aqueducts_schemas::Aqueduct;
 /// use datafusion::prelude::SessionContext;
 /// use std::sync::Arc;
 ///
 /// async fn example() -> Result<(), Box<dyn std::error::Error>> {
-///     let pipeline = Aqueduct::from_file("pipeline.yml", Default::default())?;
+///     let pipeline = Aqueduct::from_file("pipeline.yml", TemplateFormat::Yaml, Default::default())?;
 ///     let ctx = Arc::new(SessionContext::new());
 ///     let tracker = Arc::new(LoggingProgressTracker);
 ///     
