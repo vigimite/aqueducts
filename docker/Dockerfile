@@ -17,14 +17,14 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
-RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARGETPLATFORM} \
-    --mount=type=cache,target=/app/target,id=cargo-target-${TARGETPLATFORM} \
-    cargo chef cook --release --features odbc -p aqueducts-executor --recipe-path recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo chef cook --release --recipe-path recipe.json --features odbc -p aqueducts-executor
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARGETPLATFORM} \
-    --mount=type=cache,target=/app/target,id=cargo-target-${TARGETPLATFORM} \
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
     cargo build --release --features odbc -p aqueducts-executor && \
     cp target/release/aqueducts-executor /tmp/aqueducts-executor
 
