@@ -100,15 +100,19 @@ pub async fn process_stage(
 
     match stage.show {
         Some(0) => {
-            let batches =
-                result
-                    .clone()
-                    .collect()
-                    .await
-                    .map_err(|error| StageError::Execution {
-                        name: stage.name.clone(),
-                        error,
-                    })?;
+            let batches = result
+                .clone()
+                .limit(0, Some(500))
+                .map_err(|error| StageError::Execution {
+                    name: stage.name.clone(),
+                    error,
+                })?
+                .collect()
+                .await
+                .map_err(|error| StageError::Execution {
+                    name: stage.name.clone(),
+                    error,
+                })?;
 
             if let Some(tracker) = &progress_tracker {
                 tracker.on_output(&stage.name, OutputType::Show, &schema, &batches);
