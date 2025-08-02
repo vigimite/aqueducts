@@ -42,6 +42,7 @@ toml = { workspace = true, optional = true }
 tokio.workspace = true
 
 thiserror.workspace = true
+miette.workspace = true
 
 tracing.workspace = true
 

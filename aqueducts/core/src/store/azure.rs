@@ -8,8 +8,7 @@ use std::{collections::HashMap, sync::Arc};
 use tracing::warn;
 use url::Url;
 
-use super::ObjectStoreProvider;
-use crate::error::{AqueductsError, Result};
+use super::{ObjectStoreProvider, StoreError};
 
 /// Provider for Azure Blob Storage.
 ///
@@ -54,7 +53,7 @@ impl ObjectStoreProvider for AzureProvider {
         &self,
         location: &Url,
         options: &HashMap<String, String>,
-    ) -> Result<Arc<dyn object_store::ObjectStore>> {
+    ) -> Result<Arc<dyn object_store::ObjectStore>, StoreError> {
         let mut builder = MicrosoftAzureBuilder::from_env();
 
         if let Some(account) = location.host_str() {
@@ -106,9 +105,10 @@ impl ObjectStoreProvider for AzureProvider {
             };
         }
 
-        builder
+        let result = builder
             .build()
-            .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)
-            .map_err(|e| AqueductsError::storage("object_store", e.to_string()))
+            .map(|store| Arc::new(store) as Arc<dyn object_store::ObjectStore>)?;
+
+        Ok(result)
     }
 }

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use std::{collections::HashMap, path::PathBuf, sync::atomic::AtomicBool};
 
-use anyhow::{anyhow, Context};
 use aqueducts::prelude::*;
+use miette::{miette, Result, WrapErr};
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tokio::sync::mpsc;
@@ -17,18 +17,19 @@ pub async fn run_remote(
     params: HashMap<String, String>,
     executor_url: String,
     api_key: String,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     info!("Parsing pipeline from file: {}", file.display());
-    let aqueduct = Aqueduct::from_file(&file, params)?;
+    let format = format_from_path(&file);
+    let aqueduct = Aqueduct::from_file(&file, format, params)?;
 
     let client = WebSocketClient::try_new(executor_url, api_key)
-        .context("failed to build websocket client")?;
+        .wrap_err("failed to build websocket client")?;
 
     info!("Connecting to remote executor...");
     let mut receiver = client
         .connect()
         .await
-        .context("Failed to connect to executor")?;
+        .wrap_err("Failed to connect to executor")?;
 
     // Set up execution cancellation handling
     let cancelled = Arc::new(AtomicBool::new(false));
@@ -45,7 +46,7 @@ pub async fn run_remote(
     client
         .execute_pipeline(aqueduct)
         .await
-        .context("Failed to submit pipeline for execution")?;
+        .wrap_err("Failed to submit pipeline for execution")?;
 
     let mut execution_id = None;
     let mut stage_buffer = StageOutputBuffer::new();
@@ -79,7 +80,7 @@ pub async fn run_remote(
                     }
                     Some(ExecutorMessage::ExecutionError { execution_id: _, message }) => {
                         error!("Pipeline execution failed: {}", message);
-                        return Err(anyhow!("Pipeline execution failed: {}", message));
+                        return Err(miette!("Pipeline execution failed: {}", message));
                     }
                     Some(ExecutorMessage::CancelResponse { execution_id: id }) => {
                         info!("Execution cancelled (ID: {})", id);
@@ -87,7 +88,7 @@ pub async fn run_remote(
                     }
                     None => {
                         error!("Lost connection to executor");
-                        return Err(anyhow!("Lost connection to executor"));
+                        return Err(miette!("Lost connection to executor"));
                     }
                 }
             }
@@ -107,13 +108,13 @@ pub async fn run_remote(
                 while !cancelled.load(std::sync::atomic::Ordering::SeqCst) {
                     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                 }
-                Ok::<_, anyhow::Error>(())
+                Ok::<_, miette::Error>(())
             } => {
                 if let Some(id) = execution_id {
                     let _ = cancel_tx.send(id).await;
                 } else {
                     error!("Cannot cancel: No execution ID available");
-                    return Err(anyhow!("Execution cancelled, but no execution ID was available"));
+                    return Err(miette!("Execution cancelled, but no execution ID was available"));
                 }
             }
         }
@@ -128,7 +129,7 @@ pub async fn cancel_remote_execution(
     executor_url: String,
     api_key: String,
     execution_id: Uuid,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     info!(
         "Connecting to remote executor to cancel execution {}...",
         execution_id
@@ -139,12 +140,12 @@ pub async fn cancel_remote_execution(
     let mut receiver = client
         .connect()
         .await
-        .context("Failed to connect to executor")?;
+        .wrap_err("Failed to connect to executor")?;
 
     client
         .cancel_execution(execution_id)
         .await
-        .context("Failed to send cancellation request")?;
+        .wrap_err("Failed to send cancellation request")?;
 
     while let Some(message) = receiver.recv().await {
         match message {
@@ -159,14 +160,14 @@ pub async fn cancel_remote_execution(
                 message,
             } => {
                 if id == execution_id {
-                    return Err(anyhow!("Failed to cancel execution: {}", message));
+                    return Err(miette!("Failed to cancel execution: {}", message));
                 }
             }
             _ => {}
         }
     }
 
-    Err(anyhow!(
+    Err(miette!(
         "Lost connection to executor before receiving cancellation confirmation"
     ))
 }

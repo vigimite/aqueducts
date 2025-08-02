@@ -125,8 +125,7 @@ When contributing:
 1. **For new features**: Add to the appropriate library crate
 2. **For user-facing APIs**: Ensure they're re-exported in the meta crate
 3. **For internal APIs**: Use `#[doc(hidden)]` if they must be public
-4. **For errors**: Use the unified `AqueductsError` system
-5. **For tests**: Place in the most specific crate possible
+4. **For tests**: Place in the most specific crate possible
 
 ## Running the Components
 

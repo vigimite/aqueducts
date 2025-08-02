@@ -32,7 +32,7 @@ use std::sync::Arc;
 
 use crate::handlers::register_handlers;
 
-mod error;
+pub mod error;
 
 pub mod handlers;
 

@@ -67,7 +67,7 @@ tracing-test = "0.2"
 
 # Error handling
 thiserror = "2"
-anyhow = "1.0.98"
+miette = { version = "7.6" }
 
 # CLI utilities
 clap = { version = "4.5.39", features = ["derive", "env"] }

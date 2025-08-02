@@ -22,7 +22,7 @@
 //! The ODBC integration is automatically registered when the feature is enabled.
 //! Configure ODBC sources and destinations in your pipeline YAML/JSON/TOML files:
 
-mod error;
+pub mod error;
 
 use std::sync::Arc;
 
@@ -42,7 +42,7 @@ use datafusion::{
     catalog::MemTable,
     prelude::SessionContext,
 };
-use error::Result;
+use error::OdbcError;
 use tracing::error;
 
 /// Register a table via ODBC using [arrow-odbc](https://docs.rs/arrow-odbc)
@@ -52,7 +52,7 @@ pub async fn register_odbc_source(
     connection_string: &str,
     query: &str,
     source_name: &str,
-) -> error::Result<()> {
+) -> Result<(), OdbcError> {
     let odbc_environment = Environment::new().unwrap();
 
     let connection = odbc_environment
@@ -87,7 +87,7 @@ pub async fn register_odbc_source(
 pub async fn register_odbc_destination(
     connection_string: &str,
     destination_name: &str,
-) -> Result<()> {
+) -> Result<(), OdbcError> {
     let odbc_environment = Environment::new().unwrap();
 
     let connection = odbc_environment
@@ -111,7 +111,7 @@ pub async fn write_arrow_batches(
     batches: Vec<datafusion::arrow::array::RecordBatch>,
     schema: std::sync::Arc<datafusion::arrow::datatypes::Schema>,
     batch_size: usize,
-) -> error::Result<()> {
+) -> Result<(), OdbcError> {
     match write_mode {
         WriteMode::Append => {
             append_arrow_batches(
@@ -144,7 +144,7 @@ async fn append_arrow_batches(
     batches: Vec<RecordBatch>,
     schema: Arc<Schema>,
     batch_size: usize,
-) -> Result<()> {
+) -> Result<(), OdbcError> {
     let odbc_environment = Environment::new().unwrap();
 
     let connection = odbc_environment
@@ -174,7 +174,7 @@ async fn custom(
     batches: Vec<RecordBatch>,
     schema: Arc<Schema>,
     batch_size: usize,
-) -> Result<()> {
+) -> Result<(), OdbcError> {
     let odbc_environment = Environment::new()?;
 
     let connection = odbc_environment
@@ -188,7 +188,7 @@ async fn custom(
 
     let _ = connection.set_autocommit(false);
 
-    let result = || -> Result<()> {
+    let result = || -> Result<(), OdbcError> {
         if let Some(stmt) = pre_insert {
             connection.execute(&stmt, (), None)?;
         }
