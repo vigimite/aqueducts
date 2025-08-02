@@ -73,7 +73,7 @@ miette = { version = "7.6" }
 clap = { version = "4.5.39", features = ["derive", "env"] }
 
 # General utilities
-bon = "3.6.3"
+bon = "3.6.5"
 regex = "1"
 url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
