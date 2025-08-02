@@ -40,7 +40,7 @@ pub struct Stage {
     pub query: String,
 
     /// When set to a value of up to `usize`, will print the result of this stage to the stdout limited by the number
-    /// Set value to 0 to not limit the outputs
+    /// Set value to 0 for unlimited output (capped at 500 rows to avoid terminal overflow)
     #[serde(default)]
     pub show: Option<usize>,
 
