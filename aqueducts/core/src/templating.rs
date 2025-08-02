@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::sync::{Arc, OnceLock};
 use std::{collections::HashMap, path::Path};
 
-use datafusion::sql::sqlparser::parser::ParserError;
+use datafusion::error::DataFusionError;
 use datafusion::sql::{parser::DFParser, sqlparser::dialect::GenericDialect};
 use miette::{Diagnostic, NamedSource, SourceOffset, SourceSpan};
 use regex::Regex;
@@ -106,7 +106,7 @@ pub enum TemplateError {
         #[source_code]
         source_code: Arc<NamedSource<String>>,
         #[source]
-        error: ParserError,
+        error: DataFusionError,
         #[label("syntax error in stage '{name}'")]
         span: SourceSpan,
         name: String,

@@ -24,6 +24,7 @@
 
 use aqueducts_schemas::{DeltaSource, DeltaWriteMode, ReplaceCondition};
 use datafusion::{execution::context::SessionContext, prelude::DataFrame};
+use delta_kernel::engine::arrow_conversion::TryFromArrow;
 use deltalake::{
     arrow::datatypes::Schema, protocol::SaveMode, DeltaOps, DeltaTable, DeltaTableBuilder,
 };
@@ -152,7 +153,7 @@ async fn create_delta_table(
         .with_columns(
             arrow_schema_fields
                 .iter()
-                .map(|field| deltalake::kernel::StructField::try_from(field).unwrap())
+                .map(|field| deltalake::kernel::StructField::try_from_arrow(field).unwrap())
                 .collect::<Vec<_>>(),
         )
         .with_partition_columns(partition_columns.to_vec())
