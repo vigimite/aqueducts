@@ -19,12 +19,13 @@ env:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runner: ubuntu-latest
             platform: linux/amd64
             suffix: amd64
-          - runner: ubuntu-24.04-arm64
+          - runner: ubuntu-24.04-arm
             platform: linux/arm64  
             suffix: arm64
     
