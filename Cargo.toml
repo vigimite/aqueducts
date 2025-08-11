@@ -77,7 +77,7 @@ bon = "3.6.5"
 regex = "1"
 url = { version = "2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "1.17.0", features = ["v4", "serde"] }
+uuid = { version = "1.18.0", features = ["v4", "serde"] }
 rand = "0.8"
 
 [profile.dist]
