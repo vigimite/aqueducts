@@ -224,7 +224,7 @@ version = "0.11.1"
 dependencies = [
  "aqueducts-schemas",
  "datafusion",
- "delta_kernel 0.13.0",
+ "delta_kernel",
  "deltalake",
  "rand 0.8.5",
  "serde_json",
@@ -2381,29 +2381,6 @@ dependencies = [
 
 [[package]]
 name = "delta_kernel"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f06f3676832e713e44f65804cebf82f46962d3e126f64f3251eb5fbeb0ad94e4"
-dependencies = [
- "bytes",
- "chrono",
- "delta_kernel_derive 0.13.0",
- "indexmap 2.11.0",
- "itertools 0.14.0",
- "roaring",
- "rustc_version",
- "serde",
- "serde_json",
- "strum",
- "thiserror 2.0.16",
- "tracing",
- "url",
- "uuid",
- "z85",
-]
-
-[[package]]
-name = "delta_kernel"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cac0f0eae6345b0cfb67c4304da961e590370860aa51e88315e808c5d496629f"
@@ -2411,7 +2388,7 @@ dependencies = [
  "arrow",
  "bytes",
  "chrono",
- "delta_kernel_derive 0.14.0",
+ "delta_kernel_derive",
  "futures",
  "indexmap 2.11.0",
  "itertools 0.14.0",
@@ -2433,17 +2410,6 @@ dependencies = [
 
 [[package]]
 name = "delta_kernel_derive"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "059e70a67ae0c827a0e7f393eb05db2985533b3b612f8b33243433853570db45"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "delta_kernel_derive"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "064456b054cf26b607f4cbcef6d2ca102f64ed8e4fa702d2e307ce67b5b93569"
@@ -2458,7 +2424,7 @@ name = "deltalake"
 version = "0.28.0"
 source = "git+https://github.com/delta-io/delta-rs?rev=1f0b4d0#1f0b4d0965a85400c1effc6e9b4c7ebbb6795978"
 dependencies = [
- "delta_kernel 0.14.0",
+ "delta_kernel",
  "deltalake-aws",
  "deltalake-azure",
  "deltalake-core",
@@ -2533,7 +2499,7 @@ dependencies = [
  "dashmap",
  "datafusion",
  "datafusion-proto",
- "delta_kernel 0.14.0",
+ "delta_kernel",
  "deltalake-derive",
  "either",
  "futures",
@@ -4651,7 +4617,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn",

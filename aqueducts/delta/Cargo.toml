@@ -18,7 +18,7 @@ datafusion.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-delta_kernel = "0.13.0"
+delta_kernel = "0.14.0"
 
 [features]
 default = []
