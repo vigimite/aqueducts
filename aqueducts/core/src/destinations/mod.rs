@@ -13,7 +13,7 @@ pub mod file;
 
 #[derive(Debug, thiserror::Error, Diagnostic)]
 pub enum DestinationError {
-    #[error("Object store error {name}: {error}")]
+    #[error("Object store error '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::store_error),
         help(
@@ -29,7 +29,7 @@ pub enum DestinationError {
         error: StoreError,
     },
 
-    #[error("Failed to register in-memory destination {name}")]
+    #[error("Failed to register in-memory destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::register_memory_error),
         help(
@@ -44,7 +44,7 @@ pub enum DestinationError {
         error: datafusion::error::DataFusionError,
     },
 
-    #[error("Failed to write to in-memory destination {name}")]
+    #[error("Failed to write to in-memory destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::write_memory_error),
         help(
@@ -59,7 +59,7 @@ pub enum DestinationError {
         error: datafusion::error::DataFusionError,
     },
 
-    #[error("Failed to register file destination {name}")]
+    #[error("Failed to register file destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::register_file_error),
         help(
@@ -75,7 +75,7 @@ pub enum DestinationError {
         error: datafusion::error::DataFusionError,
     },
 
-    #[error("Failed to write to file destination {name}")]
+    #[error("Failed to write to file destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::write_file_error),
         help(
@@ -93,7 +93,7 @@ pub enum DestinationError {
     },
 
     #[cfg(feature = "odbc")]
-    #[error("Failed to register ODBC destination {name}")]
+    #[error("Failed to register ODBC destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::register_odbc_error),
         help(
@@ -111,7 +111,7 @@ pub enum DestinationError {
     },
 
     #[cfg(feature = "odbc")]
-    #[error("Failed to write to ODBC destination {name}")]
+    #[error("Failed to write to ODBC destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::write_odbc_error),
         help(
@@ -128,7 +128,7 @@ pub enum DestinationError {
     },
 
     #[cfg(feature = "delta")]
-    #[error("Failed to register Delta destination {name}")]
+    #[error("Failed to register Delta destination '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::destination::register_delta_error),
         help(

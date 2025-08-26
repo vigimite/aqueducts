@@ -31,7 +31,7 @@ pub enum SourceError {
     )]
     NotFound(String),
 
-    #[error("Object store error for source '{name}'")]
+    #[error("Object store error for source '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::source::store_error),
         help(
@@ -48,7 +48,7 @@ pub enum SourceError {
         error: StoreError,
     },
 
-    #[error("Failed to register file source '{name}'")]
+    #[error("Failed to register file source '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::source::register_file),
         help(
@@ -68,7 +68,7 @@ pub enum SourceError {
     },
 
     #[cfg(feature = "odbc")]
-    #[error("Failed to register ODBC source '{name}'")]
+    #[error("Failed to register ODBC source '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::source::register_odbc),
         help(
@@ -86,7 +86,7 @@ pub enum SourceError {
     },
 
     #[cfg(feature = "delta")]
-    #[error("Failed to register Delta source '{name}'")]
+    #[error("Failed to register Delta source '{name}'. {error}")]
     #[diagnostic(
         code(aqueducts::source::register_delta),
         help(
