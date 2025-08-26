@@ -24,9 +24,9 @@
 
 use aqueducts_schemas::{DeltaSource, DeltaWriteMode, ReplaceCondition};
 use datafusion::{execution::context::SessionContext, prelude::DataFrame};
-use delta_kernel::engine::arrow_conversion::TryFromArrow;
 use deltalake::{
-    arrow::datatypes::Schema, protocol::SaveMode, DeltaOps, DeltaTable, DeltaTableBuilder,
+    arrow::datatypes::Schema, kernel::engine::arrow_conversion::TryFromArrow, protocol::SaveMode,
+    DeltaOps, DeltaTable, DeltaTableBuilder,
 };
 use error::DeltaError;
 use std::sync::Arc;
@@ -153,7 +153,7 @@ async fn create_delta_table(
         .with_columns(
             arrow_schema_fields
                 .iter()
-                .map(|field| deltalake::kernel::StructField::try_from_arrow(field).unwrap())
+                .map(|field| deltalake::StructField::try_from_arrow(field).unwrap())
                 .collect::<Vec<_>>(),
         )
         .with_partition_columns(partition_columns.to_vec())
@@ -189,7 +189,10 @@ async fn write_delta_table(
                 })
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| {
-                    DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(e, None))
+                    DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(
+                        Box::new(e),
+                        None,
+                    ))
                 })?;
 
             ops.write(batches).with_save_mode(SaveMode::Append).await?
@@ -211,7 +214,10 @@ async fn write_delta_table(
                 })
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| {
-                    DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(e, None))
+                    DeltaError::DataFusion(datafusion::error::DataFusionError::ArrowError(
+                        Box::new(e),
+                        None,
+                    ))
                 })?;
 
             // Build replace predicate from conditions

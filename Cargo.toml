@@ -35,9 +35,9 @@ aqueducts-delta = { path = "aqueducts/delta", version = "0.11.1" }
 aqueducts-odbc = { path = "aqueducts/odbc", version = "0.11.1" }
 
 # Data processing libraries
-datafusion = "48"
-datafusion-functions-json = "0.48"
-deltalake = { version = "0.27.0", features = ["datafusion"] }
+datafusion = "49"
+datafusion-functions-json = "0.49"
+deltalake = { rev = "1f0b4d0", git = "https://github.com/delta-io/delta-rs", features = ["datafusion"] }
 arrow-odbc = "16.0.2"
 
 # Serialization/deserialization
