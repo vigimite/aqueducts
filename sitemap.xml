@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://vigimite.github.io/aqueducts/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://vigimite.github.io/aqueducts/execution/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://vigimite.github.io/aqueducts/getting-started/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://vigimite.github.io/aqueducts/pipelines/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://vigimite.github.io/aqueducts/schema_reference/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+    <url>
+         <loc>https://vigimite.github.io/aqueducts/includes/abbreviations/</loc>
+         <lastmod>2025-08-26</lastmod>
+    </url>
+</urlset>
