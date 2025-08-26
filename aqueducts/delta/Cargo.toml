@@ -18,8 +18,6 @@ datafusion.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-delta_kernel = "0.13.0"
-
 [features]
 default = []
 s3 = ["deltalake/s3"]
