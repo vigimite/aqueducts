@@ -62,7 +62,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 
 # Logging and tracing
 tracing = "0.1"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 tracing-test = "0.2"
 
 # Error handling
