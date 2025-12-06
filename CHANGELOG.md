@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2025-12-06
+### Details
+
+#### Changed
+- Update cargo dist to v0.29.0
+- Integrate miette diagnostics 
+
+* refactor: align errors to be cleaner and more useful
+
+* fix: failing doctests
+
+* feat: use miette for error output in aqueducts-cli + pre-validate SQL when parsing aqueducts definition
+
+* fmt: cargo fmt
+
+* lint: fix clippy warnings
+
+* fmt: fix formatting again
+- Bump tokio from 1.45.1 to 1.47.0
+- Bump bon from 3.6.3 to 3.6.5
+- Update to datafusion v48, datafusion-json-functions v0.48 and deltalake v0.27.0
+- Update docs to reflect 500 item upper limit
+- Pin deltalake to newer version to resolve delta issue
+- Update datafusion & datafusion-json-functions to v51, arrow to v57, arrow-odbc to v21
+- Update deps axum, tracing-subscriber, bon and uuid
+- Update cargo-dist and remove native-tls dependency
+- Update cargo-chef image
+- Update rand crate
+
+#### Fixed
+- Broken docker build due to race condition
+- Try to fix docker build
+- Correct arm runner name
+- Clippy lint fix
+
+#### Removed
+- Remove broken publish crates workflow
+- Remove unused delta_kernel dependency
+
 ## [0.11.1] - 2025-07-24
 ### Details
 #### Changed
@@ -322,6 +361,7 @@ feat: add odbc support for source by @vigimite in [#2](https://github.com/vigimi
 - Add release workflow by @vigimite
 - Cleaned up workflows by @vigimite
 
+[0.12.0]: https://github.com/vigimite/aqueducts/compare/v0.11.1..v0.12.0
 [0.11.1]: https://github.com/vigimite/aqueducts/compare/v0.11.0..v0.11.1
 [0.11.0]: https://github.com/vigimite/aqueducts/compare/v0.10.1..v0.11.0
 [0.10.1]: https://github.com/vigimite/aqueducts/compare/v0.10.0..v0.10.1
