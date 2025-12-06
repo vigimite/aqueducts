@@ -1,0 +1,30 @@
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #111f2c;
+  --md-primary-fg-color--light: #111f2c;
+  --md-primary-fg-color--dark: #111f2c;
+  --md-footer-bg-color--light: #111f2c;
+  --md-footer-bg-color--dark: #111f2c;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #3b444b;
+  --md-primary-fg-color--light: #3b444b;
+  --md-primary-fg-color--dark: #3b444b;
+  --md-footer-bg-color--light: #3b444b;
+  --md-footer-bg-color--dark: #3b444b;
+}
+
+/* Improve code block styling */
+.highlight .hll {
+  background-color: var(--md-code-hl-color);
+}
+
+/* Better spacing for admonitions */
+.md-typeset .admonition {
+  margin: 1.5625em 0;
+}
+
+/* Enhanced tab styling */
+.md-typeset .tabbed-set {
+  border-radius: 0.1rem;
+}
