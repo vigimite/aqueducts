@@ -155,7 +155,7 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "aqueducts"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts-core",
  "aqueducts-delta",
@@ -169,7 +169,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-cli"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts",
  "clap",
@@ -189,7 +189,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-core"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts-delta",
  "aqueducts-odbc",
@@ -214,7 +214,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-delta"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts-schemas",
  "datafusion",
@@ -231,7 +231,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-executor"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts",
  "axum",
@@ -256,7 +256,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-odbc"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts-schemas",
  "arrow-odbc",
@@ -271,7 +271,7 @@ dependencies = [
 
 [[package]]
 name = "aqueducts-schemas"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "bon",
  "chrono",
@@ -5196,7 +5196,7 @@ dependencies = [
 
 [[package]]
 name = "schema-generator"
-version = "0.11.1"
+version = "0.12.0"
 dependencies = [
  "aqueducts-schemas",
  "schemars",
